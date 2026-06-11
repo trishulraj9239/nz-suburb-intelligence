@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/* ===========================================================================
+   Design tokens — NZ Suburb Intelligence
+   Light is the default (:root). Dark lives under [data-theme="dark"], which
+   next-themes sets on <html> (respecting the OS prefers-color-scheme on first
+   load). No hardcoded hex anywhere else in the app — everything reads these.
+   =========================================================================== */
+:root {
+  --canvas: #f4f6f5;
+  --ink: #13212e;
+  --surface: #ffffff;
+  --hairline: #e2e7e6;
+  --harbour: #0e6e73;
+  /* Amber is RESERVED for the citation live-wire highlight only — not general UI. */
+  --amber: #e9a23b;
+}
+
+[data-theme="dark"] {
+  --canvas: #0e1822;
+  --surface: #16222e;
+  --ink: #e6ecee;
+  --hairline: #26333e;
+  /* harbour + amber lifted slightly for contrast on dark */
+  --harbour: #169aa0;
+  --amber: #f2b65c;
+}
+
+/* Expose the tokens + fonts to Tailwind utilities (bg-canvas, text-ink, …). */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-ink: var(--ink);
+  --color-surface: var(--surface);
+  --color-hairline: var(--hairline);
+  --color-harbour: var(--harbour);
+  --color-amber: var(--amber);
+
+  --font-display: var(--font-space-grotesk);
+  --font-sans: var(--font-ibm-plex-sans);
+  --font-mono: var(--font-ibm-plex-mono);
+}
+
+html {
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
