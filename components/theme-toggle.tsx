@@ -1,7 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
+
+// Hydration guard without effect-state: false on the server snapshot, true on
+// the client — the resolved theme is only knowable after hydration.
+const noopSubscribe = () => () => {};
+const useMounted = () =>
+  useSyncExternalStore(noopSubscribe, () => true, () => false);
 
 /**
  * Top-bar theme toggle. Flips between light and dark (seeded from the resolved
@@ -10,9 +16,7 @@ import { useTheme } from "next-themes";
  */
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   const isDark = resolvedTheme === "dark";
 

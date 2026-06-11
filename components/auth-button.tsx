@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+
+// Hydration guard without effect-state (see theme-toggle for rationale).
+const noopSubscribe = () => () => {};
+const useMounted = () =>
+  useSyncExternalStore(noopSubscribe, () => true, () => false);
 
 /**
  * Top-bar auth widget: signed-out → "Sign in" link; signed-in → email + sign
@@ -14,10 +19,9 @@ import { createClient } from "@/lib/supabase/client";
 export function AuthButton() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
 
   useEffect(() => {
-    setMounted(true);
     const supabase = createClient();
 
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
