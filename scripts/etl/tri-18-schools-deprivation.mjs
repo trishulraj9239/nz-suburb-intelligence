@@ -113,7 +113,8 @@ for (const code of sa2023) {
     if (hit) q = "low";
   }
   if (!hit || hit.decile == null) { missed++; continue; }
-  q === "medium" ? exact++ : inherited++;
+  if (q === "medium") exact++;
+  else inherited++;
   depRows.push({ g: code, m: "nzdep_decile", v: hit.decile, d: "2018-03-06", q });
   if (hit.score != null)
     depRows.push({ g: code, m: "nzdep_score", v: hit.score, d: "2018-03-06", q });
