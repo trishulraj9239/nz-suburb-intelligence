@@ -50,6 +50,7 @@ Migrations live in [`supabase/migrations`](supabase/migrations):
 - **`0001_core_schema.sql`** — applied. Five reference tables (`geographies`,
   `sources`, `metric_definitions`, `metric_values`, `schools`) + PostGIS, RLS with
   public-read policies, and the Tier-1 source seed.
-- **`0002_embeddings.sql`** — **staged but NOT applied.** Its pgvector dimension is
-  a placeholder pending the locked Gemini embedding model (see the file header).
-  Do not apply until that dimension is confirmed.
+- **`0002_embeddings.sql`** — applied. `suburb_embeddings` with pgvector at the
+  locked dimension: **`gemini-embedding-001` @ 768** (decision record in the file
+  header). Server-only — no anon read policy; re-normalize 768-dim outputs before
+  cosine similarity.
