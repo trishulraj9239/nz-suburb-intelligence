@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import type { Map as MapLibreMap, StyleSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { useWorkspace } from "@/lib/workspace";
 
 /**
  * Auckland map: LINZ Basemaps raster tiles (decision #2: LINZ Basemaps over
@@ -56,6 +57,24 @@ function overlayLayers(): StyleSpecification["layers"] {
         "line-color": token("--harbour", "#0e6e73"),
         "line-width": ["interpolate", ["linear"], ["zoom"], 8, 0.4, 13, 1.4],
         "line-opacity": 0.55,
+      },
+    },
+    // Selected suburb: stronger fill + outline, driven by a code filter.
+    {
+      id: "sa2-selected-fill",
+      type: "fill",
+      source: "sa2",
+      filter: ["==", ["get", "SA22023_V1_00"], ""],
+      paint: { "fill-color": token("--harbour", "#0e6e73"), "fill-opacity": 0.18 },
+    },
+    {
+      id: "sa2-selected-line",
+      type: "line",
+      source: "sa2",
+      filter: ["==", ["get", "SA22023_V1_00"], ""],
+      paint: {
+        "line-color": token("--harbour", "#0e6e73"),
+        "line-width": 2.5,
       },
     },
   ];
@@ -130,6 +149,11 @@ export function MapContainer() {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const { resolvedTheme } = useTheme();
+  const { selected, select } = useWorkspace();
+  const selectRef = useRef(select);
+  useEffect(() => {
+    selectRef.current = select;
+  }, [select]);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -153,6 +177,18 @@ export function MapContainer() {
       });
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
       map.once("load", () => applyThemePaint(map, isDarkNow()));
+
+      map.on("click", "sa2-fill", (e) => {
+        const code = e.features?.[0]?.properties?.SA22023_V1_00 as string | undefined;
+        if (code) selectRef.current(code);
+      });
+      map.on("mouseenter", "sa2-fill", () => {
+        map.getCanvas().style.cursor = "pointer";
+      });
+      map.on("mouseleave", "sa2-fill", () => {
+        map.getCanvas().style.cursor = "";
+      });
+
       mapRef.current = map;
     })();
 
@@ -162,6 +198,20 @@ export function MapContainer() {
       mapRef.current = null;
     };
   }, []);
+
+  // Reflect the selected suburb on the map (works from search/example chips too).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const apply = () => {
+      const filter = ["==", ["get", "SA22023_V1_00"], selected ?? ""] as const;
+      for (const layer of ["sa2-selected-fill", "sa2-selected-line"]) {
+        if (map.getLayer(layer)) map.setFilter(layer, filter as never);
+      }
+    };
+    if (map.isStyleLoaded()) apply();
+    else map.once("load", apply);
+  }, [selected]);
 
   useEffect(() => {
     const map = mapRef.current;
