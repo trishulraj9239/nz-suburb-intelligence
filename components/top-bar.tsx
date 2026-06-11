@@ -1,4 +1,5 @@
 import { ThemeToggle } from "./theme-toggle";
+import { AuthButton } from "./auth-button";
 
 /**
  * Thin top bar: product name · query-bar placeholder · Compare counter ·
@@ -29,6 +30,7 @@ export function TopBar() {
         Compare <span className="text-harbour">0</span>/3
       </span>
 
+      <AuthButton />
       <ThemeToggle />
     </header>
   );
