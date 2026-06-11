@@ -19,7 +19,8 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 const AUCKLAND_CENTER: [number, number] = [174.7633, -36.8485];
 const LINZ_KEY = process.env.NEXT_PUBLIC_LINZ_API_KEY;
-const LINZ_TILES = `https://basemaps.linz.govt.nz/v1/tiles/topolite/WebMercatorQuad/{z}/{x}/{y}.webp?api=${LINZ_KEY}`;
+// topolite vector style — LINZ's clean cartographic base, built for data-over-map UIs.
+const LINZ_STYLE = `https://basemaps.linz.govt.nz/v1/styles/topolite.json?api=${LINZ_KEY}`;
 const LINZ_ATTRIBUTION =
   '<a href="https://www.linz.govt.nz/" target="_blank" rel="noopener">© LINZ CC BY 4.0</a> · boundaries <a href="https://www.stats.govt.nz/" target="_blank" rel="noopener">Stats NZ</a>';
 
@@ -31,67 +32,80 @@ function token(name: string, fallback: string) {
   );
 }
 
-function buildStyle(): StyleSpecification {
-  const style: StyleSpecification = {
-    version: 8,
-    sources: {
-      sa2: { type: "geojson", data: "/geo/auckland-sa2.geojson" },
+// Our overlay stack, appended above whatever base style is in use:
+// a dim veil (dark mode lowers the basemap without needing a dark LINZ style)
+// then the SA2 polygons in the harbour token.
+function overlayLayers(): StyleSpecification["layers"] {
+  return [
+    {
+      id: "dim-veil",
+      type: "background",
+      paint: { "background-color": "#0e1822", "background-opacity": 0 },
     },
+    {
+      id: "sa2-fill",
+      type: "fill",
+      source: "sa2",
+      paint: { "fill-color": token("--harbour", "#0e6e73"), "fill-opacity": 0.04 },
+    },
+    {
+      id: "sa2-line",
+      type: "line",
+      source: "sa2",
+      paint: {
+        "line-color": token("--harbour", "#0e6e73"),
+        "line-width": ["interpolate", ["linear"], ["zoom"], 8, 0.4, 13, 1.4],
+        "line-opacity": 0.55,
+      },
+    },
+  ];
+}
+
+const SA2_SOURCE = {
+  type: "geojson",
+  data: "/geo/auckland-sa2.geojson",
+  attribution: LINZ_ATTRIBUTION,
+} as const;
+
+/**
+ * Base = LINZ topolite vector style (fetched, then our overlay merged in).
+ * Without a key, or if the fetch fails, fall back to polygons over the token
+ * canvas so the shell never breaks on missing config.
+ */
+async function buildStyle(): Promise<StyleSpecification> {
+  if (LINZ_KEY) {
+    try {
+      const res = await fetch(LINZ_STYLE);
+      if (res.ok) {
+        const base = (await res.json()) as StyleSpecification;
+        base.sources = { ...base.sources, sa2: SA2_SOURCE };
+        base.layers = [...base.layers, ...overlayLayers()];
+        return base;
+      }
+    } catch {
+      // fall through to the keyless style
+    }
+  }
+  return {
+    version: 8,
+    sources: { sa2: SA2_SOURCE },
     layers: [
       {
         id: "background",
         type: "background",
         paint: { "background-color": token("--canvas", "#f4f6f5") },
       },
-      {
-        id: "sa2-fill",
-        type: "fill",
-        source: "sa2",
-        paint: { "fill-color": token("--harbour", "#0e6e73"), "fill-opacity": 0.04 },
-      },
-      {
-        id: "sa2-line",
-        type: "line",
-        source: "sa2",
-        paint: {
-          "line-color": token("--harbour", "#0e6e73"),
-          "line-width": ["interpolate", ["linear"], ["zoom"], 8, 0.4, 13, 1.4],
-          "line-opacity": 0.55,
-        },
-      },
+      ...overlayLayers(),
     ],
   };
-
-  if (LINZ_KEY) {
-    style.sources.linz = {
-      type: "raster",
-      tiles: [LINZ_TILES],
-      tileSize: 256,
-      attribution: LINZ_ATTRIBUTION,
-      maxzoom: 19,
-    };
-    // Basemap slots between the background and the SA2 overlay.
-    style.layers.splice(1, 0, {
-      id: "linz-basemap",
-      type: "raster",
-      source: "linz",
-      paint: {},
-    });
-  }
-
-  return style;
 }
 
-// Dark mode: dim + desaturate the light tiles (no official dark LINZ style).
 function applyThemePaint(map: MapLibreMap, dark: boolean) {
   if (map.getLayer("background")) {
     map.setPaintProperty("background", "background-color", token("--canvas", dark ? "#0e1822" : "#f4f6f5"));
   }
-  if (map.getLayer("linz-basemap")) {
-    map.setPaintProperty("linz-basemap", "raster-brightness-max", dark ? 0.4 : 1);
-    map.setPaintProperty("linz-basemap", "raster-brightness-min", dark ? 0.05 : 0);
-    map.setPaintProperty("linz-basemap", "raster-saturation", dark ? -0.6 : 0);
-    map.setPaintProperty("linz-basemap", "raster-contrast", dark ? 0.15 : 0);
+  if (map.getLayer("dim-veil")) {
+    map.setPaintProperty("dim-veil", "background-opacity", dark ? 0.72 : 0);
   }
   for (const [layer, prop] of [
     ["sa2-fill", "fill-color"],
@@ -102,7 +116,7 @@ function applyThemePaint(map: MapLibreMap, dark: boolean) {
     }
   }
   if (map.getLayer("sa2-line")) {
-    map.setPaintProperty("sa2-line", "line-opacity", dark ? 0.8 : 0.55);
+    map.setPaintProperty("sa2-line", "line-opacity", dark ? 0.85 : 0.55);
   }
 }
 
@@ -122,12 +136,15 @@ export function MapContainer() {
     let cancelled = false;
 
     (async () => {
-      const maplibregl = (await import("maplibre-gl")).default;
+      const [maplibregl, style] = await Promise.all([
+        import("maplibre-gl").then((m) => m.default),
+        buildStyle(),
+      ]);
       if (cancelled || !ref.current || mapRef.current) return;
 
       const map = new maplibregl.Map({
         container: ref.current,
-        style: buildStyle(),
+        style,
         center: AUCKLAND_CENTER,
         zoom: 9.5,
         minZoom: 7,
