@@ -92,3 +92,16 @@ than trusting code length alone.
    vs per-SA2 calls.
 5. Median topics (`asMed`, `wrmed`, `ibmed`, `himed`) are pre-computed by
    Stats NZ — exact census values → `confidence='high'`.
+
+## Gateway gotchas (hit while building TRI-17 — encode in every client)
+
+1. **Node/undici is blocked at the TLS layer.** Every request from Node's
+   built-in `fetch` returns 500 — same URL, same headers succeed via curl.
+   The ETL scripts shell out to `curl` for all HTTP.
+2. **URL path limit ≈ 1 KB**: max ~40 `+`-joined geo codes per request
+   (80 codes → `400 Bad Request - Invalid URL` from the IIS layer).
+3. **National wildcard slices 500**: an empty GEO segment (all 4,423 areas)
+   fails even for a single topic. Always constrain GEO explicitly.
+4. Use the `/all` provider-ref suffix on data URLs (the verified shape).
+5. Working ETL pattern: chunk the 633 Auckland SA2s × all topics per call —
+   48 requests total, ~2 min, no throttling observed.
