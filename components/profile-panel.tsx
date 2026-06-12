@@ -54,13 +54,51 @@ function PercentileBar({ pct, judged }: { pct: number; judged: boolean }) {
   );
 }
 
+/** 2013→2023 census sparkline + delta vs the previous census (TRI-36). */
+function Trend({ s }: { s: ScalarValue }) {
+  const h = s.history;
+  if (h.length < 2) return null;
+  const W = 52;
+  const H = 14;
+  const vals = h.map((p) => p.value);
+  const min = Math.min(...vals);
+  const span = Math.max(...vals) - min || 1;
+  const pts = h
+    .map(
+      (p, i) =>
+        `${((i / (h.length - 1)) * (W - 2) + 1).toFixed(1)},${(H - 1.5 - ((p.value - min) / span) * (H - 3)).toFixed(1)}`,
+    )
+    .join(" ");
+  const prev = h[h.length - 2].value;
+  const last = h[h.length - 1].value;
+  const pct = prev === 0 ? 0 : ((last - prev) / Math.abs(prev)) * 100;
+  const arrow = pct > 0.5 ? "↑" : pct < -0.5 ? "↓" : "→";
+  return (
+    <span
+      className="flex items-center gap-1"
+      title={h.map((p) => `${p.asOf.slice(0, 4)}: ${p.value.toLocaleString()}`).join(" · ")}
+    >
+      <svg width={W} height={H} aria-hidden className="opacity-70">
+        <polyline points={pts} fill="none" stroke="var(--harbour)" strokeWidth="1.5" />
+      </svg>
+      <span className="font-mono text-[10px] text-ink/55">
+        {arrow}
+        {Math.abs(pct) >= 0.5 ? `${Math.abs(pct).toFixed(0)}%` : ""}
+      </span>
+    </span>
+  );
+}
+
 function ScalarRow({ s, stat }: { s: ScalarValue; stat?: RegionalStat }) {
   return (
     <div className="py-2">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-sm text-ink/80">{s.def.label}</span>
-        <span className="font-mono text-sm font-medium text-ink">
-          {formatValue(s.def, s.value)}
+        <span className="flex items-center gap-2">
+          <Trend s={s} />
+          <span className="font-mono text-sm font-medium text-ink">
+            {formatValue(s.def, s.value)}
+          </span>
         </span>
       </div>
       {stat && (
@@ -139,6 +177,16 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
           SA2 {suburb.sa2_code}
           {suburb.land_area_km2 != null && <> · {suburb.land_area_km2.toFixed(1)} km²</>}
         </p>
+        {profile.cbdKm != null && (
+          <p
+            className="mt-1 font-mono text-[11px] text-ink/60"
+            title="Straight-line distance from the suburb centroid to the Auckland CBD (Sky Tower). Drive time is a rough off-peak estimate — no live traffic data."
+          >
+            CBD {profile.cbdKm.toFixed(1)} km (straight line) · ≈
+            {Math.max(5, Math.round(((profile.cbdKm * 1.3) / 30) * 60 / 5) * 5)} min drive
+            (off-peak est.)
+          </p>
+        )}
       </div>
 
       {/* Scalar dimensions */}
@@ -188,41 +236,43 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
         </section>
       ))}
 
-      {/* Schools — entities, not metrics */}
+      {/* Schools — nearest by distance from the centroid (TRI-36), so zoned
+          schools just over the boundary appear too. */}
       <section>
         <h3 className="border-b border-hairline pb-1 font-display text-xs font-semibold uppercase tracking-wider text-ink/60">
-          Schools in this area{" "}
-          <span className="font-mono text-[10px] normal-case text-ink/40">({schools.length})</span>
+          Schools nearby{" "}
+          <span className="font-mono text-[10px] normal-case text-ink/40">
+            ({schools.length} within the area)
+          </span>
         </h3>
-        {schools.length === 0 ? (
-          <p className="mt-2 text-xs text-ink/50">None located within this SA2.</p>
+        {profile.nearbySchools.length === 0 ? (
+          <p className="mt-2 text-xs text-ink/50">No located schools found nearby.</p>
         ) : (
           <ul className="mt-1 divide-y divide-hairline/60">
-            {schools.slice(0, 6).map((sc) => (
+            {profile.nearbySchools.map((sc) => (
               <li key={sc.name} className="flex items-baseline justify-between gap-2 py-1.5">
                 <div className="min-w-0">
                   <p className="truncate text-sm text-ink/85">{sc.name}</p>
                   <p className="text-[11px] text-ink/45">
                     {sc.school_type}
                     {sc.authority ? ` · ${sc.authority}` : ""}
+                    {sc.roll != null ? ` · roll ${sc.roll.toLocaleString()}` : ""}
                   </p>
                 </div>
-                {sc.roll != null && (
-                  <span className="font-mono text-xs text-ink/70" title="School roll">
-                    {sc.roll.toLocaleString()}
-                  </span>
-                )}
+                <span
+                  className="shrink-0 font-mono text-xs text-ink/70"
+                  title="Straight-line distance from the suburb centroid"
+                >
+                  {sc.distance_km.toFixed(1)} km
+                </span>
               </li>
             ))}
-            {schools.length > 6 && (
-              <li className="py-1.5 text-[11px] text-ink/45">
-                + {schools.length - 6} more
-              </li>
-            )}
           </ul>
         )}
         <div className="mt-1 flex justify-end">
-          <span className="font-mono text-[10px] text-ink/45">Schools Directory · 2026</span>
+          <span className="font-mono text-[10px] text-ink/45">
+            Schools Directory · 2026 · distances straight-line
+          </span>
         </div>
       </section>
     </div>

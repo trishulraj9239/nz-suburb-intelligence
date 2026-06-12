@@ -100,6 +100,16 @@ export function ComparePanel() {
             );
           })}
           <tr>
+            <td className="py-2 pr-2 text-xs text-ink/70" title="Straight-line, centroid to Sky Tower">
+              CBD distance
+            </td>
+            {profiles.map((p) => (
+              <td key={p.suburb.sa2_code} className="px-1 py-2 font-mono text-xs text-ink">
+                {p.cbdKm != null ? `${p.cbdKm.toFixed(1)} km` : "—"}
+              </td>
+            ))}
+          </tr>
+          <tr>
             <td className="py-2 pr-2 text-xs text-ink/70">Schools located here</td>
             {profiles.map((p) => (
               <td key={p.suburb.sa2_code} className="px-1 py-2 font-mono text-xs text-ink">

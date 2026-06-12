@@ -30,6 +30,8 @@ export interface ScalarValue {
   asOf: string;
   source: string;
   confidence: string;
+  /** Census time series, oldest first (1-3 points). */
+  history: { asOf: string; value: number }[];
 }
 
 export interface BreakdownValue {
@@ -48,11 +50,20 @@ export interface School {
   roll: number | null;
 }
 
+export interface NearbySchool extends School {
+  distance_km: number;
+}
+
 export interface SuburbProfile {
   suburb: Suburb;
   scalars: ScalarValue[];
   breakdowns: BreakdownValue[];
+  /** Schools located within the SA2 (compare counts use this). */
   schools: School[];
+  /** Closest schools by geodesic distance from the centroid (TRI-36). */
+  nearbySchools: NearbySchool[];
+  /** Straight-line km, suburb centroid → Auckland CBD. */
+  cbdKm: number | null;
 }
 
 export interface RegionalStat {
@@ -185,20 +196,26 @@ export async function fetchProfile(sa2: string): Promise<SuburbProfile | null> {
   if (!suburb) return null;
 
   const supabase = createClient();
-  const [{ data: rows, error: e1 }, { data: schoolRows, error: e2 }] =
-    await Promise.all([
-      supabase
-        .from("metric_values")
-        .select(
-          "category, value_num, as_of_date, confidence, metric_definitions(metric_key,label,dimension,unit,value_type,higher_is_better,display_order), sources(name)",
-        )
-        .eq("geo_id", suburb.id),
-      supabase
-        .from("schools")
-        .select("name, school_type, authority, roll")
-        .eq("geo_id", suburb.id)
-        .order("roll", { ascending: false, nullsFirst: false }),
-    ]);
+  const [
+    { data: rows, error: e1 },
+    { data: schoolRows, error: e2 },
+    { data: nearbyRows },
+    { data: cbdKmRaw },
+  ] = await Promise.all([
+    supabase
+      .from("metric_values")
+      .select(
+        "category, value_num, as_of_date, confidence, metric_definitions(metric_key,label,dimension,unit,value_type,higher_is_better,display_order), sources(name)",
+      )
+      .eq("geo_id", suburb.id),
+    supabase
+      .from("schools")
+      .select("name, school_type, authority, roll")
+      .eq("geo_id", suburb.id)
+      .order("roll", { ascending: false, nullsFirst: false }),
+    supabase.rpc("nearby_schools", { p_sa2_code: sa2, p_count: 8 }),
+    supabase.rpc("cbd_distance_km", { p_sa2_code: sa2 }),
+  ]);
   if (e1) throw e1;
   if (e2) throw e2;
 
@@ -243,14 +260,32 @@ export async function fetchProfile(sa2: string): Promise<SuburbProfile | null> {
       breakdowns.push({ def, asOf: latest, source, confidence, totalStated: total, categories });
     } else {
       const row = current.find((r) => r.category === null) ?? current[0];
-      scalars.push({ def, value: Number(row.value_num), asOf: latest, source, confidence });
+      const history = list
+        .filter((r) => r.category === null && r.value_num !== null)
+        .map((r) => ({ asOf: r.as_of_date, value: Number(r.value_num) }))
+        .sort((a, b) => a.asOf.localeCompare(b.asOf));
+      scalars.push({
+        def,
+        value: Number(row.value_num),
+        asOf: latest,
+        source,
+        confidence,
+        history,
+      });
     }
   }
 
   scalars.sort((a, b) => a.def.display_order - b.def.display_order);
   breakdowns.sort((a, b) => a.def.display_order - b.def.display_order);
 
-  return { suburb, scalars, breakdowns, schools: (schoolRows ?? []) as School[] };
+  return {
+    suburb,
+    scalars,
+    breakdowns,
+    schools: (schoolRows ?? []) as School[],
+    nearbySchools: (nearbyRows ?? []) as NearbySchool[],
+    cbdKm: cbdKmRaw === null || cbdKmRaw === undefined ? null : Number(cbdKmRaw),
+  };
 }
 
 export function formatValue(def: MetricDef, v: number): string {
