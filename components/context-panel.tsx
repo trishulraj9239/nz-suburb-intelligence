@@ -13,7 +13,11 @@ const EXAMPLES: { sa2: string; name: string }[] = [
   { sa2: "166000", name: "Pukekohe Central" },
 ];
 
-/** Right pane: picker on top, then profile / compare tabs. */
+/**
+ * Right pane (owns its <aside> so width can react to mode): picker, answers,
+ * then profile / compare. Compare mode widens on desktop so 2-3 full columns
+ * fit side by side (TRI-37); on mobile the pane is the full-width lower half.
+ */
 export function ContextPanel() {
   const { selected, select, compare } = useWorkspace();
   const [tab, setTab] = useState<"profile" | "compare">("profile");
@@ -21,7 +25,11 @@ export function ContextPanel() {
   const activeTab = tab === "compare" && showCompareTab ? "compare" : "profile";
 
   return (
-    <div className="flex h-full flex-col gap-4">
+    <aside
+      className={`flex min-h-0 w-full flex-1 flex-col gap-4 bg-surface p-4 transition-all lg:flex-none lg:p-5 ${
+        activeTab === "compare" ? "lg:w-[52rem] lg:max-w-[60vw]" : "lg:w-full lg:max-w-md"
+      }`}
+    >
       <SuburbSearch />
       <AnswerPanel />
 
@@ -72,6 +80,6 @@ export function ContextPanel() {
           </div>
         )}
       </div>
-    </div>
+    </aside>
   );
 }

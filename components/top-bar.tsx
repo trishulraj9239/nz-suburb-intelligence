@@ -3,6 +3,7 @@
 import { useWorkspace, COMPARE_LIMIT } from "@/lib/workspace";
 import { ThemeToggle } from "./theme-toggle";
 import { AuthButton } from "./auth-button";
+import { BudgetControl } from "./budget-control";
 
 /**
  * Thin top bar: product name · query-bar placeholder · Compare counter ·
@@ -12,15 +13,16 @@ import { AuthButton } from "./auth-button";
 export function TopBar() {
   const { compare, clearCompare, ask } = useWorkspace();
   return (
-    <header className="flex h-14 shrink-0 items-center gap-4 border-b border-hairline bg-surface px-4">
-      {/* Product name */}
+    <header className="flex min-h-14 shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b border-hairline bg-surface px-4 py-2">
+      {/* Product name (short mark on phones) */}
       <span className="font-display text-lg font-bold tracking-tight text-ink whitespace-nowrap">
-        NZ Suburb Intelligence
+        <span className="hidden sm:inline">NZ Suburb Intelligence</span>
+        <span className="sm:hidden">NZSI</span>
       </span>
 
-      {/* Query bar — live as of M5 (TRI-28). */}
+      {/* Query bar — live as of M5 (TRI-28); wraps to its own row on phones. */}
       <form
-        className="mx-auto hidden w-full max-w-xl items-center sm:flex"
+        className="order-last flex w-full basis-full items-center sm:order-none sm:mx-auto sm:w-auto sm:max-w-xl sm:flex-1 sm:basis-auto"
         onSubmit={(e) => {
           e.preventDefault();
           const input = e.currentTarget.elements.namedItem("q") as HTMLInputElement;
@@ -50,6 +52,7 @@ export function TopBar() {
         {compare.length > 0 && <span className="ml-1 text-ink/40">✕</span>}
       </button>
 
+      <BudgetControl />
       <AuthButton />
       <ThemeToggle />
     </header>

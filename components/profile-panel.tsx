@@ -11,6 +11,7 @@ import {
   type SuburbProfile,
 } from "@/lib/suburb-data";
 import { COMPARE_LIMIT, useWorkspace } from "@/lib/workspace";
+import { BudgetChip } from "./budget-chip";
 
 const DIMENSION_ORDER = ["people", "housing", "deprivation"] as const;
 const DIMENSION_LABEL: Record<string, string> = {
@@ -95,6 +96,7 @@ function ScalarRow({ s, stat }: { s: ScalarValue; stat?: RegionalStat }) {
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-sm text-ink/80">{s.def.label}</span>
         <span className="flex items-center gap-2">
+          {s.def.metric_key === "median_rent_weekly" && <BudgetChip rent={s.value} />}
           <Trend s={s} />
           <span className="font-mono text-sm font-medium text-ink">
             {formatValue(s.def, s.value)}
@@ -136,7 +138,19 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
   }, [sa2]);
 
   if (data?.key !== sa2) {
-    return <p className="py-8 text-center text-sm text-ink/50">Loading…</p>;
+    return (
+      <div className="flex animate-pulse flex-col gap-3 py-2">
+        <div className="h-7 w-2/3 rounded bg-hairline/60" />
+        <div className="h-3 w-1/2 rounded bg-hairline/50" />
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="mt-2 flex flex-col gap-2">
+            <div className="h-3 w-24 rounded bg-hairline/50" />
+            <div className="h-10 rounded bg-hairline/40" />
+            <div className="h-10 rounded bg-hairline/40" />
+          </div>
+        ))}
+      </div>
+    );
   }
   const { profile, stats } = data;
   if (!profile) {
