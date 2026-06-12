@@ -84,6 +84,53 @@ export function percentileOf(v: number, s: RegionalStat): number {
   return 100;
 }
 
+let defsCache: MetricDef[] | null = null;
+/** Active scalar metric definitions — drives the map shade picker. */
+export async function fetchMetricDefs(): Promise<MetricDef[]> {
+  if (defsCache) return defsCache;
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("metric_definitions")
+    .select("metric_key,label,dimension,unit,value_type,higher_is_better,display_order")
+    .eq("is_active", true)
+    .eq("value_type", "scalar")
+    .order("display_order");
+  if (error) throw error;
+  defsCache = (data ?? []) as MetricDef[];
+  return defsCache;
+}
+
+const shadeCache = new Map<string, { sa2: string; value: number }[]>();
+/** Latest value of one metric for every active suburb (for choropleths). */
+export async function fetchMetricShade(
+  metricKey: string,
+): Promise<{ sa2: string; value: number }[]> {
+  const cached = shadeCache.get(metricKey);
+  if (cached) return cached;
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("metric_values")
+    .select(
+      "value_num, as_of_date, geographies!inner(sa2_code, is_active), metric_definitions!inner(metric_key)",
+    )
+    .eq("metric_definitions.metric_key", metricKey)
+    .eq("geographies.is_active", true)
+    .is("category", null)
+    .not("value_num", "is", null);
+  if (error) throw error;
+  const latest = new Map<string, { value: number; asOf: string }>();
+  for (const r of data ?? []) {
+    const sa2 = (r.geographies as unknown as { sa2_code: string }).sa2_code;
+    const prev = latest.get(sa2);
+    if (!prev || r.as_of_date > prev.asOf) {
+      latest.set(sa2, { value: Number(r.value_num), asOf: r.as_of_date });
+    }
+  }
+  const rows = [...latest.entries()].map(([sa2, v]) => ({ sa2, value: v.value }));
+  shadeCache.set(metricKey, rows);
+  return rows;
+}
+
 let suburbsCache: Suburb[] | null = null;
 export async function fetchSuburbs(): Promise<Suburb[]> {
   if (suburbsCache) return suburbsCache;

@@ -52,3 +52,27 @@ body {
   color: var(--ink);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+/* Map hover popup — themed to the token system. */
+.maplibregl-popup-content {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+.maplibregl-popup-tip {
+  border-top-color: var(--surface) !important;
+  border-bottom-color: var(--surface) !important;
+}
+.mc-pop-name {
+  font-weight: 600;
+  font-size: 12px;
+}
+.mc-pop-sub {
+  margin-top: 2px;
+  font-size: 11px;
+  opacity: 0.75;
+}
