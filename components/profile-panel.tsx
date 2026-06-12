@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   fetchProfile,
   fetchRegionalStats,
@@ -19,6 +19,43 @@ const DIMENSION_LABEL: Record<string, string> = {
   housing: "Housing",
   deprivation: "Deprivation",
 };
+
+const DEPRIVATION_EXPLAINER =
+  "NZDep2018 (University of Otago) measures relative socioeconomic deprivation of small areas — not of individual people. It combines nine Census 2018 variables: income, benefit receipt, employment, qualifications, home ownership, family structure, overcrowding, internet access, and living conditions. Decile 1 = the least deprived 10% of NZ areas; decile 10 = the most deprived 10%. It describes access to resources across areas and carries no judgment about residents or an area's worth.";
+
+/** Small ⓘ popover for dimension headings that need context. */
+function InfoTip({ text, label }: { text: string; label: string }) {
+  const [open, setOpen] = useState(false);
+  const boxRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (!boxRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  return (
+    <span ref={boxRef} className="relative inline-block align-middle">
+      <button
+        type="button"
+        aria-label={`What is ${label}?`}
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full border border-hairline text-[9px] font-semibold normal-case text-ink/55 transition-colors hover:border-harbour hover:text-harbour"
+      >
+        i
+      </button>
+      {open && (
+        <span className="absolute left-0 top-6 z-30 block w-64 rounded-lg border border-hairline bg-surface p-3 text-[11px] font-normal normal-case leading-snug tracking-normal text-ink/85 shadow-lg">
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
 
 function SourceChip({ source, asOf, confidence }: { source: string; asOf: string; confidence: string }) {
   return (
@@ -211,6 +248,9 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
           <section key={dim}>
             <h3 className="border-b border-hairline pb-1 font-display text-xs font-semibold uppercase tracking-wider text-ink/60">
               {DIMENSION_LABEL[dim]}
+              {dim === "deprivation" && (
+                <InfoTip label="deprivation" text={DEPRIVATION_EXPLAINER} />
+              )}
             </h3>
             <div className="divide-y divide-hairline/60">
               {rows.map((s) => (

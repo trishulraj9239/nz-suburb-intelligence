@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { useWorkspace } from "@/lib/workspace";
 import { SuburbSearch } from "./suburb-search";
 import { ProfilePanel } from "./profile-panel";
@@ -13,23 +13,81 @@ const EXAMPLES: { sa2: string; name: string }[] = [
   { sa2: "166000", name: "Pukekohe Central" },
 ];
 
+const lgQuery = "(min-width: 1024px)";
+const subscribeLg = (cb: () => void) => {
+  const mq = window.matchMedia(lgQuery);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+};
+const useIsLg = () =>
+  useSyncExternalStore(subscribeLg, () => window.matchMedia(lgQuery).matches, () => false);
+
+const PANEL_MIN = 320;
+const panelMax = () => Math.round(window.innerWidth * 0.6); // keep ≥40% map
+
 /**
  * Right pane (owns its <aside> so width can react to mode): picker, answers,
- * then profile / compare. Compare mode widens on desktop so 2-3 full columns
- * fit side by side (TRI-37); on mobile the pane is the full-width lower half.
+ * then profile / compare. Desktop: user-resizable via the left-edge handle
+ * (drag, clamped to 60vw; double-click resets to auto). Compare mode
+ * auto-widens when no manual width is set. Mobile: full-width lower half.
  */
 export function ContextPanel() {
   const { selected, select, compare } = useWorkspace();
   const [tab, setTab] = useState<"profile" | "compare">("profile");
+  const [userWidth, setUserWidth] = useState<number | null>(null);
+  const dragging = useRef(false);
+  const isLg = useIsLg();
   const showCompareTab = compare.length >= 2;
   const activeTab = tab === "compare" && showCompareTab ? "compare" : "profile";
 
+  const onHandlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    dragging.current = true;
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // capture unsupported for this pointer type — window-level move still works
+    }
+    e.preventDefault();
+  }, []);
+  const onHandlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragging.current) return;
+    const w = Math.min(Math.max(window.innerWidth - e.clientX, PANEL_MIN), panelMax());
+    setUserWidth(w);
+  }, []);
+  const onHandlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    dragging.current = false;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      // no capture held
+    }
+  }, []);
+
+  // Manual width wins on desktop; otherwise mode defaults apply via classes.
+  const sizeStyle =
+    isLg && userWidth !== null
+      ? { width: userWidth, maxWidth: "60vw", flex: "none" as const }
+      : undefined;
+
   return (
     <aside
-      className={`flex min-h-0 w-full flex-1 flex-col gap-4 bg-surface p-4 transition-all lg:flex-none lg:p-5 ${
+      style={sizeStyle}
+      className={`relative flex min-h-0 w-full flex-1 flex-col gap-4 bg-surface p-4 lg:flex-none lg:p-5 ${
         activeTab === "compare" ? "lg:w-[52rem] lg:max-w-[60vw]" : "lg:w-full lg:max-w-md"
       }`}
     >
+      {/* Resize handle (desktop only) */}
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize panel (double-click to reset)"
+        title="Drag to resize · double-click to reset"
+        onPointerDown={onHandlePointerDown}
+        onPointerMove={onHandlePointerMove}
+        onPointerUp={onHandlePointerUp}
+        onDoubleClick={() => setUserWidth(null)}
+        className="absolute inset-y-0 left-0 z-20 hidden w-1.5 cursor-col-resize touch-none bg-transparent transition-colors hover:bg-harbour/40 active:bg-harbour/60 lg:block"
+      />
       <SuburbSearch />
       <AnswerPanel />
 
