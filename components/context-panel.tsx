@@ -5,6 +5,7 @@ import { useWorkspace } from "@/lib/workspace";
 import { SuburbSearch } from "./suburb-search";
 import { ProfilePanel } from "./profile-panel";
 import { ComparePanel } from "./compare-panel";
+import { AnswerPanel } from "./answer-panel";
 
 const EXAMPLES: { sa2: string; name: string }[] = [
   { sa2: "130400", name: "Ponsonby West" },
@@ -22,6 +23,7 @@ export function ContextPanel() {
   return (
     <div className="flex h-full flex-col gap-4">
       <SuburbSearch />
+      <AnswerPanel />
 
       {showCompareTab && (
         <div className="flex gap-1 rounded-lg border border-hairline bg-canvas p-0.5">

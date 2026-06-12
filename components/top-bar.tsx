@@ -10,7 +10,7 @@ import { AuthButton } from "./auth-button";
  * wired in later milestones (M4/M5).
  */
 export function TopBar() {
-  const { compare, clearCompare } = useWorkspace();
+  const { compare, clearCompare, ask } = useWorkspace();
   return (
     <header className="flex h-14 shrink-0 items-center gap-4 border-b border-hairline bg-surface px-4">
       {/* Product name */}
@@ -18,16 +18,25 @@ export function TopBar() {
         NZ Suburb Intelligence
       </span>
 
-      {/* Query-bar placeholder (non-functional this session) */}
-      <div className="mx-auto hidden w-full max-w-xl items-center sm:flex">
+      {/* Query bar — live as of M5 (TRI-28). */}
+      <form
+        className="mx-auto hidden w-full max-w-xl items-center sm:flex"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const input = e.currentTarget.elements.namedItem("q") as HTMLInputElement;
+          const q = input.value.trim();
+          if (q) ask(q);
+        }}
+      >
         <input
           type="text"
-          disabled
-          aria-label="Ask about a suburb (coming soon)"
-          placeholder="Ask about a suburb…  e.g. “family-friendly, near good schools”"
-          className="h-9 w-full cursor-not-allowed rounded-lg border border-hairline bg-canvas px-3 text-sm text-ink placeholder:text-ink/40"
+          name="q"
+          aria-label="Ask about Auckland suburbs"
+          placeholder="Ask about a suburb…  e.g. “cheapest rent near Takapuna?”"
+          maxLength={500}
+          className="h-9 w-full rounded-lg border border-hairline bg-canvas px-3 text-sm text-ink placeholder:text-ink/40 focus:border-harbour focus:outline-none"
         />
-      </div>
+      </form>
 
       {/* Compare counter (figures in mono); click clears the pinned set */}
       <button
