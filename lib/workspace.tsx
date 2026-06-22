@@ -18,6 +18,10 @@ interface WorkspaceState {
   askSeq: number;
   ask: (q: string) => void;
   clearAsk: () => void;
+  /** Clear everything — selection, comparison, answer. resetSeq lets the map
+   *  re-centre/un-shade in response (the Home button). */
+  reset: () => void;
+  resetSeq: number;
 }
 
 const WorkspaceContext = createContext<WorkspaceState | null>(null);
@@ -27,6 +31,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [compare, setCompare] = useState<string[]>([]);
   const [question, setQuestion] = useState<string | null>(null);
   const [askSeq, setAskSeq] = useState(0);
+  const [resetSeq, setResetSeq] = useState(0);
 
   const select = useCallback((sa2: string | null) => setSelected(sa2), []);
   const toggleCompare = useCallback((sa2: string) => {
@@ -48,6 +53,12 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     setAskSeq((s) => s + 1);
   }, []);
   const clearAsk = useCallback(() => setQuestion(null), []);
+  const reset = useCallback(() => {
+    setSelected(null);
+    setCompare([]);
+    setQuestion(null);
+    setResetSeq((s) => s + 1);
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -61,8 +72,10 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       askSeq,
       ask,
       clearAsk,
+      reset,
+      resetSeq,
     }),
-    [selected, select, compare, toggleCompare, clearCompare, setCompareSet, question, askSeq, ask, clearAsk],
+    [selected, select, compare, toggleCompare, clearCompare, setCompareSet, question, askSeq, ask, clearAsk, reset, resetSeq],
   );
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;

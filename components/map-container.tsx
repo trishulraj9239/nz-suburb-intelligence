@@ -197,7 +197,7 @@ export function MapContainer() {
   const shadeRef = useRef<ShadeState | null>(null);
   const skipFlyRef = useRef(false);
   const { resolvedTheme } = useTheme();
-  const { selected, select } = useWorkspace();
+  const { selected, select, resetSeq } = useWorkspace();
   const selectRef = useRef(select);
   useEffect(() => {
     selectRef.current = select;
@@ -359,6 +359,21 @@ export function MapContainer() {
     },
     [defs],
   );
+
+  // Home reset → ease back to the Auckland overview and drop any shading.
+  const changeShadeRef = useRef(changeShade);
+  useEffect(() => {
+    changeShadeRef.current = changeShade;
+  }, [changeShade]);
+  const resetReadyRef = useRef(false);
+  useEffect(() => {
+    if (!resetReadyRef.current) {
+      resetReadyRef.current = true; // skip the initial mount (resetSeq === 0)
+      return;
+    }
+    mapRef.current?.easeTo({ center: AUCKLAND_CENTER, zoom: 9.5, duration: 700 });
+    changeShadeRef.current("");
+  }, [resetSeq]);
 
   const [r, g, b] = typeof window !== "undefined" ? harbourRgb() : [14, 110, 115];
 
