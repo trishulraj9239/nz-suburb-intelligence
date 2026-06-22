@@ -120,10 +120,15 @@ export function ContextPanel() {
     [snapHeight],
   );
 
-  // Surfacing a result shouldn't leave the reader stuck at "peek".
-  useEffect(() => {
-    if ((selected || question) && snap === "peek") setSnap("half");
-  }, [selected, question, snap]);
+  // Surfacing a result shouldn't leave the reader stuck at "peek". Adjust during
+  // render on change (React's "store previous value" pattern) rather than in an
+  // effect, so there's no cascading-render lint nor a post-commit flash.
+  const surfacedKey = selected ?? question ?? null;
+  const [prevSurfacedKey, setPrevSurfacedKey] = useState<string | null>(null);
+  if (surfacedKey !== prevSurfacedKey) {
+    setPrevSurfacedKey(surfacedKey);
+    if (surfacedKey && snap === "peek") setSnap("half");
+  }
 
   const onSheetPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
@@ -235,9 +240,8 @@ export function ContextPanel() {
       >
         {/* Grab handle — drag to snap, tap to cycle up */}
         <div
-          role="slider"
-          aria-label="Resize panel — drag up or down, tap to expand"
-          aria-valuetext={snap}
+          role="button"
+          aria-label={`Resize panel (currently ${snap}) — drag up or down, or tap to expand`}
           tabIndex={0}
           onPointerDown={onSheetPointerDown}
           onPointerMove={onSheetPointerMove}
