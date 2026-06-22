@@ -55,6 +55,35 @@ function loadGeo(): Promise<GeoJSON.FeatureCollection> {
   geoCache ??= fetch("/geo/auckland-sa2.geojson").then((r) => r.json());
   return geoCache;
 }
+// Coverage extent (precomputed bbox in the outline file) for the default /
+// reset view. Cached — fetched once.
+type LngLatBounds = [[number, number], [number, number]];
+let coverageBoundsCache: Promise<LngLatBounds | null> | null = null;
+function loadCoverageBounds(): Promise<LngLatBounds | null> {
+  coverageBoundsCache ??= fetch("/geo/auckland-coverage.geojson")
+    .then((r) => r.json())
+    .then((j: { bbox?: [number, number, number, number] }) =>
+      j.bbox ? ([[j.bbox[0], j.bbox[1]], [j.bbox[2], j.bbox[3]]] as LngLatBounds) : null,
+    )
+    .catch(() => null);
+  return coverageBoundsCache;
+}
+
+// Padding so the framed region sits in the *visible* map: on phones the bottom
+// sheet overlays the lower map, so bias the fit upward; on desktop the panel is
+// a separate column, so even padding is enough.
+function fitPadding(map: MapLibreMap) {
+  const h = map.getContainer().clientHeight;
+  const mobile = typeof window !== "undefined" && window.innerWidth < 1024;
+  return { top: 28, left: 24, right: 24, bottom: mobile ? Math.round(h * 0.42) : 28 };
+}
+
+function fitCoverage(map: MapLibreMap, animate: boolean) {
+  loadCoverageBounds().then((b) => {
+    if (b) map.fitBounds(b, { padding: fitPadding(map), duration: animate ? 700 : 0 });
+  });
+}
+
 function boundsOf(f: GeoJSON.Feature): [[number, number], [number, number]] {
   let minX = 180, minY = 90, maxX = -180, maxY = -90;
   const walk = (c: unknown): void => {
@@ -94,6 +123,19 @@ function overlayLayers(): StyleSpecification["layers"] {
       },
     },
     {
+      // Outer frame of the data coverage (Auckland-only for now) — a dark,
+      // theme-aware boundary so the limits of the dataset read at a glance.
+      id: "coverage-line",
+      type: "line",
+      source: "coverage",
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: {
+        "line-color": token("--ink", "#13212e"),
+        "line-width": ["interpolate", ["linear"], ["zoom"], 7, 1.2, 11, 2.2, 14, 3],
+        "line-opacity": 0.85,
+      },
+    },
+    {
       id: "sa2-selected-fill",
       type: "fill",
       source: "sa2",
@@ -116,13 +158,19 @@ const SA2_SOURCE = {
   attribution: LINZ_ATTRIBUTION,
 } as const;
 
+// Pre-dissolved coverage boundary (scripts/build-coverage-outline.mjs).
+const COVERAGE_SOURCE = {
+  type: "geojson",
+  data: "/geo/auckland-coverage.geojson",
+} as const;
+
 async function buildStyle(): Promise<StyleSpecification> {
   if (LINZ_KEY) {
     try {
       const res = await fetch(LINZ_STYLE);
       if (res.ok) {
         const base = (await res.json()) as StyleSpecification;
-        base.sources = { ...base.sources, sa2: SA2_SOURCE };
+        base.sources = { ...base.sources, sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE };
         base.layers = [...base.layers, ...overlayLayers()];
         return base;
       }
@@ -132,7 +180,7 @@ async function buildStyle(): Promise<StyleSpecification> {
   }
   return {
     version: 8,
-    sources: { sa2: SA2_SOURCE },
+    sources: { sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE },
     layers: [
       {
         id: "background",
@@ -167,6 +215,9 @@ function applyThemePaint(map: MapLibreMap, dark: boolean) {
   }
   if (map.getLayer("sa2-line")) {
     map.setPaintProperty("sa2-line", "line-opacity", dark ? 0.7 : 0.55);
+  }
+  if (map.getLayer("coverage-line")) {
+    map.setPaintProperty("coverage-line", "line-color", token("--ink", dark ? "#e6ecee" : "#13212e"));
   }
 }
 
@@ -241,6 +292,7 @@ export function MapContainer() {
       map.once("load", () => {
         applyThemePaint(map, isDarkNow());
         applyShadePaint(map, shadeRef.current);
+        fitCoverage(map, false); // open framed on the full coverage extent
       });
 
       map.on("click", "sa2-fill", (e) => {
@@ -371,7 +423,7 @@ export function MapContainer() {
       resetReadyRef.current = true; // skip the initial mount (resetSeq === 0)
       return;
     }
-    mapRef.current?.easeTo({ center: AUCKLAND_CENTER, zoom: 9.5, duration: 700 });
+    if (mapRef.current) fitCoverage(mapRef.current, true);
     changeShadeRef.current("");
   }, [resetSeq]);
 
