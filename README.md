@@ -41,6 +41,16 @@ be added without code changes.
 > **Note:** this Next.js is newer than most training data — verify APIs against the
 > installed types / `node_modules/next/dist/docs/` rather than assuming.
 
+## Architecture
+
+![Architecture flow: a single-page Client (Next.js / React / MapLibre) reads suburb data straight from Supabase via PostgREST/RPC for the no-LLM browse path, while natural-language questions POST to the /api/ask server route, which plans a structured JSON query with Claude Sonnet, embeds the query with Gemini for pgvector RAG against Supabase, runs the queries, and streams a cited NDJSON answer back to the client.](docs/architecture.png)
+
+Two paths share one source of truth. The **browse path** (no LLM) reads suburb
+profiles and the choropleth straight from Supabase over PostgREST/RPC. The **ask
+path** sends a question to `/api/ask`, which plans a structured query with **Claude
+Sonnet**, embeds it with **Gemini** for pgvector RAG, executes the queries against
+**Supabase**, and streams a cited answer back as NDJSON.
+
 ## Getting started
 
 ```bash
