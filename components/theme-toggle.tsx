@@ -28,10 +28,24 @@ export function ThemeToggle() {
       onClick={() => setTheme(isDark ? "light" : "dark")}
       className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-hairline bg-surface text-ink transition-colors hover:border-harbour"
     >
-      {/* Render a stable glyph until mounted to avoid SSR/client mismatch. */}
-      <span aria-hidden className="text-sm leading-none">
-        {mounted ? (isDark ? "☀" : "☾") : "◐"}
-      </span>
+      {/* Icon shows the action: moon in light mode (→ go dark), sun in dark
+          mode (→ go light). Neutral dot until mounted to avoid SSR mismatch. */}
+      {!mounted ? (
+        <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="4" />
+        </svg>
+      ) : isDark ? (
+        // Sun
+        <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41" />
+        </svg>
+      ) : (
+        // Crescent moon
+        <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4" fill="currentColor">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+        </svg>
+      )}
     </button>
   );
 }

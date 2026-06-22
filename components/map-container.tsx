@@ -203,8 +203,9 @@ function applyThemePaint(map: MapLibreMap, dark: boolean) {
     map.setPaintProperty("background", "background-color", token("--canvas", dark ? "#0e1822" : "#f4f6f5"));
   }
   if (map.getLayer("dim-veil")) {
-    // v2 tuning: neutral hue, far lighter than the v1 0.72 — basemap stays legible.
-    map.setPaintProperty("dim-veil", "background-opacity", dark ? 0.42 : 0);
+    // Light veil only — enough to seat the choropleth, but kept low (was 0.42)
+    // so SA2 fills, the coverage border, and selection highlights stay legible.
+    map.setPaintProperty("dim-veil", "background-opacity", dark ? 0.2 : 0);
   }
   for (const [layer, prop] of [
     ["sa2-line", "line-color"],
