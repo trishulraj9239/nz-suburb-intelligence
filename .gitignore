@@ -46,3 +46,9 @@ next-env.d.ts
 
 # ETL intermediates
 /tmp/
+
+# Screenshots — kept on Linear, not in the repo (heavy)
+/shots/
+
+# Local dev utility — kept for reference, not tracked
+/scripts/capture-shots.mjs
