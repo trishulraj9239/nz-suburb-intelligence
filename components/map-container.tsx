@@ -433,13 +433,14 @@ export function MapContainer() {
     <div className="relative h-full w-full">
       <div ref={ref} className="h-full w-full" aria-label="Auckland suburb map" />
 
-      {/* Shade picker */}
-      <div className="absolute right-2 top-2 z-10">
+      {/* Shade picker + legend — stacked top-right so the position is identical
+          on mobile and web; the legend only appears once a metric is chosen. */}
+      <div className="absolute right-2 top-2 z-10 flex max-w-[calc(100%-1rem)] flex-col items-end gap-2">
         <select
           value={shadeKey}
           onChange={(e) => changeShade(e.target.value)}
           aria-label="Shade map by metric"
-          className="h-8 rounded-md border border-hairline bg-surface px-2 text-xs text-ink shadow-sm focus:border-harbour focus:outline-none"
+          className="h-8 max-w-full rounded-md border border-hairline bg-surface px-2 text-xs text-ink shadow-sm focus:border-harbour focus:outline-none"
         >
           <option value="">No shading</option>
           {defs.map((d) => (
@@ -448,24 +449,23 @@ export function MapContainer() {
             </option>
           ))}
         </select>
-      </div>
 
-      {/* Legend */}
-      {legend && (
-        <div className="absolute bottom-8 left-2 z-10 rounded-md border border-hairline bg-surface/95 px-2.5 py-1.5 shadow-sm">
-          <p className="text-[10px] font-medium text-ink/80">{legend.label}</p>
-          <div className="mt-1 flex h-2 w-36 overflow-hidden rounded-sm">
-            {RAMP_ALPHAS.map((a) => (
-              <span key={a} className="h-full flex-1" style={{ background: `rgba(${r},${g},${b},${a})` }} />
-            ))}
+        {legend && (
+          <div className="rounded-md border border-hairline bg-surface/95 px-2.5 py-1.5 shadow-sm">
+            <p className="text-[10px] font-medium text-ink/80">{legend.label}</p>
+            <div className="mt-1 flex h-2 w-36 overflow-hidden rounded-sm">
+              {RAMP_ALPHAS.map((a) => (
+                <span key={a} className="h-full flex-1" style={{ background: `rgba(${r},${g},${b},${a})` }} />
+              ))}
+            </div>
+            <div className="mt-0.5 flex justify-between font-mono text-[9px] text-ink/55">
+              <span>{legend.min}</span>
+              <span>{legend.max}</span>
+            </div>
+            <p className="mt-0.5 text-[9px] text-ink/45">quintiles · darker = higher · unshaded = no data</p>
           </div>
-          <div className="mt-0.5 flex justify-between font-mono text-[9px] text-ink/55">
-            <span>{legend.min}</span>
-            <span>{legend.max}</span>
-          </div>
-          <p className="mt-0.5 text-[9px] text-ink/45">quintiles · darker = higher · unshaded = no data</p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
