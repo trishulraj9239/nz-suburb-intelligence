@@ -52,3 +52,6 @@ next-env.d.ts
 
 # Local dev utility — kept for reference, not tracked
 /scripts/capture-shots.mjs
+
+# Local architecture notes — kept out of the repo
+/docs/architecture.md
