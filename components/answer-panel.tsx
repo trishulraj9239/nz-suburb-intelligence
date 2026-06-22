@@ -165,10 +165,7 @@ export function AnswerPanel() {
       </div>
       <p className="mt-1 text-xs italic text-ink/50">“{question}”</p>
 
-      {/* Cap the answer body on phones so it scrolls within itself instead of
-          shoving the Profile/Compare tabs below the fold (TRI-37 mobile pane is
-          short). Desktop pane is tall enough to render in full. */}
-      <div className="mt-2 max-h-40 overflow-y-auto lg:max-h-none lg:overflow-visible">
+      <div className="mt-2">
         {!current && <p className="text-sm text-ink/50">Thinking…</p>}
         {current && (
           <>
