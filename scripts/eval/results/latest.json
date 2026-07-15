@@ -1,0 +1,312 @@
+{
+  "base": "http://localhost:3000",
+  "judge_model": "claude-opus-4-8",
+  "providers": {
+    "anthropic": {
+      "label": "Claude Sonnet 4.6",
+      "inPerM": 3,
+      "outPerM": 15
+    },
+    "groq": {
+      "label": "Qwen 3.6 27B (Groq)",
+      "inPerM": 0.2,
+      "outPerM": 0.2
+    }
+  },
+  "questions": [
+    {
+      "id": "q1-lookup",
+      "intent": "lookup",
+      "question": "What is the median weekly rent in Ponsonby West?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 3695,
+          "tokens_est": 28,
+          "cost_est_usd": 0.000276,
+          "n_sources": 1,
+          "n_citations": 1,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Accurately reports the figure with correct citation, high confidence needs no hedging."
+          },
+          "answer": "The median weekly rent in Ponsonby West is $545 per week {{c1}}."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 533,
+          "tokens_est": 27,
+          "cost_est_usd": 0.0000054,
+          "n_sources": 1,
+          "n_citations": 1,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Accurate, cited, and concise; identical quality to A."
+          },
+          "answer": "The median weekly rent in Ponsonby West is $545/week {{c1}}."
+        }
+      }
+    },
+    {
+      "id": "q2-rank",
+      "intent": "rank",
+      "question": "Which five Auckland suburbs have the lowest median weekly rent?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 5321,
+          "tokens_est": 117,
+          "cost_est_usd": 0.001563,
+          "n_sources": 5,
+          "n_citations": 5,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 5,
+            "overall": 5,
+            "note": "All figures grounded and cited, the $30 gap is a correct derived observation, confidence noted, and stays concise."
+          },
+          "answer": "The five Auckland suburbs with the lowest median weekly rents are Point England North at $148/wk {{c1}}, Ōtara West at $178/wk {{c2}}, Wesley East at $180/wk {{c3}}, Ōtara Central at $182/wk {{c4}}, and Wiri North at $186/wk {{c5}}. Point England North is notably the cheapest by some margin, sitting $30/wk below the next lowest suburb. All figures come from the 2023 Census and carry high confidence."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 797,
+          "tokens_est": 85,
+          "cost_est_usd": 0.000017,
+          "n_sources": 5,
+          "n_citations": 5,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 5,
+            "overall": 5,
+            "note": "Fully grounded, all five figures cited correctly, high-confidence data needs no hedging, and concise."
+          },
+          "answer": "Based on the 2023 Census data, Point England North has the lowest median weekly rent at $148 {{c1}}. It is followed by Ōtara West at $178 {{c2}} and Wesley East at $180 {{c3}}. The next lowest are Ōtara Central with a median rent of $182 {{c4}} and Wiri North at $186 {{c5}}."
+        }
+      }
+    },
+    {
+      "id": "q3-compare",
+      "intent": "compare",
+      "question": "Compare Ponsonby West and Takapuna Central on rent and population.",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 4596,
+          "tokens_est": 84,
+          "cost_est_usd": 0.001056,
+          "n_sources": 4,
+          "n_citations": 4,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Every figure correctly cited, accurate derived difference, concise and appropriately factual with high-confidence data."
+          },
+          "answer": "Takapuna Central is the larger area, with a population of 2,898 {{c3}}, compared to Ponsonby West's 2,154 {{c1}}. Renters in Takapuna Central also face higher median weekly costs at $610/wk {{c4}}, versus $545/wk {{c2}} in Ponsonby West — a difference of $65 per week."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 756,
+          "tokens_est": 74,
+          "cost_est_usd": 0.000015000000000000002,
+          "n_sources": 4,
+          "n_citations": 2,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 3,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 4,
+            "note": "All figures correct but two of four numbers lack their own citation markers (2154 and 545 uncited)."
+          },
+          "answer": "Takapuna Central has a larger population of 2898 residents compared to Ponsonby West’s 2154 {{c3}}. In terms of housing costs, the median weekly rent in Takapuna Central is higher at $610, while Ponsonby West sits at $545 {{c4}}."
+        }
+      }
+    },
+    {
+      "id": "q4-similar-named",
+      "intent": "similar",
+      "question": "Find Auckland suburbs similar to Ponsonby West.",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 5336,
+          "tokens_est": 120,
+          "cost_est_usd": 0.001656,
+          "n_sources": 5,
+          "n_citations": 5,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Accurate, fully cited, concise, and explicitly notes the medium confidence and 2023 vintage."
+          },
+          "answer": "Based on profile embeddings, the suburbs most similar to Ponsonby West are Saint Marys Bay at a cosine similarity of 0.7929 {{c1}} and Herne Bay at 0.7906 {{c2}}, making them the closest matches. Point Chevalier West (0.7852 {{c3}}) and Ponsonby East (0.7839 {{c4}}) follow closely, with Saint Johns West rounding out the top five at 0.7809 {{c5}}. All similarities are approximately medium confidence from 2023 profile embeddings."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 756,
+          "tokens_est": 107,
+          "cost_est_usd": 0.0000214,
+          "n_sources": 5,
+          "n_citations": 5,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 3,
+            "concise": 5,
+            "overall": 4,
+            "note": "Accurate and fully cited but does not mention the medium confidence of the embeddings."
+          },
+          "answer": "Based on 2023 profile embeddings, Saint Marys Bay is the most similar suburb to Ponsonby West with a cosine similarity of 0.7929 {{c1}}. Herne Bay follows closely with a similarity score of approximately 0.7906 {{c2}}, while Point Chevalier West has a score of 0.7852 {{c3}}. Other comparable suburbs include Ponsonby East at 0.7839 {{c4}} and Saint Johns West at 0.7809 {{c5}}."
+        }
+      }
+    },
+    {
+      "id": "q5-similar-vibe",
+      "intent": "similar",
+      "question": "Which Auckland suburbs feel like a quiet, higher-income area near the water?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 7263,
+          "tokens_est": 175,
+          "cost_est_usd": 0.002397,
+          "n_sources": 5,
+          "n_citations": 5,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "All five figures cited correctly with medium-confidence hedging and a sensible caveat about the harbour inlet, only slightly long."
+          },
+          "answer": "Based on the profile similarity scores, the suburbs that best match a quiet, higher-income waterside feel are Campbells Bay (0.6627 cosine similarity {{c2}}) and Murrays Bay East (0.6546 {{c4}}), both on Auckland's North Shore, along with Browns Bay South East (0.6507 {{c5}}). Sandspit, a small coastal settlement north of Auckland, also ranks closely at 0.6577 {{c3}}. The Waitemata Harbour inlet area scores highest overall at 0.6741 {{c1}}, though as a waterway rather than a suburb it may reflect harbour-adjacent neighbourhoods more broadly. All scores are approximately medium confidence from 2023 profile embeddings."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 1393,
+          "tokens_est": 124,
+          "cost_est_usd": 0.0000248,
+          "n_sources": 5,
+          "n_citations": 2,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 4,
+            "note": "Accurate and well-hedged with the useful caveat that scores reflect profile similarity not income/noise, but only surfaces two of the five suburbs."
+          },
+          "answer": "Based on the provided 2023 profile similarity data, Inlet Waitemata Harbour is the top match with a similarity score of 0.6741 {{c1}}. Campbells Bay follows closely with a score of 0.6627 {{c2}}, indicating it also aligns well with the described characteristics. These areas are situated near the water, though the data primarily reflects demographic or profile similarities rather than specific income or noise levels."
+        }
+      }
+    },
+    {
+      "id": "q6-unsupported",
+      "intent": "unsupported",
+      "question": "What is the violent crime rate in Ponsonby?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 2481,
+          "tokens_est": 69,
+          "cost_est_usd": 0.000903,
+          "n_sources": 0,
+          "n_citations": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correctly declines the crime question and clearly states available coverage without inventing figures."
+          },
+          "answer": "I can't answer that with the data I have. Crime rate data is not available in this dataset; only census and deprivation metrics are covered. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, and schools."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 263,
+          "tokens_est": 60,
+          "cost_est_usd": 0.0000122,
+          "n_sources": 0,
+          "n_citations": 0,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correctly declines and describes coverage; essentially equivalent to A."
+          },
+          "answer": "I can't answer that with the data I have. Crime statistics are not available in the current data coverage. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, and schools."
+        }
+      }
+    }
+  ]
+}
