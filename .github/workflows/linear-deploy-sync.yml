@@ -1,0 +1,46 @@
+name: Linear deploy sync
+
+# Fires when Vercel reports a deployment status to GitHub. We act only on a
+# successful *production* deployment, then post a first-person update (and, when
+# the frontend changed, fresh screenshots) to the TRI-XX tickets named in the
+# deployed commit. Status transitions are left to Linear's native GitHub
+# integration — flip LINEAR_SET_DONE=true below to also move issues to Done here.
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit SHA to sync (defaults to the branch head)
+        required: false
+
+jobs:
+  sync:
+    # Production + success only (Vercel labels the prod environment "Production").
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment_status.environment == 'Production')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need history so `git show <sha>` works
+          ref: ${{ github.event.deployment.sha || github.event.inputs.sha || github.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright (Chromium)
+        run: npm i -D playwright@latest && npx playwright install --with-deps chromium
+
+      - name: Sync to Linear
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          # environment_url is the live deploy URL Vercel reports; fall back to a repo variable.
+          DEPLOY_URL: ${{ github.event.deployment_status.environment_url || vars.PROD_URL }}
+          COMMIT_SHA: ${{ github.event.deployment.sha || github.event.inputs.sha || github.sha }}
+          # LINEAR_SET_DONE: "true"   # uncomment to also transition issues to Done here
+          # FORCE_SHOTS: "true"       # uncomment to always attach screenshots
+        run: node scripts/linear/sync.mjs
