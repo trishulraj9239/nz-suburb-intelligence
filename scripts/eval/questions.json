@@ -1,0 +1,38 @@
+[
+  {
+    "id": "q1-lookup",
+    "question": "What is the median weekly rent in Ponsonby West?",
+    "intent": "lookup",
+    "expect": { "unsupported": false, "suburbs": ["Ponsonby West"], "minSources": 1 }
+  },
+  {
+    "id": "q2-rank",
+    "question": "Which five Auckland suburbs have the lowest median weekly rent?",
+    "intent": "rank",
+    "expect": { "unsupported": false, "minSources": 1 }
+  },
+  {
+    "id": "q3-compare",
+    "question": "Compare Ponsonby West and Takapuna Central on rent and population.",
+    "intent": "compare",
+    "expect": { "unsupported": false, "suburbs": ["Ponsonby West", "Takapuna Central"], "minSources": 1 }
+  },
+  {
+    "id": "q4-similar-named",
+    "question": "Find Auckland suburbs similar to Ponsonby West.",
+    "intent": "similar",
+    "expect": { "unsupported": false, "minSources": 1 }
+  },
+  {
+    "id": "q5-similar-vibe",
+    "question": "Which Auckland suburbs feel like a quiet, higher-income area near the water?",
+    "intent": "similar",
+    "expect": { "unsupported": false, "minSources": 1 }
+  },
+  {
+    "id": "q6-unsupported",
+    "question": "What is the violent crime rate in Ponsonby?",
+    "intent": "unsupported",
+    "expect": { "unsupported": true, "minSources": 0 }
+  }
+]

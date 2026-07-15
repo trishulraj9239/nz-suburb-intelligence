@@ -69,13 +69,23 @@ const PLAN_SCHEMA = {
 } as const;
 
 export async function POST(req: NextRequest) {
-  const { question } = (await req.json()) as { question?: string };
+  const { question, provider } = (await req.json()) as {
+    question?: string;
+    provider?: string;
+  };
   if (!question?.trim() || question.length > 500) {
     return Response.json({ error: "question required (max 500 chars)" }, { status: 400 });
   }
 
   const supabase = await createClient();
-  const chat = getChat();
+  // `provider` (optional) lets the M6 eval (TRI-31) A/B backends per request; it
+  // can only select among registered providers, so it's safe from the body.
+  let chat;
+  try {
+    chat = getChat(provider);
+  } catch {
+    return Response.json({ error: "unknown provider" }, { status: 400 });
+  }
 
   // Metric registry drives the planner prompt — metrics are data, not code.
   const { data: defs } = await supabase
@@ -97,7 +107,19 @@ export async function POST(req: NextRequest) {
   });
   let plan: Plan;
   try {
-    plan = JSON.parse(planText) as Plan;
+    const raw = JSON.parse(planText) as Partial<Plan>;
+    // Normalise: open-weight models (the M6 eval) don't guarantee every field
+    // the way Claude's structured output does — fill sane defaults so a partial
+    // plan still executes instead of throwing.
+    const intents = ["lookup", "rank", "compare", "similar", "unsupported"] as const;
+    plan = {
+      intent: intents.includes(raw.intent as Plan["intent"]) ? (raw.intent as Plan["intent"]) : "unsupported",
+      metric_keys: Array.isArray(raw.metric_keys) ? raw.metric_keys.filter((k): k is string => typeof k === "string") : [],
+      suburbs: Array.isArray(raw.suburbs) ? raw.suburbs.filter((s): s is string => typeof s === "string") : [],
+      rank_direction: raw.rank_direction === "asc" ? "asc" : "desc",
+      limit: Number.isFinite(raw.limit) ? Number(raw.limit) : 5,
+      note: typeof raw.note === "string" ? raw.note : "",
+    };
   } catch {
     return Response.json({ error: "planning failed" }, { status: 502 });
   }
@@ -270,6 +292,9 @@ export async function POST(req: NextRequest) {
           intent: plan.intent,
           compare: compareCodes,
           sources: rows,
+          // Which backend/model actually served this request — recorded by the eval.
+          provider: chat.name,
+          models: { plan: chat.modelFor("reasoning"), answer: chat.modelFor("reasoning") },
         }),
       );
       try {
