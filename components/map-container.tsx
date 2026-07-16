@@ -10,7 +10,13 @@ import type {
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useWorkspace } from "@/lib/workspace";
-import { fetchMetricDefs, fetchMetricShade, type MetricDef } from "@/lib/suburb-data";
+import {
+  fetchMetricDefs,
+  fetchMetricShade,
+  type MetricDef,
+  type ShadeRow,
+} from "@/lib/suburb-data";
+import { confidenceLabel, shortSource } from "./provenance";
 
 /**
  * Auckland map (TRI-23 base + TRI-35 v2): LINZ topolite vector base, SA2
@@ -194,7 +200,7 @@ async function buildStyle(): Promise<StyleSpecification> {
 
 interface ShadeState {
   def: MetricDef;
-  values: Map<string, number>;
+  values: Map<string, ShadeRow>;
   breaks: number[]; // quintile boundaries, length 6 (min..max)
 }
 
@@ -236,7 +242,7 @@ function applyShadePaint(map: MapLibreMap, shade: ShadeState | null) {
     return `rgba(${r},${g},${b},${RAMP_ALPHAS[cls]})`;
   };
   const expr: unknown[] = ["match", ["get", "SA22023_V1_00"]];
-  for (const [sa2, v] of shade.values) expr.push(sa2, colorFor(v));
+  for (const [sa2, v] of shade.values) expr.push(sa2, colorFor(v.value));
   expr.push("rgba(0,0,0,0)"); // no data → unshaded
   map.setPaintProperty("sa2-fill", "fill-color", expr as ExpressionSpecification);
   map.setPaintProperty("sa2-fill", "fill-opacity", 1);
@@ -257,7 +263,12 @@ export function MapContainer() {
 
   const [defs, setDefs] = useState<MetricDef[]>([]);
   const [shadeKey, setShadeKey] = useState<string>("");
-  const [legend, setLegend] = useState<{ label: string; min: string; max: string } | null>(null);
+  const [legend, setLegend] = useState<{
+    label: string;
+    min: string;
+    max: string;
+    source: string;
+  } | null>(null);
 
   useEffect(() => {
     fetchMetricDefs().then(setDefs).catch(() => setDefs([]));
@@ -316,7 +327,8 @@ export function MapContainer() {
           detail =
             v === undefined
               ? `<div class="mc-pop-sub">no data</div>`
-              : `<div class="mc-pop-sub">${shade.def.label}: <strong>${v.toLocaleString()}</strong>${shade.def.unit ? ` ${shade.def.unit}` : ""}</div>`;
+              : `<div class="mc-pop-sub">${shade.def.label}: <strong>${v.value.toLocaleString()}</strong>${shade.def.unit ? ` ${shade.def.unit}` : ""}</div>` +
+                `<div class="mc-pop-src">${shortSource(v.source)} · ${v.asOf.slice(0, 4)} · ${confidenceLabel(v.confidence)}</div>`;
         }
         popupRef.current
           .setLngLat(e.lngLat)
@@ -399,7 +411,7 @@ export function MapContainer() {
       const q = (p: number) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))];
       const shade: ShadeState = {
         def,
-        values: new Map(rows.map((r) => [r.sa2, r.value])),
+        values: new Map(rows.map((r) => [r.sa2, r])),
         breaks: [sorted[0], q(0.2), q(0.4), q(0.6), q(0.8), sorted[sorted.length - 1]],
       };
       shadeRef.current = shade;
@@ -407,6 +419,9 @@ export function MapContainer() {
         label: def.label,
         min: sorted[0].toLocaleString(),
         max: sorted[sorted.length - 1].toLocaleString(),
+        source: [...new Set(rows.map((r) => `${shortSource(r.source)} ${r.asOf.slice(0, 4)}`))]
+          .sort()
+          .join(" · "),
       });
       if (mapRef.current) applyShadePaint(mapRef.current, shade);
     },
@@ -464,6 +479,7 @@ export function MapContainer() {
               <span>{legend.max}</span>
             </div>
             <p className="mt-0.5 text-[9px] text-ink/45">quintiles · darker = higher · unshaded = no data</p>
+            <p className="mt-0.5 font-mono text-[9px] text-ink/45">{legend.source}</p>
           </div>
         )}
       </div>

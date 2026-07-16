@@ -111,33 +111,49 @@ export async function fetchMetricDefs(): Promise<MetricDef[]> {
   return defsCache;
 }
 
-const shadeCache = new Map<string, { sa2: string; value: number }[]>();
-/** Latest value of one metric for every active suburb (for choropleths). */
-export async function fetchMetricShade(
-  metricKey: string,
-): Promise<{ sa2: string; value: number }[]> {
+export interface ShadeRow {
+  sa2: string;
+  value: number;
+  asOf: string;
+  source: string;
+  confidence: string;
+}
+
+const shadeCache = new Map<string, ShadeRow[]>();
+/**
+ * Latest value of one metric for every active suburb (for choropleths), with
+ * per-suburb provenance so the hover popup can show source + confidence
+ * (TRI-32) — confidence varies per suburb for boundary-mapped metrics.
+ */
+export async function fetchMetricShade(metricKey: string): Promise<ShadeRow[]> {
   const cached = shadeCache.get(metricKey);
   if (cached) return cached;
   const supabase = createClient();
   const { data, error } = await supabase
     .from("metric_values")
     .select(
-      "value_num, as_of_date, geographies!inner(sa2_code, is_active), metric_definitions!inner(metric_key)",
+      "value_num, as_of_date, confidence, geographies!inner(sa2_code, is_active), metric_definitions!inner(metric_key), sources(name)",
     )
     .eq("metric_definitions.metric_key", metricKey)
     .eq("geographies.is_active", true)
     .is("category", null)
     .not("value_num", "is", null);
   if (error) throw error;
-  const latest = new Map<string, { value: number; asOf: string }>();
+  const latest = new Map<string, ShadeRow>();
   for (const r of data ?? []) {
     const sa2 = (r.geographies as unknown as { sa2_code: string }).sa2_code;
     const prev = latest.get(sa2);
     if (!prev || r.as_of_date > prev.asOf) {
-      latest.set(sa2, { value: Number(r.value_num), asOf: r.as_of_date });
+      latest.set(sa2, {
+        sa2,
+        value: Number(r.value_num),
+        asOf: r.as_of_date,
+        source: (r.sources as unknown as { name: string } | null)?.name ?? "—",
+        confidence: r.confidence,
+      });
     }
   }
-  const rows = [...latest.entries()].map(([sa2, v]) => ({ sa2, value: v.value }));
+  const rows = [...latest.values()];
   shadeCache.set(metricKey, rows);
   return rows;
 }

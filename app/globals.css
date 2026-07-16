@@ -76,3 +76,9 @@ body {
   font-size: 11px;
   opacity: 0.75;
 }
+.mc-pop-src {
+  margin-top: 2px;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  opacity: 0.55;
+}
