@@ -2,13 +2,15 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { useWorkspace } from "@/lib/workspace";
+import { ConfidenceChip, shortSource } from "./provenance";
 
 /**
- * TRI-29 — the cited answer. Streams NDJSON from /api/ask; renders prose with
- * {{cN}} markers replaced by amber citation chips (the live-wire — the ONLY
- * place amber is used). Chips show source · year and click through to the
- * suburb. The sources footer is the server-known row list, so every citation
- * is traceable by construction.
+ * TRI-29 — the cited answer (TRI-32: provenance surfaced). Streams NDJSON from
+ * /api/ask; renders prose with {{cN}} markers replaced by amber citation chips
+ * (the live-wire — the ONLY place amber is used). Chips show source · year and
+ * click through to the suburb. The sources footer is the server-known row list
+ * — shown from the moment sources arrive (not just on done) and carrying each
+ * source's confidence — so every citation is traceable by construction.
  */
 
 interface Source {
@@ -182,12 +184,25 @@ export function AnswerPanel() {
                 Something went wrong{current.error ? ` — ${current.error}` : ""}. Try again.
               </p>
             )}
-            {current.sources.length > 0 && current.status === "done" && (
-              <p className="mt-2 border-t border-hairline pt-2 font-mono text-[10px] text-ink/45">
-                Sources:{" "}
-                {[...new Set(current.sources.map((s) => `${s.source} ${s.as_of.slice(0, 4)}`))].join(
-                  " · ",
-                )}
+            {current.sources.length > 0 && (
+              <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-hairline pt-2 font-mono text-[10px] text-ink/45">
+                <span>Sources:</span>
+                {[
+                  ...new Map(
+                    current.sources.map((s) => [
+                      `${s.source}|${s.as_of.slice(0, 4)}|${s.confidence}`,
+                      s,
+                    ]),
+                  ).values(),
+                ].map((s) => (
+                  <span
+                    key={`${s.source}|${s.as_of}|${s.confidence}`}
+                    className="inline-flex items-center gap-1"
+                  >
+                    {shortSource(s.source)} {s.as_of.slice(0, 4)}
+                    <ConfidenceChip confidence={s.confidence} />
+                  </span>
+                ))}
               </p>
             )}
           </>

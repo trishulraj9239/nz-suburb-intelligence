@@ -12,6 +12,7 @@ import {
 } from "@/lib/suburb-data";
 import { COMPARE_LIMIT, useWorkspace } from "@/lib/workspace";
 import { BudgetChip } from "./budget-chip";
+import { ConfidenceChip, Provenance, SourceChip } from "./provenance";
 
 const DIMENSION_ORDER = ["people", "housing", "deprivation"] as const;
 const DIMENSION_LABEL: Record<string, string> = {
@@ -57,17 +58,6 @@ function InfoTip({ text, label }: { text: string; label: string }) {
   );
 }
 
-function SourceChip({ source, asOf, confidence }: { source: string; asOf: string; confidence: string }) {
-  return (
-    <span className="font-mono text-[10px] text-ink/45">
-      {source} · {asOf.slice(0, 4)}
-      {confidence !== "high" && (
-        <span title={`Confidence: ${confidence}`}> · {confidence}</span>
-      )}
-    </span>
-  );
-}
-
 /**
  * Percentile-vs-region bar. For metrics with higher_is_better NULL
  * (deprivation etc.) the marker stays neutral ink — position is information,
@@ -77,7 +67,7 @@ function PercentileBar({ pct, judged }: { pct: number; judged: boolean }) {
   return (
     <div
       className="relative h-1 w-full rounded-full bg-hairline"
-      title={`${Math.round(pct)}th percentile of Auckland suburbs`}
+      title={`${Math.round(pct)}th percentile of Auckland suburbs — derived from the sourced values above`}
     >
       <div
         className={`absolute top-1/2 h-2.5 w-0.5 -translate-y-1/2 rounded ${judged ? "bg-harbour" : "bg-ink/60"}`}
@@ -149,7 +139,7 @@ function ScalarRow({ s, stat }: { s: ScalarValue; stat?: RegionalStat }) {
         </div>
       )}
       <div className="mt-1 flex justify-end">
-        <SourceChip source={s.source} asOf={s.asOf} confidence={s.confidence} />
+        <Provenance source={s.source} asOf={s.asOf} confidence={s.confidence} />
       </div>
     </div>
   );
@@ -230,12 +220,15 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
         </p>
         {profile.cbdKm != null && (
           <p
-            className="mt-1 font-mono text-[11px] text-ink/60"
+            className="mt-1 flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-ink/60"
             title="Straight-line distance from the suburb centroid to the Auckland CBD (Sky Tower). Drive time is a rough off-peak estimate — no live traffic data."
           >
-            CBD {profile.cbdKm.toFixed(1)} km (straight line) · ≈
-            {Math.max(5, Math.round(((profile.cbdKm * 1.3) / 30) * 60 / 5) * 5)} min drive
-            (off-peak est.)
+            <span>
+              CBD {profile.cbdKm.toFixed(1)} km (straight line) · ≈
+              {Math.max(5, Math.round(((profile.cbdKm * 1.3) / 30) * 60 / 5) * 5)} min drive
+              (off-peak est.)
+            </span>
+            <ConfidenceChip confidence="derived" />
           </p>
         )}
       </div>
@@ -285,7 +278,7 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
             ))}
           </div>
           <div className="mt-1 flex justify-end">
-            <SourceChip source={b.source} asOf={b.asOf} confidence={b.confidence} />
+            <Provenance source={b.source} asOf={b.asOf} confidence={b.confidence} />
           </div>
         </section>
       ))}
@@ -323,10 +316,15 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
             ))}
           </ul>
         )}
-        <div className="mt-1 flex justify-end">
-          <span className="font-mono text-[10px] text-ink/45">
-            Schools Directory · 2026 · distances straight-line
+        <div className="mt-1 flex items-center justify-end gap-1.5">
+          <SourceChip source="MOE Schools Directory" asOf="2026" />
+          <span
+            className="font-mono text-[10px] text-ink/45"
+            title="Distances are straight-line from the suburb centroid, computed here"
+          >
+            · distances
           </span>
+          <ConfidenceChip confidence="derived" />
         </div>
       </section>
     </div>

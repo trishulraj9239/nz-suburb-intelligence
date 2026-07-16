@@ -11,18 +11,26 @@ import {
 } from "@/lib/suburb-data";
 import { useWorkspace } from "@/lib/workspace";
 import { BudgetChip } from "./budget-chip";
+import { ConfidenceChip, Provenance, SourceChip } from "./provenance";
 
 /**
- * Compare 2-3 suburbs (TRI-24 base, TRI-37 v2). Desktop: full profile columns
- * side by side — values, percentile-vs-region bars, budget chips, composition
- * highlights. Mobile: the compact metric table. Cells stay mono, deprivation
- * stays unjudged, sources stay visible.
+ * Compare 2-3 suburbs (TRI-24 base, TRI-37 v2, TRI-32 provenance). Desktop:
+ * full profile columns side by side — values, percentile-vs-region bars,
+ * budget chips, composition highlights. Mobile: the compact metric table.
+ * Cells stay mono, deprivation stays unjudged, and every metric carries its
+ * own source + confidence (confidence can differ per suburb — e.g. NZDep
+ * mapped across 2018→2023 boundary changes).
  */
 
-function pctOf(p: SuburbProfile, key: string, label: string): number | null {
+function pctOf(
+  p: SuburbProfile,
+  key: string,
+  label: string,
+): { pct: number; source: string; asOf: string; confidence: string } | null {
   const b = p.breakdowns.find((x) => x.def.metric_key === key);
   const c = b?.categories.find((x) => x.label === label);
-  return c?.pct ?? null;
+  if (!b || c?.pct == null) return null;
+  return { pct: c.pct, source: b.source, asOf: b.asOf, confidence: b.confidence };
 }
 
 function CompareColumn({
@@ -59,7 +67,12 @@ function CompareColumn({
         </button>
       </div>
       {p.cbdKm != null && (
-        <p className="mt-0.5 font-mono text-[10px] text-ink/50">CBD {p.cbdKm.toFixed(1)} km</p>
+        <p
+          className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] text-ink/50"
+          title="Straight-line, centroid to Sky Tower — computed here"
+        >
+          CBD {p.cbdKm.toFixed(1)} km <ConfidenceChip confidence="derived" />
+        </p>
       )}
 
       <div className="mt-2 flex flex-col divide-y divide-hairline/60">
@@ -81,7 +94,7 @@ function CompareColumn({
               {stat && (
                 <div
                   className="relative mt-1 h-0.5 w-full rounded-full bg-hairline"
-                  title={`${Math.round(percentileOf(s.value, stat))}th percentile of Auckland suburbs`}
+                  title={`${Math.round(percentileOf(s.value, stat))}th percentile of Auckland suburbs — derived from the sourced values`}
                 >
                   <div
                     className={`absolute top-1/2 h-2 w-0.5 -translate-y-1/2 rounded ${s.def.higher_is_better !== null ? "bg-harbour" : "bg-ink/60"}`}
@@ -89,20 +102,42 @@ function CompareColumn({
                   />
                 </div>
               )}
+              <div className="mt-1 flex justify-end">
+                <Provenance source={s.source} asOf={s.asOf} confidence={s.confidence} />
+              </div>
             </div>
           );
         })}
-        <div className="flex items-baseline justify-between py-1.5">
-          <span className="text-[11px] text-ink/65">Own their home</span>
-          <span className="font-mono text-xs text-ink">{owned != null ? `${owned.toFixed(0)}%` : "—"}</span>
+        <div className="py-1.5">
+          <div className="flex items-baseline justify-between">
+            <span className="text-[11px] text-ink/65">Own their home</span>
+            <span className="font-mono text-xs text-ink">{owned != null ? `${owned.pct.toFixed(0)}%` : "—"}</span>
+          </div>
+          {owned && (
+            <div className="mt-1 flex justify-end">
+              <Provenance source={owned.source} asOf={owned.asOf} confidence={owned.confidence} />
+            </div>
+          )}
         </div>
-        <div className="flex items-baseline justify-between py-1.5">
-          <span className="text-[11px] text-ink/65">Separate houses</span>
-          <span className="font-mono text-xs text-ink">{houses != null ? `${houses.toFixed(0)}%` : "—"}</span>
+        <div className="py-1.5">
+          <div className="flex items-baseline justify-between">
+            <span className="text-[11px] text-ink/65">Separate houses</span>
+            <span className="font-mono text-xs text-ink">{houses != null ? `${houses.pct.toFixed(0)}%` : "—"}</span>
+          </div>
+          {houses && (
+            <div className="mt-1 flex justify-end">
+              <Provenance source={houses.source} asOf={houses.asOf} confidence={houses.confidence} />
+            </div>
+          )}
         </div>
-        <div className="flex items-baseline justify-between py-1.5">
-          <span className="text-[11px] text-ink/65">Schools in area</span>
-          <span className="font-mono text-xs text-ink">{p.schools.length}</span>
+        <div className="py-1.5">
+          <div className="flex items-baseline justify-between">
+            <span className="text-[11px] text-ink/65">Schools in area</span>
+            <span className="font-mono text-xs text-ink">{p.schools.length}</span>
+          </div>
+          <div className="mt-1 flex justify-end">
+            <SourceChip source="MOE Schools Directory" asOf="2026" />
+          </div>
         </div>
       </div>
     </div>
@@ -209,9 +244,20 @@ export function ComparePanel() {
         <tbody className="divide-y divide-hairline/60">
           {metricKeys.map((k) => {
             const def = defFor(k);
+            // Source + vintage are shared per metric; confidence differs per suburb.
+            const any = profiles
+              .map((p) => p.scalars.find((x) => x.def.metric_key === k))
+              .find((s) => s != null);
             return (
               <tr key={k}>
-                <td className="py-2 pr-2 text-xs text-ink/70">{def.label}</td>
+                <td className="py-2 pr-2 text-xs text-ink/70">
+                  {def.label}
+                  {any && (
+                    <div className="mt-0.5">
+                      <SourceChip source={any.source} asOf={any.asOf} />
+                    </div>
+                  )}
+                </td>
                 {profiles.map((p) => {
                   const s = p.scalars.find((x) => x.def.metric_key === k);
                   return (
@@ -222,6 +268,11 @@ export function ComparePanel() {
                           <BudgetChip rent={s.value} />
                         </div>
                       )}
+                      {s && (
+                        <div className="mt-0.5">
+                          <ConfidenceChip confidence={s.confidence} />
+                        </div>
+                      )}
                     </td>
                   );
                 })}
@@ -229,8 +280,11 @@ export function ComparePanel() {
             );
           })}
           <tr>
-            <td className="py-2 pr-2 text-xs text-ink/70" title="Straight-line, centroid to Sky Tower">
+            <td className="py-2 pr-2 text-xs text-ink/70" title="Straight-line, centroid to Sky Tower — computed here">
               CBD distance
+              <div className="mt-0.5">
+                <ConfidenceChip confidence="derived" />
+              </div>
             </td>
             {profiles.map((p) => (
               <td key={p.suburb.sa2_code} className="px-1 py-2 font-mono text-xs text-ink">
@@ -239,7 +293,12 @@ export function ComparePanel() {
             ))}
           </tr>
           <tr>
-            <td className="py-2 pr-2 text-xs text-ink/70">Schools located here</td>
+            <td className="py-2 pr-2 text-xs text-ink/70">
+              Schools located here
+              <div className="mt-0.5">
+                <SourceChip source="MOE Schools Directory" asOf="2026" />
+              </div>
+            </td>
             {profiles.map((p) => (
               <td key={p.suburb.sa2_code} className="px-1 py-2 font-mono text-xs text-ink">
                 {p.schools.length}
@@ -248,10 +307,6 @@ export function ComparePanel() {
           </tr>
         </tbody>
       </table>
-
-      <p className="text-right font-mono text-[10px] text-ink/45">
-        Census 2023 · NZDep2018 · Schools Directory 2026
-      </p>
     </div>
   );
 }
