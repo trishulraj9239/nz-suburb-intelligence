@@ -27,6 +27,20 @@ const metrics = JSON.parse(readFileSync("data/census/tri17-metric-values.json", 
 const deprivation = JSON.parse(readFileSync("data/census/tri18-deprivation.json", "utf8"));
 const schools = JSON.parse(readFileSync("data/census/tri18-schools.json", "utf8"));
 const commute = JSON.parse(readFileSync("data/commute/tri46-staging.json", "utf8"));
+const rent = JSON.parse(readFileSync("data/rent/tri63-rent-metrics.json", "utf8"));
+
+// TRI-66: latest-quarter MBIE bond rents (new tenancies) + 12-month trend.
+let latestRentQ = "";
+for (const r of rent) if (r.m === "rent_median_weekly" && r.d > latestRentQ) latestRentQ = r.d;
+const rentQLabel = `${latestRentQ.slice(0, 4)} Q${Math.floor(Number(latestRentQ.slice(5, 7)) / 3) + 1}`;
+const rentBySuburb = new Map();
+for (const r of rent) {
+  if (r.d !== latestRentQ) continue;
+  const m = rentBySuburb.get(r.g) ?? {};
+  if (r.m === "rent_median_weekly") m.med = r.v;
+  else if (r.m === "rent_trend_12m_pct") m.trend = r.v;
+  rentBySuburb.set(r.g, m);
+}
 
 // TRI-49: typical anchor commute times (openrouteservice/OSM, no live traffic).
 const commuteBySuburb = new Map();
@@ -77,6 +91,16 @@ function profileText(sa2) {
   if (m.median_household_income)
     bits.push(`Median household income $${m.median_household_income}.`);
   if (m.median_rent_weekly) bits.push(`Median weekly rent $${m.median_rent_weekly}.`);
+  const rb = rentBySuburb.get(sa2);
+  if (rb?.med != null) {
+    const trend =
+      rb.trend == null
+        ? ""
+        : `, ${rb.trend > 0.05 ? "up" : rb.trend < -0.05 ? "down" : "flat at"} ${Math.abs(rb.trend).toFixed(1)}% on a year earlier`;
+    bits.push(
+      `Current median rent for new tenancies $${rb.med}/week (MBIE tenancy bonds, ${rentQLabel}, all dwelling types${trend}).`,
+    );
+  }
   const owned = pct(m["tenure:cats"], "Owned or partly owned");
   if (owned !== null) bits.push(`${owned}% of households own or partly own their home.`);
   const sep = pct(m["dwelling_type:cats"], "Separate house");

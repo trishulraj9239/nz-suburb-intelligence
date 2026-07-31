@@ -72,5 +72,17 @@
     "intent": "rank",
     "persona": "buyer",
     "expect": { "unsupported": false, "minSources": 1 }
+  },
+  {
+    "id": "q13-rent-live",
+    "question": "What's rent doing in Avondale lately?",
+    "intent": "lookup",
+    "expect": { "unsupported": false, "suburbs": ["Avondale"], "minSources": 1, "sourceIncludes": "Tenancy bond" }
+  },
+  {
+    "id": "q14-dwelling-trap",
+    "question": "What is the median rent for a two-bedroom apartment in Takapuna?",
+    "intent": "lookup",
+    "expect": { "unsupported": false, "suburbs": ["Takapuna"], "minSources": 1 }
   }
 ]
