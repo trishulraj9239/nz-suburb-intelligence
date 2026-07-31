@@ -20,13 +20,13 @@
  * Run: node scripts/etl/tri-44-linz-addresses.mjs
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
 
 const env = readFileSync(".env.local", "utf8");
 const KEY = env.match(/^LINZ_LDS_API_KEY=(.+)$/m)?.[1]?.trim();
 if (!KEY) throw new Error("LINZ_LDS_API_KEY missing from .env.local — create a free key at data.linz.govt.nz (My account → API keys, 'Full access to LINZ Data Service data' scope)");
 
-const LAYER = "layer-105689"; // NZ Addresses
+const LAYER = "layer-123113"; // NZ Addresses (105689 is a deprecated older id)
 const BBOX = "173.9,-37.36,175.65,-35.95,EPSG:4326"; // generous Auckland box; SA2 join does the real clip
 const PAGE = 20000;
 const PART = 75000;
@@ -86,18 +86,35 @@ async function page(startIndex, attempt = 0) {
   return r.json();
 }
 
+// Checkpointed download: each page appends its kept rows as JSONL and records
+// the next startIndex, so a killed run resumes instead of starting over.
+const CKPT = "data/addresses/.tri44-checkpoint.jsonl";
+mkdirSync("data/addresses", { recursive: true });
+
 const rows = [];
 let kept = 0, dropped = 0, start = 0;
+if (existsSync(CKPT)) {
+  for (const line of readFileSync(CKPT, "utf8").split("\n")) {
+    if (!line) continue;
+    const o = JSON.parse(line);
+    if (o._next !== undefined) { start = o._next; dropped = o._dropped; }
+    else rows.push(o);
+  }
+  kept = rows.length;
+  console.log(`resuming from checkpoint: ${kept} rows, startIndex ${start}`);
+}
+
 for (;;) {
   const fc = await page(start);
   const feats = fc.features ?? [];
   if (!feats.length) break;
+  const pageLines = [];
   for (const f of feats) {
     const [x, y] = f.geometry.coordinates;
     const g = sa2For(x, y);
     if (!g) { dropped++; continue; }
     const p = f.properties;
-    rows.push({
+    const row = {
       i: p.address_id,
       a: p.full_address,
       s: p.suburb_locality ?? null,
@@ -105,20 +122,24 @@ for (;;) {
       x: +x.toFixed(6),
       y: +y.toFixed(6),
       g,
-    });
+    };
+    rows.push(row);
+    pageLines.push(JSON.stringify(row));
     kept++;
   }
   start += feats.length;
+  pageLines.push(JSON.stringify({ _next: start, _dropped: dropped }));
+  appendFileSync(CKPT, pageLines.join("\n") + "\n");
   console.log(`  fetched ${start} — kept ${kept}, outside SA2s ${dropped}`);
   if (feats.length < PAGE) break;
 }
 
 // --- Chunked artifacts ------------------------------------------------------
-mkdirSync("data/addresses", { recursive: true });
 const parts = Math.ceil(rows.length / PART);
 for (let n = 0; n < parts; n++) {
   const name = `data/addresses/tri44-addresses-${String(n + 1).padStart(2, "0")}.json`;
   writeFileSync(name, JSON.stringify(rows.slice(n * PART, (n + 1) * PART)));
   console.log(`wrote ${name}`);
 }
+rmSync(CKPT, { force: true });
 console.log(`${kept} Auckland addresses in ${parts} parts (${dropped} outside the SA2 set)`);

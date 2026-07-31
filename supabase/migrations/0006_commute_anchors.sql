@@ -103,7 +103,7 @@ insert into sources (source_key, name, publisher, url, licence, tier) values
    'https://openrouteservice.org', 'ODbL 1.0 (OSM road data); attribution required', 1),
   ('linz_addresses', 'NZ Addresses',
    'Toitū Te Whenua Land Information New Zealand',
-   'https://data.linz.govt.nz/layer/105689-nz-addresses/', 'CC BY 4.0', 1)
+   'https://data.linz.govt.nz/layer/123113-nz-addresses/', 'CC BY 4.0', 1)
 on conflict (source_key) do nothing;
 
 -- Backfill the 0001 TODO licences on existing rows.
