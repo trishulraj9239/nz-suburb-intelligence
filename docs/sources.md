@@ -57,6 +57,31 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
 - **Licence / attribution:** **CC BY 4.0**.
   - UI source-chip string: **"Addresses: Toitū Te Whenua LINZ (CC BY 4.0)"**
 
+## MBIE Tenancy bond data — live rent
+
+- **What:** rents from bonds lodged with Tenancy Services (**new tenancies**, by
+  tenancy start date) — median + quartiles per SA2 per quarter. Feeds the
+  `rent_*` metrics (dimension `housing`). Deep-dive + locked decisions:
+  `docs/spikes/tri-62-mbie-rent-bonds.md`.
+- **Auth:** none — keyless CSV downloads from tenancy.govt.nz.
+- **Cadence:** SA2 detail is **quarterly** (monthly exists only at TLA/region);
+  published ~1 quarter behind + 10–15 working days processing. Refresh = re-run
+  `scripts/etl/tri-63-mbie-rent.mjs` → commit/push → `tri-63-rent-metrics.sql`.
+- **Caveats:**
+  - File is on **SA2-2019** codes; 2023 concordance = exact code (confidence
+    `medium`) or parent `XXXX00` rule (confidence `low`); ~611/633 covered, the
+    rest have no rental stock.
+  - MBIE flags the series **provisional** during their bond-system migration —
+    that's why direct matches cap at `medium`.
+  - Suppression: cells with <5 bonds are omitted upstream (row absence);
+    counts random-rounded base 3. All-dwelling-types aggregate includes
+    boarding house/room bonds.
+  - File names are versioned (`-v3`, year-ranged) — the ETL fails loudly on 404
+    when a URL rolls over.
+- **Licence / attribution:** **CC BY 3.0 NZ**, attribute "The Ministry of
+  Business, Innovation and Employment".
+  - UI source-chip string: **"MBIE Tenancy bonds · <quarter>"**
+
 ## Existing sources (for completeness)
 
 | Source | Used for | Licence |
