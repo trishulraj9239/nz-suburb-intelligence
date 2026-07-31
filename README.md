@@ -19,8 +19,15 @@ be added without code changes.
   fly-to on selection. Light/dark tuned.
 - **Suburb profile** — scorecard with percentile-vs-region bars, source chips and
   as-of dates: people, housing, deprivation, **2013→2018→2023 census trends**,
-  **nearby schools by distance** (PostGIS, not just schools inside the SA2), and a
-  **straight-line CBD commute** estimate.
+  **nearby schools by distance** (PostGIS, not just schools inside the SA2), and
+  **Getting around** — typical drive / cycle / walk times to the CBD and airport,
+  routed on real roads (openrouteservice/OSM), always labelled *typical · no live
+  traffic*.
+- **Commute questions** — "commute from Grey Lynn to 4 Osterley Way?", "suburbs
+  under $650 rent within 30 min drive of Penrose?" — the ask bar geocodes NZ
+  addresses locally (LINZ NZ Addresses in Postgres, pg_trgm fuzzy match) and
+  routes them live, cached indefinitely. Set **your workplace** (geocode-confirmed,
+  stored client-side) and profiles gain a commute-to-work row.
 - **Compare** — up to three suburbs: full profiles side by side on desktop
   (dimensions aligned as rows), a compact table on mobile.
 - **Rent budget** — set a weekly budget; profile/compare/answers show under / on /
@@ -70,11 +77,13 @@ Vercel → Project → Settings → Environment Variables.
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Settings → API | |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API | anon key only |
-| `NEXT_PUBLIC_LINZ_API_KEY` | LINZ Data Service | scoped basemap tile key |
+| `NEXT_PUBLIC_LINZ_API_KEY` | LINZ Basemaps | scoped basemap tile key |
 
-Server-only secrets — the Supabase **service-role key**, `ANTHROPIC_API_KEY`, and
-`GEMINI_API_KEY` — power the `/api/ask` route and ingestion. **Never** give any of
-them a `NEXT_PUBLIC_` prefix or expose them client-side.
+Server-only secrets — the Supabase **service-role key**, `ANTHROPIC_API_KEY`,
+`GEMINI_API_KEY`, and `ORS_API_KEY` (openrouteservice, powers `/api/commute`) —
+power the API routes and ingestion. `LINZ_LDS_API_KEY` (LINZ **Data Service** — a
+different site and key than Basemaps) is ETL-only and never deployed. **Never**
+give any of them a `NEXT_PUBLIC_` prefix or expose them client-side.
 
 ## Health check
 
@@ -92,6 +101,32 @@ carries its decision record; read it before changing schema.
 - **`0002_embeddings.sql`** — `suburb_embeddings` with pgvector at the locked
   dimension **`gemini-embedding-001` @ 768**. Server-only (no anon read);
   re-normalize 768-dim outputs before cosine similarity.
+- **`0006_commute_anchors.sql`** — commute anchors as data (CBD, airport — adding
+  one is an insert, not code), `ST_PointOnSurface` routing origins per SA2 (the
+  stored ArcGIS centroids sat in water for 11 peninsula suburbs), matrix staging,
+  ORS/LINZ source rows.
+- **`0007_addresses_commute_cache.sql`** — 726k LINZ NZ Addresses (Auckland clip,
+  pg_trgm) behind a `geocode_address()` gate — no anon table read; the
+  live-commute cache behind validated get/put functions.
+
+## Commute layer — why it's built this way
+
+Routing provider: **openrouteservice's hosted free tier** over OpenStreetMap —
+not self-hosted OSRM (real ops for a demo) and not Google (cost, licensing,
+and results you can't cache indefinitely). The trade-off: **no live traffic**, so
+every figure in the product carries "typical drive time — no live traffic", and
+the road data is ODbL — the source chip attributes
+*openrouteservice · © OpenStreetMap contributors*.
+
+The split mirrors the embed-once philosophy: **bulk is precomputed** (627 SA2
+origins × anchors × 3 modes ≈ 36 matrix calls at ingestion, stored as ordinary
+`metric_values` with source + as-of date), and the **only runtime routing is the
+user-specific case** — a typed destination or the saved workplace — geocoded
+against LINZ addresses *in Postgres* (no third-party geocoder in the request
+path) and cached indefinitely, because roads change slowly and the ETL re-run is
+the refresh. If ORS is down or the daily quota runs low, the API degrades to a
+straight-line distance flagged `fallback: true` with its own labelling — the app
+never silently pretends a crow-flies number is a drive time.
 
 ## Map coverage outline
 

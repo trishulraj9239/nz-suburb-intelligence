@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { useWorkspace } from "@/lib/workspace";
+import { getWorkplace } from "@/lib/preferences";
 import { ConfidenceChip, shortSource } from "./provenance";
 
 /**
@@ -80,7 +81,9 @@ export function AnswerPanel() {
         const res = await fetch("/api/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question }),
+          // The saved workplace rides along so "commute to work" resolves
+          // server-side (TRI-54); snapshotted here, not reactive.
+          body: JSON.stringify({ question, workplace: getWorkplace() ?? undefined }),
           signal: controller.signal,
         });
         if (!res.ok || !res.body) throw new Error(`ask failed (${res.status})`);

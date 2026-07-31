@@ -5,6 +5,7 @@ import { useWorkspace } from "@/lib/workspace";
 import { ThemeToggle } from "./theme-toggle";
 import { AuthButton } from "./auth-button";
 import { BudgetControl } from "./budget-control";
+import { WorkplaceControl } from "./workplace-control";
 
 /** Seeds the query bar so the box is never blank — also the state Home returns to. */
 const DEFAULT_QUERY = "Cheapest rent near Takapuna?";
@@ -77,6 +78,7 @@ export function TopBar() {
       </form>
 
       <div className="ml-auto flex shrink-0 items-center gap-x-3">
+        <WorkplaceControl />
         <BudgetControl />
         <AuthButton />
         <ThemeToggle />

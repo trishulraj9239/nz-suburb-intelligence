@@ -24,7 +24,7 @@
           "citations_ok": true,
           "refusal_ok": true,
           "enough_sources": true,
-          "latency_ms": 3695,
+          "latency_ms": 5990,
           "tokens_est": 28,
           "cost_est_usd": 0.000276,
           "n_sources": 1,
@@ -36,7 +36,7 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Accurately reports the figure with correct citation, high confidence needs no hedging."
+            "note": "Correctly states the figure with proper citation, concise and appropriate given high confidence."
           },
           "answer": "The median weekly rent in Ponsonby West is $545 per week {{c1}}."
         },
@@ -45,7 +45,7 @@
           "citations_ok": true,
           "refusal_ok": true,
           "enough_sources": true,
-          "latency_ms": 533,
+          "latency_ms": 15029,
           "tokens_est": 27,
           "cost_est_usd": 0.0000054,
           "n_sources": 1,
@@ -57,7 +57,7 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Accurate, cited, and concise; identical quality to A."
+            "note": "Accurately reports the figure with correct citation, high confidence needs no hedge, concise."
           },
           "answer": "The median weekly rent in Ponsonby West is $545/week {{c1}}."
         }
@@ -73,30 +73,30 @@
           "citations_ok": true,
           "refusal_ok": true,
           "enough_sources": true,
-          "latency_ms": 5321,
-          "tokens_est": 117,
-          "cost_est_usd": 0.001563,
+          "latency_ms": 4676,
+          "tokens_est": 95,
+          "cost_est_usd": 0.001233,
           "n_sources": 5,
           "n_citations": 5,
           "model": "claude-sonnet-4-6",
           "quality": {
             "grounded": 5,
             "cited": 5,
-            "hedged": 4,
+            "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "All figures grounded and cited, the $30 gap is a correct derived observation, confidence noted, and stays concise."
+            "note": "Accurate, fully cited, concise, and helpfully notes the source and high confidence level."
           },
-          "answer": "The five Auckland suburbs with the lowest median weekly rents are Point England North at $148/wk {{c1}}, Ōtara West at $178/wk {{c2}}, Wesley East at $180/wk {{c3}}, Ōtara Central at $182/wk {{c4}}, and Wiri North at $186/wk {{c5}}. Point England North is notably the cheapest by some margin, sitting $30/wk below the next lowest suburb. All figures come from the 2023 Census and carry high confidence."
+          "answer": "Based on the five data rows provided, the suburbs with the lowest median weekly rents are Point England North at $148/wk {{c1}}, Ōtara West at $178/wk {{c2}}, Wesley East at $180/wk {{c3}}, Ōtara Central at $182/wk {{c4}}, and Wiri North at $186/wk {{c5}}. All figures come from the 2023 Census at high confidence."
         },
         "groq": {
           "plan_valid": true,
           "citations_ok": true,
           "refusal_ok": true,
           "enough_sources": true,
-          "latency_ms": 797,
-          "tokens_est": 85,
-          "cost_est_usd": 0.000017,
+          "latency_ms": 12746,
+          "tokens_est": 87,
+          "cost_est_usd": 0.000017400000000000003,
           "n_sources": 5,
           "n_citations": 5,
           "model": "qwen/qwen3.6-27b",
@@ -106,9 +106,9 @@
             "hedged": 4,
             "concise": 5,
             "overall": 5,
-            "note": "Fully grounded, all five figures cited correctly, high-confidence data needs no hedging, and concise."
+            "note": "Accurate, fully cited, and concise listing of all five suburbs with correct figures."
           },
-          "answer": "Based on the 2023 Census data, Point England North has the lowest median weekly rent at $148 {{c1}}. It is followed by Ōtara West at $178 {{c2}} and Wesley East at $180 {{c3}}. The next lowest are Ōtara Central with a median rent of $182 {{c4}} and Wiri North at $186 {{c5}}."
+          "answer": "The five Auckland suburbs with the lowest median weekly rent are Point England North at $148/week {{c1}}, Ōtara West at $178/week {{c2}}, and Wesley East at $180/week {{c3}}. They are followed by Ōtara Central with a median rent of $182/week {{c4}} and Wiri North at $186/week {{c5}}."
         }
       }
     },
@@ -122,42 +122,42 @@
           "citations_ok": true,
           "refusal_ok": true,
           "enough_sources": true,
-          "latency_ms": 4596,
-          "tokens_est": 84,
-          "cost_est_usd": 0.001056,
+          "latency_ms": 6884,
+          "tokens_est": 111,
+          "cost_est_usd": 0.001476,
           "n_sources": 4,
           "n_citations": 4,
           "model": "claude-sonnet-4-6",
           "quality": {
             "grounded": 5,
             "cited": 5,
-            "hedged": 5,
+            "hedged": 4,
             "concise": 5,
             "overall": 5,
-            "note": "Every figure correctly cited, accurate derived difference, concise and appropriately factual with high-confidence data."
+            "note": "Accurate cited figures with correct derived differences and confidence noted, slightly richer."
           },
-          "answer": "Takapuna Central is the larger area, with a population of 2,898 {{c3}}, compared to Ponsonby West's 2,154 {{c1}}. Renters in Takapuna Central also face higher median weekly costs at $610/wk {{c4}}, versus $545/wk {{c2}} in Ponsonby West — a difference of $65 per week."
+          "answer": "Ponsonby West has a population of 2,154 {{c1}} and a median weekly rent of $545 {{c2}}, while Takapuna Central is larger at 2,898 residents {{c3}} and pricier to rent at $610 per week {{c4}}. That puts Takapuna Central's rent about $65 per week higher, with a population roughly 750 greater than Ponsonby West's. Both figures come from the 2023 Census and carry high confidence."
         },
         "groq": {
           "plan_valid": true,
           "citations_ok": true,
           "refusal_ok": true,
           "enough_sources": true,
-          "latency_ms": 756,
-          "tokens_est": 74,
-          "cost_est_usd": 0.000015000000000000002,
+          "latency_ms": 22260,
+          "tokens_est": 94,
+          "cost_est_usd": 0.000019,
           "n_sources": 4,
-          "n_citations": 2,
+          "n_citations": 4,
           "model": "qwen/qwen3.6-27b",
           "quality": {
             "grounded": 5,
-            "cited": 3,
-            "hedged": 5,
+            "cited": 5,
+            "hedged": 4,
             "concise": 5,
-            "overall": 4,
-            "note": "All figures correct but two of four numbers lack their own citation markers (2154 and 545 uncited)."
+            "overall": 5,
+            "note": "All figures accurate and cited, clear comparison, no invented data."
           },
-          "answer": "Takapuna Central has a larger population of 2898 residents compared to Ponsonby West’s 2154 {{c3}}. In terms of housing costs, the median weekly rent in Takapuna Central is higher at $610, while Ponsonby West sits at $545 {{c4}}."
+          "answer": "Ponsonby West has a population of 2154 count {{c1}}, whereas Takapuna Central has a larger population of 2898 count {{c3}}. In terms of rental costs, the median weekly rent in Ponsonby West is 545 $/week {{c2}}. This is lower than the median weekly rent in Takapuna Central, which stands at 610 $/week {{c4}}."
         }
       }
     },
@@ -171,9 +171,9 @@
           "citations_ok": true,
           "refusal_ok": true,
           "enough_sources": true,
-          "latency_ms": 5336,
-          "tokens_est": 120,
-          "cost_est_usd": 0.001656,
+          "latency_ms": 6321,
+          "tokens_est": 130,
+          "cost_est_usd": 0.001821,
           "n_sources": 5,
           "n_citations": 5,
           "model": "claude-sonnet-4-6",
@@ -183,30 +183,30 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Accurate, fully cited, concise, and explicitly notes the medium confidence and 2023 vintage."
+            "note": "All five figures accurate with correct citations, notes medium confidence and explains embedding basis concisely."
           },
-          "answer": "Based on profile embeddings, the suburbs most similar to Ponsonby West are Saint Marys Bay at a cosine similarity of 0.7929 {{c1}} and Herne Bay at 0.7906 {{c2}}, making them the closest matches. Point Chevalier West (0.7852 {{c3}}) and Ponsonby East (0.7839 {{c4}}) follow closely, with Saint Johns West rounding out the top five at 0.7809 {{c5}}. All similarities are approximately medium confidence from 2023 profile embeddings."
+          "answer": "Based on profile similarity scores (2023, medium confidence), the suburbs most similar to Ponsonby West are Herne Bay at 0.8101 {{c1}} and Saint Marys Bay at 0.81 {{c2}}, followed closely by Point Chevalier West at 0.8081 {{c3}} and Ponsonby East at 0.8077 {{c4}}. Saint Johns West is approximately similar as well, scoring 0.7977 {{c5}}. These rankings are derived from embedding-based profile similarity and reflect overall suburb character rather than any single metric."
         },
         "groq": {
           "plan_valid": true,
           "citations_ok": true,
           "refusal_ok": true,
           "enough_sources": true,
-          "latency_ms": 756,
-          "tokens_est": 107,
-          "cost_est_usd": 0.0000214,
+          "latency_ms": 4032,
+          "tokens_est": 131,
+          "cost_est_usd": 0.000026200000000000003,
           "n_sources": 5,
-          "n_citations": 5,
+          "n_citations": 10,
           "model": "qwen/qwen3.6-27b",
           "quality": {
             "grounded": 5,
             "cited": 5,
-            "hedged": 3,
-            "concise": 5,
-            "overall": 4,
-            "note": "Accurate and fully cited but does not mention the medium confidence of the embeddings."
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "All figures accurate and cited with clear hedging, though the trailing citation cluster is slightly redundant."
           },
-          "answer": "Based on 2023 profile embeddings, Saint Marys Bay is the most similar suburb to Ponsonby West with a cosine similarity of 0.7929 {{c1}}. Herne Bay follows closely with a similarity score of approximately 0.7906 {{c2}}, while Point Chevalier West has a score of 0.7852 {{c3}}. Other comparable suburbs include Ponsonby East at 0.7839 {{c4}} and Saint Johns West at 0.7809 {{c5}}."
+          "answer": "Suburbs with profiles similar to Ponsonby West include Herne Bay with a similarity score of 0.8101 {{c1}} and Saint Marys Bay at 0.81 {{c2}}. Point Chevalier West follows closely with a score of 0.8081 {{c3}}, while Ponsonby East registers 0.8077 {{c4}}. Saint Johns West is also comparable with a similarity of 0.7977 {{c5}}. These figures are based on profile embeddings from 2023 and should be viewed as approximate due to medium confidence {{c1}}{{c2}}{{c3}}{{c4}}{{c5}}."
         }
       }
     },
@@ -220,9 +220,9 @@
           "citations_ok": true,
           "refusal_ok": true,
           "enough_sources": true,
-          "latency_ms": 7263,
-          "tokens_est": 175,
-          "cost_est_usd": 0.002397,
+          "latency_ms": 7913,
+          "tokens_est": 171,
+          "cost_est_usd": 0.002337,
           "n_sources": 5,
           "n_citations": 5,
           "model": "claude-sonnet-4-6",
@@ -232,30 +232,30 @@
             "hedged": 5,
             "concise": 4,
             "overall": 5,
-            "note": "All five figures cited correctly with medium-confidence hedging and a sensible caveat about the harbour inlet, only slightly long."
+            "note": "Accurate figures, all cited, hedges on medium confidence, and adds helpful geographic context though slightly longer."
           },
-          "answer": "Based on the profile similarity scores, the suburbs that best match a quiet, higher-income waterside feel are Campbells Bay (0.6627 cosine similarity {{c2}}) and Murrays Bay East (0.6546 {{c4}}), both on Auckland's North Shore, along with Browns Bay South East (0.6507 {{c5}}). Sandspit, a small coastal settlement north of Auckland, also ranks closely at 0.6577 {{c3}}. The Waitemata Harbour inlet area scores highest overall at 0.6741 {{c1}}, though as a waterway rather than a suburb it may reflect harbour-adjacent neighbourhoods more broadly. All scores are approximately medium confidence from 2023 profile embeddings."
+          "answer": "Based on profile similarity scores from 2023 embeddings, the closest matches to \"quiet, higher-income area near the water\" are Waitemata Harbour inlet (0.6841) {{c1}}, Campbells Bay (0.6701) {{c2}}, Herne Bay (0.6650) {{c3}}, Saint Marys Bay (0.6622) {{c4}}, and Sandspit (0.6588) {{c5}}. Herne Bay and Saint Marys Bay are well-known harbourside suburbs on the city fringe, while Campbells Bay sits on the North Shore coastline, and Sandspit is a more rural coastal settlement north of Auckland. All scores are approximately medium confidence, so treat these as indicative rather than definitive rankings."
         },
         "groq": {
           "plan_valid": true,
           "citations_ok": true,
           "refusal_ok": true,
           "enough_sources": true,
-          "latency_ms": 1393,
-          "tokens_est": 124,
-          "cost_est_usd": 0.0000248,
+          "latency_ms": 1565,
+          "tokens_est": 140,
+          "cost_est_usd": 0.000028000000000000003,
           "n_sources": 5,
-          "n_citations": 2,
+          "n_citations": 5,
           "model": "qwen/qwen3.6-27b",
           "quality": {
             "grounded": 5,
             "cited": 5,
-            "hedged": 5,
+            "hedged": 4,
             "concise": 5,
             "overall": 4,
-            "note": "Accurate and well-hedged with the useful caveat that scores reflect profile similarity not income/noise, but only surfaces two of the five suburbs."
+            "note": "All figures grounded and cited with a medium-confidence hedge, but more mechanical and adds less interpretive value than A."
           },
-          "answer": "Based on the provided 2023 profile similarity data, Inlet Waitemata Harbour is the top match with a similarity score of 0.6741 {{c1}}. Campbells Bay follows closely with a score of 0.6627 {{c2}}, indicating it also aligns well with the described characteristics. These areas are situated near the water, though the data primarily reflects demographic or profile similarities rather than specific income or noise levels."
+          "answer": "Suburbs that match the profile of a quiet, higher-income area near the water include Inlet Waitemata Harbour with a similarity score of approximately 0.6841 {{c1}} and Campbells Bay at approximately 0.6701 {{c2}}. Other notable locations are Herne Bay with a score of approximately 0.6650 {{c3}}, Saint Marys Bay at approximately 0.6622 {{c4}}, and Sandspit with a similarity of approximately 0.6588 {{c5}}. These figures are based on 2023 profile embeddings with medium confidence."
         }
       }
     },
@@ -269,9 +269,9 @@
           "citations_ok": true,
           "refusal_ok": true,
           "enough_sources": true,
-          "latency_ms": 2481,
-          "tokens_est": 69,
-          "cost_est_usd": 0.000903,
+          "latency_ms": 2505,
+          "tokens_est": 72,
+          "cost_est_usd": 0.000963,
           "n_sources": 0,
           "n_citations": 0,
           "model": "claude-sonnet-4-6",
@@ -281,18 +281,18 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Correctly declines the crime question and clearly states available coverage without inventing figures."
+            "note": "Correctly declines and describes available coverage, nearly identical to A."
           },
-          "answer": "I can't answer that with the data I have. Crime rate data is not available in this dataset; only census and deprivation metrics are covered. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, and schools."
+          "answer": "I can't answer that with the data I have. Crime rate data is not available in this system. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, and typical drive/cycle/walk times (no public transport times yet)."
         },
         "groq": {
           "plan_valid": true,
           "citations_ok": true,
           "refusal_ok": true,
           "enough_sources": true,
-          "latency_ms": 263,
-          "tokens_est": 60,
-          "cost_est_usd": 0.0000122,
+          "latency_ms": 2407,
+          "tokens_est": 77,
+          "cost_est_usd": 0.0000154,
           "n_sources": 0,
           "n_citations": 0,
           "model": "qwen/qwen3.6-27b",
@@ -302,9 +302,205 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Correctly declines and describes coverage; essentially equivalent to A."
+            "note": "Correctly declines the crime query and clearly states scope without inventing figures."
           },
-          "answer": "I can't answer that with the data I have. Crime statistics are not available in the current data coverage. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, and schools."
+          "answer": "I can't answer that with the data I have. Crime statistics are not available in the current metric registry. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, and typical drive/cycle/walk times (no public transport times yet)."
+        }
+      }
+    },
+    {
+      "id": "q7-commute-anchor",
+      "intent": "lookup",
+      "question": "How long does it take to drive from Devonport to the Auckland CBD?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 4262,
+          "tokens_est": 64,
+          "cost_est_usd": 0.000756,
+          "n_sources": 1,
+          "n_citations": 1,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 4,
+            "hedged": 4,
+            "concise": 5,
+            "overall": 4,
+            "note": "Accurate and concise but does not explicitly flag the medium confidence and the source detail is lighter."
+          },
+          "answer": "The typical drive from Devonport to the Auckland CBD is around 28 minutes {{c1}}, based on routing via OpenStreetMap with no live traffic, so actual times may vary depending on conditions."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 2761,
+          "tokens_est": 88,
+          "cost_est_usd": 0.000017800000000000002,
+          "n_sources": 1,
+          "n_citations": 2,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "Accurate, well-cited, hedges on medium confidence, only slightly verbose."
+          },
+          "answer": "The typical drive from Devonport to the Auckland CBD takes 28 minutes. This estimate is based on openrouteservice routing via OpenStreetMap and was calculated in 2026 {{c1}}. It is a typical time without live traffic data and carries medium confidence due to its future vintage {{c1}}."
+        }
+      }
+    },
+    {
+      "id": "q8-commute-live",
+      "intent": "commute",
+      "question": "How long is the drive from Grey Lynn to 4 Osterley Way, Manukau?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 6205,
+          "tokens_est": 68,
+          "cost_est_usd": 0.000828,
+          "n_sources": 1,
+          "n_citations": 2,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correct grounded figure with proper citation markers, appropriate hedging on traffic and confidence, and concise."
+          },
+          "answer": "The typical drive from Grey Lynn West to 4 Osterley Way, Manukau is approximately 23.5 minutes {{c1}}, based on routed directions with no live traffic, so actual travel times may vary with conditions {{c1}}."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": false,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 1863,
+          "tokens_est": 76,
+          "cost_est_usd": 0.000015199999999999998,
+          "n_sources": 1,
+          "n_citations": 0,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 1,
+            "hedged": 4,
+            "concise": 5,
+            "overall": 2,
+            "note": "Accurate figure and hedges on confidence, but omits the required {{c1}} citation marker entirely."
+          },
+          "answer": "The typical drive time from Grey Lynn West to 4 Osterley Way, Manukau, Auckland, is approximately 23.5 minutes, assuming no live traffic conditions. This estimate is derived from OpenStreetMap routing data with a medium confidence level."
+        }
+      }
+    },
+    {
+      "id": "q9-commute-mixed",
+      "intent": "rank",
+      "question": "Which suburbs under $650 weekly rent are within 30 minutes drive of Penrose?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 12561,
+          "tokens_est": 202,
+          "cost_est_usd": 0.002802,
+          "n_sources": 16,
+          "n_citations": 16,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 4,
+            "overall": 5,
+            "note": "Complete, accurately cited list of all qualifying suburbs with appropriate hedging on routing estimates."
+          },
+          "answer": "All 8 suburbs in the data have median weekly rents well under $650 and typical drive times under 30 minutes to Penrose (routed, no live traffic). The closest is Panmure West at 11 min {{c14}} with a median rent of $198/wk {{c13}}, followed by Ōtara West at 13.3 min {{c4}} at $178/wk {{c3}}, and Ōtara Central at 14.3 min {{c8}} at $182/wk {{c7}}. Also qualifying are Ōtara South West (13.9 min {{c16}}, $198/wk {{c15}}), Mount Roskill North East (14.4 min {{c12}}, $190/wk {{c11}}), Wesley East (15.5 min {{c6}}, $180/wk {{c5}}), Point England North (15.9 min {{c2}}, $148/wk {{c1}}), and Wiri North (16.9 min {{c10}}, $186/wk {{c9}}). All drive times are typical with no live traffic applied, so real-world conditions may vary."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 3551,
+          "tokens_est": 111,
+          "cost_est_usd": 0.000022200000000000004,
+          "n_sources": 16,
+          "n_citations": 7,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 4,
+            "overall": 3,
+            "note": "Accurate and well-cited but only lists 3 of the 8 qualifying suburbs, giving an incomplete answer to the question."
+          },
+          "answer": "Point England North has a median weekly rent of $148 and a typical drive time to Penrose of 15.9 minutes {{c1}} {{c2}}. Ōtara West offers a median rent of $178 with a 13.3-minute drive {{c3}} {{c4}}. Wesley East is listed at $180 per week and a 15.5-minute drive {{c5}} {{c6}}. The drive times provided are typical routed estimates without live traffic updates {{c2}}."
+        }
+      }
+    },
+    {
+      "id": "q10-transit-trap",
+      "intent": "unsupported",
+      "question": "How long is the train commute from Henderson to Britomart?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 4444,
+          "tokens_est": 93,
+          "cost_est_usd": 0.001215,
+          "n_sources": 0,
+          "n_citations": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Nearly identical appropriate decline with clear scope explanation and no invented figures."
+          },
+          "answer": "I can't answer that with the data I have. Public transport (train) commute times are not supported; only typical drive, cycle, and walk times are available. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, and typical drive/cycle/walk times (no public transport times yet)."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "latency_ms": 399,
+          "tokens_est": 94,
+          "cost_est_usd": 0.0000188,
+          "n_sources": 0,
+          "n_citations": 0,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correctly declines the unsupported public transport query and explains scope concisely."
+          },
+          "answer": "I can't answer that with the data I have. Public transport times (train, bus, ferry) are not supported; only typical drive, cycle, and walk times are available. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, and typical drive/cycle/walk times (no public transport times yet)."
         }
       }
     }

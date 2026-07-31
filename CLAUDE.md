@@ -15,7 +15,7 @@ npm run build    # production build + type-check
 npm run lint     # eslint (eslint-config-next)
 ```
 **Health check:** `GET /health` runs `select count(*) from geographies` via the server Supabase
-client → `{ "ok": true, "geographies": N }`.
+client → `{ "ok": true, "geographies": N }`.fixed 
 
 ## Stack & architecture
 - **Next.js 16.2.9 + React 19.2.4** (App Router, TypeScript) on **Vercel**. Newer than most training

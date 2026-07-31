@@ -11,15 +11,20 @@ import {
   type SuburbProfile,
 } from "@/lib/suburb-data";
 import { COMPARE_LIMIT, useWorkspace } from "@/lib/workspace";
+import { useWorkplace } from "@/lib/preferences";
 import { BudgetChip } from "./budget-chip";
 import { ConfidenceChip, Provenance, SourceChip } from "./provenance";
 
-const DIMENSION_ORDER = ["people", "housing", "deprivation"] as const;
+const DIMENSION_ORDER = ["people", "housing", "deprivation", "commute"] as const;
 const DIMENSION_LABEL: Record<string, string> = {
   people: "People",
   housing: "Housing",
   deprivation: "Deprivation",
+  commute: "Getting around",
 };
+
+const COMMUTE_EXPLAINER =
+  "Typical times from a representative point in this area, routed on OpenStreetMap roads by openrouteservice — no live traffic, so peak-hour drives will usually take longer. Walking times may use ferry links. Routing: openrouteservice · © OpenStreetMap contributors (ODbL).";
 
 const DEPRIVATION_EXPLAINER =
   "NZDep2018 (University of Otago) measures relative socioeconomic deprivation of small areas — not of individual people. It combines nine Census 2018 variables: income, benefit receipt, employment, qualifications, home ownership, family structure, overcrowding, internet access, and living conditions. Decile 1 = the least deprived 10% of NZ areas; decile 10 = the most deprived 10%. It describes access to resources across areas and carries no judgment about residents or an area's worth.";
@@ -114,6 +119,84 @@ function Trend({ s }: { s: ScalarValue }) {
         {Math.abs(pct) >= 0.5 ? `${Math.abs(pct).toFixed(0)}%` : ""}
       </span>
     </span>
+  );
+}
+
+interface CommuteResponse {
+  duration_s: number | null;
+  distance_m: number;
+  fallback: boolean;
+  caveat: string;
+  source: { name: string };
+  retrieved_at: string;
+}
+
+/**
+ * TRI-54 — commute to the saved workplace, shown under "Getting around" when
+ * the preference is set. User-specific, so it's a live /api/commute call
+ * (server-cached indefinitely) rather than a registry metric.
+ */
+function WorkplaceCommuteRow({ sa2 }: { sa2: string }) {
+  const workplace = useWorkplace();
+  const key = workplace ? `${sa2}|${workplace.lng},${workplace.lat}` : null;
+  const [state, setState] = useState<{ key: string; r: CommuteResponse | null } | null>(null);
+
+  useEffect(() => {
+    if (!workplace || !key) return;
+    let stale = false;
+    fetch("/api/commute", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        origin: { sa2_code: sa2 },
+        destination: { lng: workplace.lng, lat: workplace.lat },
+        mode: "driving-car",
+      }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((r: CommuteResponse | null) => {
+        if (!stale) setState({ key, r });
+      })
+      .catch(() => {
+        if (!stale) setState({ key, r: null });
+      });
+    return () => {
+      stale = true;
+    };
+  }, [sa2, key, workplace]);
+
+  if (!workplace) return null;
+  const loaded = state?.key === key ? state.r : undefined;
+
+  return (
+    <div className="py-2">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="min-w-0 text-sm text-ink/80">
+          Drive to work{" "}
+          <span className="block truncate font-mono text-[10px] text-ink/45" title={workplace.address}>
+            → {workplace.address}
+          </span>
+        </span>
+        <span className="shrink-0 font-mono text-sm font-medium text-ink">
+          {loaded === undefined
+            ? "…"
+            : loaded === null
+              ? "—"
+              : loaded.fallback || loaded.duration_s === null
+                ? `≈${(loaded.distance_m / 1000).toFixed(1)} km (straight line)`
+                : `${Math.round(loaded.duration_s / 60)} min`}
+        </span>
+      </div>
+      {loaded != null && (
+        <div className="mt-1 flex justify-end">
+          <Provenance
+            source={loaded.source.name}
+            asOf={loaded.retrieved_at.slice(0, 10)}
+            confidence={loaded.fallback ? "derived" : "medium"}
+          />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -221,13 +304,9 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
         {profile.cbdKm != null && (
           <p
             className="mt-1 flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-ink/60"
-            title="Straight-line distance from the suburb centroid to the Auckland CBD (Sky Tower). Drive time is a rough off-peak estimate — no live traffic data."
+            title="Straight-line distance from the suburb centroid to the Auckland CBD (Sky Tower). Routed drive/cycle/walk times are in Getting around below."
           >
-            <span>
-              CBD {profile.cbdKm.toFixed(1)} km (straight line) · ≈
-              {Math.max(5, Math.round(((profile.cbdKm * 1.3) / 30) * 60 / 5) * 5)} min drive
-              (off-peak est.)
-            </span>
+            <span>CBD {profile.cbdKm.toFixed(1)} km (straight line)</span>
             <ConfidenceChip confidence="derived" />
           </p>
         )}
@@ -244,11 +323,20 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
               {dim === "deprivation" && (
                 <InfoTip label="deprivation" text={DEPRIVATION_EXPLAINER} />
               )}
+              {dim === "commute" && (
+                <>
+                  <InfoTip label="commute times" text={COMMUTE_EXPLAINER} />
+                  <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">
+                    typical · no live traffic
+                  </span>
+                </>
+              )}
             </h3>
             <div className="divide-y divide-hairline/60">
               {rows.map((s) => (
                 <ScalarRow key={s.def.metric_key} s={s} stat={statFor(s.def.metric_key, s.asOf)} />
               ))}
+              {dim === "commute" && <WorkplaceCommuteRow sa2={sa2} />}
             </div>
           </section>
         );

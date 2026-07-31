@@ -34,5 +34,29 @@
     "question": "What is the violent crime rate in Ponsonby?",
     "intent": "unsupported",
     "expect": { "unsupported": true, "minSources": 0 }
+  },
+  {
+    "id": "q7-commute-anchor",
+    "question": "How long does it take to drive from Devonport to the Auckland CBD?",
+    "intent": "lookup",
+    "expect": { "unsupported": false, "suburbs": ["Devonport"], "minSources": 1 }
+  },
+  {
+    "id": "q8-commute-live",
+    "question": "How long is the drive from Grey Lynn to 4 Osterley Way, Manukau?",
+    "intent": "commute",
+    "expect": { "unsupported": false, "minSources": 1 }
+  },
+  {
+    "id": "q9-commute-mixed",
+    "question": "Which suburbs under $650 weekly rent are within 30 minutes drive of Penrose?",
+    "intent": "rank",
+    "expect": { "unsupported": false, "minSources": 2 }
+  },
+  {
+    "id": "q10-transit-trap",
+    "question": "How long is the train commute from Henderson to Britomart?",
+    "intent": "unsupported",
+    "expect": { "unsupported": true, "minSources": 0 }
   }
 ]

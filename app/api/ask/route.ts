@@ -1,6 +1,77 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getChat, getEmbeddings } from "@/lib/llm";
+import { orsMatrixToOne, OrsUnavailableError } from "@/lib/commute/ors";
+import { ptKey, routedCommute } from "@/lib/commute/service";
+
+const MODE_LABEL: Record<string, string> = {
+  "driving-car": "drive",
+  "cycling-regular": "cycle",
+  "foot-walking": "walk",
+};
+
+interface ResolvedPlace {
+  label: string;
+  lng: number;
+  lat: number;
+  originKey: string; // cache key when used as an origin
+  sa2_code: string | null;
+}
+
+/**
+ * TRI-53 — resolve free text to a routable point: the saved workplace, a
+ * suburb (ST_PointOnSurface origin), or a geocoded LINZ address. Ambiguous
+ * geocodes use the top candidate only above 0.5 — and the answer always
+ * states the resolved address, so an interpretation is visible, never silent.
+ */
+async function resolvePlace(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  text: string,
+  work: { address: string; lng: number; lat: number } | null,
+): Promise<ResolvedPlace | null> {
+  if (/^\s*(my\s+)?work(place)?\s*$/i.test(text)) {
+    return work
+      ? { label: work.address, lng: work.lng, lat: work.lat, originKey: ptKey(work.lng, work.lat), sa2_code: null }
+      : null;
+  }
+  const { data: geos } = await supabase
+    .from("geographies")
+    .select("sa2_code, name")
+    .eq("geo_type", "SA2")
+    .eq("is_active", true)
+    .ilike("name", `%${text}%`)
+    .limit(1);
+  if (geos?.[0]) {
+    const { data: pt } = await supabase
+      .from("commute_origin_points")
+      .select("lng, lat")
+      .eq("sa2_code", geos[0].sa2_code)
+      .maybeSingle();
+    if (pt) {
+      return {
+        label: geos[0].name,
+        lng: pt.lng,
+        lat: pt.lat,
+        originKey: `sa2:${geos[0].sa2_code}`,
+        sa2_code: geos[0].sa2_code,
+      };
+    }
+  }
+  const { data: hits } = await supabase.rpc("geocode_address", { p_query: text, p_limit: 1 });
+  const hit = (hits ?? [])[0] as
+    | { full_address: string; lng: number; lat: number; sa2_code: string | null; score: number }
+    | undefined;
+  if (hit && hit.score >= 0.5) {
+    return {
+      label: hit.full_address,
+      lng: hit.lng,
+      lat: hit.lat,
+      originKey: ptKey(hit.lng, hit.lat),
+      sa2_code: hit.sa2_code,
+    };
+  }
+  return null;
+}
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -20,12 +91,18 @@ export const maxDuration = 60;
  */
 
 interface Plan {
-  intent: "lookup" | "rank" | "compare" | "similar" | "unsupported";
+  intent: "lookup" | "rank" | "compare" | "similar" | "commute" | "unsupported";
   metric_keys: string[];
   suburbs: string[];
   rank_direction: "asc" | "desc";
   limit: number;
   note: string;
+  commute: {
+    origin: string | null;
+    destination: string | null;
+    mode: "driving-car" | "cycling-regular" | "foot-walking";
+    max_minutes: number | null;
+  };
 }
 
 interface SourceRow {
@@ -47,9 +124,9 @@ const PLAN_SCHEMA = {
   properties: {
     intent: {
       type: "string",
-      enum: ["lookup", "rank", "compare", "similar", "unsupported"],
+      enum: ["lookup", "rank", "compare", "similar", "commute", "unsupported"],
       description:
-        "lookup: facts about named suburb(s). rank: order Auckland suburbs by a metric. compare: 2-3 named suburbs side by side. similar: find suburbs like a named suburb OR matching a described vibe/criteria. unsupported: anything else.",
+        "lookup: facts about named suburb(s). rank: order Auckland suburbs by a metric. compare: 2-3 named suburbs side by side. similar: find suburbs like a named suburb OR matching a described vibe/criteria. commute: a routed trip between an origin and a user-specific destination (incl. the saved workplace). unsupported: anything else.",
     },
     metric_keys: {
       type: "array",
@@ -64,18 +141,43 @@ const PLAN_SCHEMA = {
     rank_direction: { type: "string", enum: ["asc", "desc"] },
     limit: { type: "integer", description: "Result count for rank queries, 1-10." },
     note: { type: "string", description: "For unsupported: one sentence on why." },
+    commute: {
+      type: "object",
+      additionalProperties: false,
+      description:
+        "Routed-commute details. For intent=commute: origin + destination as the user wrote them ('work' = the saved workplace). For intent=rank with a commute constraint ('within 30 min drive of X'): destination + max_minutes. Otherwise nulls.",
+      properties: {
+        origin: { type: ["string", "null"], description: "Suburb name or address, as written. Null if not a commute question." },
+        destination: { type: ["string", "null"], description: "Address/place as written, or 'work' for the saved workplace. Null if none." },
+        mode: { type: "string", enum: ["driving-car", "cycling-regular", "foot-walking"] },
+        max_minutes: { type: ["integer", "null"], description: "For commute-constrained ranking: the minutes cap. Else null." },
+      },
+      required: ["origin", "destination", "mode", "max_minutes"],
+    },
   },
-  required: ["intent", "metric_keys", "suburbs", "rank_direction", "limit", "note"],
+  required: ["intent", "metric_keys", "suburbs", "rank_direction", "limit", "note", "commute"],
 } as const;
 
 export async function POST(req: NextRequest) {
-  const { question, provider } = (await req.json()) as {
+  const { question, provider, workplace } = (await req.json()) as {
     question?: string;
     provider?: string;
+    workplace?: { address?: string; lng?: number; lat?: number };
   };
   if (!question?.trim() || question.length > 500) {
     return Response.json({ error: "question required (max 500 chars)" }, { status: 400 });
   }
+  // Saved workplace (TRI-54) rides along from the client; only used when the
+  // question says "work". Coordinates are validated like any other input.
+  const work =
+    typeof workplace?.address === "string" &&
+    workplace.address.length <= 200 &&
+    typeof workplace.lng === "number" &&
+    typeof workplace.lat === "number" &&
+    workplace.lng > 173 && workplace.lng < 176 &&
+    workplace.lat > -38 && workplace.lat < -35
+      ? { address: workplace.address, lng: workplace.lng, lat: workplace.lat }
+      : null;
 
   const supabase = await createClient();
   // `provider` (optional) lets the M6 eval (TRI-31) A/B backends per request; it
@@ -98,9 +200,9 @@ export async function POST(req: NextRequest) {
 
   // ---- 1. PLAN -------------------------------------------------------------
   const planText = await chat.complete("reasoning", {
-    system: `You convert questions about Auckland (NZ) suburbs into a structured query plan. Coverage: Auckland region SA2 areas only; Census 2023/2018/2013, NZDep2018 deprivation, school directory. Metric registry (key | label | unit):\n${registry
+    system: `You convert questions about Auckland (NZ) suburbs into a structured query plan. Coverage: Auckland region SA2 areas only; Census 2023/2018/2013, NZDep2018 deprivation, school directory, typical routed commute times (openrouteservice/OSM — drive, cycle, walk; no live traffic). Metric registry (key | label | unit):\n${registry
       .map((d) => `${d.metric_key} | ${d.label} | ${d.unit ?? "-"}`)
-      .join("\n")}\nRules: deprivation and ethnicity have no "better/worse" — a rank by nzdep_decile is allowed but is informational only. Questions needing data we don't have (crime, transport, prices outside rent/income, other cities) are unsupported.`,
+      .join("\n")}\nRules: deprivation and ethnicity have no "better/worse" — a rank by nzdep_decile is allowed but is informational only.\nCommute rules, in priority order:\n1. The question mentions "work" or "workplace" as a place → ALWAYS intent=commute with that commute field set to exactly "work". The workplace is a specific saved address${work ? ` (currently: ${work.address})` : " (currently NOT set — intent=unsupported instead, note the workplace isn't set)"} — it is NOT the CBD; never answer this from the commute_* metrics. Example: "How long is the commute from Ponsonby to work?" → {"intent":"commute","suburbs":["Ponsonby"],"commute":{"origin":"Ponsonby","destination":"work","mode":"driving-car","max_minutes":null}}.\n2. "how far/long is <suburb> from the CBD/airport" → intent=lookup with the commute_* metrics (precomputed).\n3. A commute between a suburb/address and any other specific destination → intent=commute with commute.origin/destination as written. "Suburbs within N min <mode> of <place>" combined with a metric constraint → intent=rank on that metric plus commute.destination and commute.max_minutes. PUBLIC TRANSPORT (train, bus, ferry) times are NOT supported — intent=unsupported, note that only typical drive/cycle/walk times exist.\nOther questions needing data we don't have (crime, house prices outside rent/income, other cities) are unsupported.`,
     messages: [{ role: "user", content: question }],
     maxTokens: 500,
     jsonSchema: PLAN_SCHEMA as unknown as Record<string, unknown>,
@@ -111,7 +213,9 @@ export async function POST(req: NextRequest) {
     // Normalise: open-weight models (the M6 eval) don't guarantee every field
     // the way Claude's structured output does — fill sane defaults so a partial
     // plan still executes instead of throwing.
-    const intents = ["lookup", "rank", "compare", "similar", "unsupported"] as const;
+    const intents = ["lookup", "rank", "compare", "similar", "commute", "unsupported"] as const;
+    const modes = ["driving-car", "cycling-regular", "foot-walking"] as const;
+    const rawCommute = (raw.commute ?? {}) as Partial<Plan["commute"]>;
     plan = {
       intent: intents.includes(raw.intent as Plan["intent"]) ? (raw.intent as Plan["intent"]) : "unsupported",
       metric_keys: Array.isArray(raw.metric_keys) ? raw.metric_keys.filter((k): k is string => typeof k === "string") : [],
@@ -119,6 +223,14 @@ export async function POST(req: NextRequest) {
       rank_direction: raw.rank_direction === "asc" ? "asc" : "desc",
       limit: Number.isFinite(raw.limit) ? Number(raw.limit) : 5,
       note: typeof raw.note === "string" ? raw.note : "",
+      commute: {
+        origin: typeof rawCommute.origin === "string" ? rawCommute.origin : null,
+        destination: typeof rawCommute.destination === "string" ? rawCommute.destination : null,
+        mode: modes.includes(rawCommute.mode as Plan["commute"]["mode"])
+          ? (rawCommute.mode as Plan["commute"]["mode"])
+          : "driving-car",
+        max_minutes: Number.isFinite(rawCommute.max_minutes) ? Number(rawCommute.max_minutes) : null,
+      },
     };
   } catch {
     return Response.json({ error: "planning failed" }, { status: 502 });
@@ -179,7 +291,12 @@ export async function POST(req: NextRequest) {
   } else if (plan.intent === "rank") {
     const metric = wantedMetrics[0] ?? "median_rent_weekly";
     const def = registry.find((d) => d.metric_key === metric);
-    const limit = Math.min(Math.max(plan.limit || 5, 1), 10);
+    // A commute constraint filters AFTER ranking — shortlist wider so the
+    // one matrix call has candidates to keep.
+    const limit =
+      plan.commute.destination && plan.commute.max_minutes
+        ? 25
+        : Math.min(Math.max(plan.limit || 5, 1), 10);
     const { data: vals } = await supabase
       .from("metric_values")
       .select(
@@ -235,6 +352,111 @@ export async function POST(req: NextRequest) {
           confidence: v.confidence,
         });
       }
+    }
+  }
+
+  // Commute between two user-specified places (TRI-53) — live-routed, cached.
+  if (plan.intent === "commute") {
+    const originText = plan.commute.origin ?? plan.suburbs[0] ?? null;
+    const destText = plan.commute.destination;
+    const origin = originText ? await resolvePlace(supabase, originText, work) : null;
+    const dest = destText ? await resolvePlace(supabase, destText, work) : null;
+    if (!origin || !dest) {
+      plan.note =
+        plan.note ||
+        `I couldn't confidently resolve ${!origin ? `the starting point "${originText ?? "?"}"` : `the destination "${destText ?? "?"}"`} to an Auckland suburb or address.`;
+    } else {
+      const mode = plan.commute.mode;
+      const destLabel =
+        destText && /^\s*(my\s+)?work(place)?\s*$/i.test(destText)
+          ? `${dest.label} (the saved workplace)`
+          : dest.label;
+      const r = await routedCommute(
+        supabase,
+        origin.originKey,
+        [origin.lng, origin.lat],
+        [dest.lng, dest.lat],
+        mode,
+      );
+      if (r.duration_s !== null && !r.fallback) {
+        rows.push({
+          n: rows.length + 1,
+          suburb: origin.label,
+          sa2_code: origin.sa2_code ?? "—",
+          metric: `commute_${mode}`,
+          label: `Typical ${MODE_LABEL[mode]} time, ${origin.label} → ${destLabel} (routed, no live traffic)`,
+          value: Math.round(r.duration_s / 6) / 10,
+          unit: "min",
+          source: "openrouteservice routing (OpenStreetMap)",
+          as_of: r.retrieved_at.slice(0, 10),
+          confidence: "medium",
+        });
+      } else {
+        rows.push({
+          n: rows.length + 1,
+          suburb: origin.label,
+          sa2_code: origin.sa2_code ?? "—",
+          metric: "commute_fallback",
+          label: `Straight-line distance, ${origin.label} → ${destLabel} (routing temporarily unavailable — NOT a drive time)`,
+          value: Math.round(r.distance_m / 100) / 10,
+          unit: "km",
+          source: "openrouteservice routing (OpenStreetMap)",
+          as_of: r.retrieved_at.slice(0, 10),
+          confidence: "derived",
+        });
+      }
+    }
+  }
+
+  // Commute-constrained ranking ("under $650 within 30 min of Penrose"):
+  // rank rows already hold the metric shortlist; one matrix call filters it.
+  if (plan.intent === "rank" && plan.commute.destination && plan.commute.max_minutes) {
+    const dest = await resolvePlace(supabase, plan.commute.destination, work);
+    if (dest && rows.length) {
+      const codes = rows.map((r) => r.sa2_code);
+      const { data: pts } = await supabase
+        .from("commute_origin_points")
+        .select("sa2_code, lng, lat")
+        .in("sa2_code", codes);
+      const ptFor = new Map((pts ?? []).map((p) => [p.sa2_code as string, p]));
+      const withPts = rows.filter((r) => ptFor.has(r.sa2_code));
+      try {
+        const secs = await orsMatrixToOne(
+          plan.commute.mode,
+          withPts.map((r) => {
+            const p = ptFor.get(r.sa2_code)!;
+            return [p.lng, p.lat] as [number, number];
+          }),
+          [dest.lng, dest.lat],
+        );
+        const cap = plan.commute.max_minutes * 60;
+        const kept = withPts.filter((_, i) => secs[i] !== null && secs[i]! <= cap);
+        const keptSecs = new Map(kept.map((r) => [r.sa2_code, secs[withPts.indexOf(r)]!]));
+        rows.length = 0;
+        for (const r of kept.slice(0, 8)) {
+          rows.push({ ...r, n: rows.length + 1 });
+          rows.push({
+            n: rows.length + 1,
+            suburb: r.suburb,
+            sa2_code: r.sa2_code,
+            metric: `commute_${plan.commute.mode}`,
+            label: `Typical ${MODE_LABEL[plan.commute.mode]} time to ${dest.label} (routed, no live traffic)`,
+            value: Math.round(keptSecs.get(r.sa2_code)! / 6) / 10,
+            unit: "min",
+            source: "openrouteservice routing (OpenStreetMap)",
+            as_of: new Date().toISOString().slice(0, 10),
+            confidence: "medium",
+          });
+        }
+        if (!rows.length) {
+          plan.note = `No ranked suburb was within ${plan.commute.max_minutes} min ${MODE_LABEL[plan.commute.mode]} of ${dest.label}.`;
+        }
+      } catch (err) {
+        // Matrix down → keep the metric ranking, say the constraint was skipped.
+        plan.note = `Routing is temporarily unavailable (${err instanceof OrsUnavailableError ? err.message : "error"}) — results are ranked by the metric only, without the commute filter.`;
+      }
+    } else if (!dest) {
+      plan.note = `I couldn't confidently resolve "${plan.commute.destination}" to an Auckland suburb or address, so results are ranked by the metric only.`;
     }
   }
 
@@ -301,8 +523,9 @@ export async function POST(req: NextRequest) {
         if (plan.intent === "unsupported" || rows.length === 0) {
           const msg =
             plan.intent === "unsupported"
-              ? `I can't answer that with the data I have. ${plan.note} I cover Auckland suburbs: census demographics and housing, NZDep deprivation, and schools.`
-              : "I couldn't match that question to any suburbs or metrics I track. Try naming an Auckland suburb, or asking for a ranking like “lowest median rent”.";
+              ? `I can't answer that with the data I have. ${plan.note} I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, and typical drive/cycle/walk times (no public transport times yet).`
+              : plan.note ||
+                "I couldn't match that question to any suburbs or metrics I track. Try naming an Auckland suburb, or asking for a ranking like “lowest median rent”.";
           controller.enqueue(ndjson({ type: "delta", text: msg }));
         } else {
           const dataBlock = rows
@@ -312,7 +535,7 @@ export async function POST(req: NextRequest) {
             )
             .join("\n");
           for await (const delta of chat.stream("reasoning", {
-            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts. If confidence is medium/low, say "approximately" or note the vintage.`,
+            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation. ${plan.note ? `Context note: ${plan.note}` : ""}`,
             messages: [
               {
                 role: "user",
