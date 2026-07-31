@@ -26,6 +26,16 @@ const geo = JSON.parse(readFileSync("public/geo/auckland-sa2.geojson", "utf8"));
 const metrics = JSON.parse(readFileSync("data/census/tri17-metric-values.json", "utf8"));
 const deprivation = JSON.parse(readFileSync("data/census/tri18-deprivation.json", "utf8"));
 const schools = JSON.parse(readFileSync("data/census/tri18-schools.json", "utf8"));
+const commute = JSON.parse(readFileSync("data/commute/tri46-staging.json", "utf8"));
+
+// TRI-49: typical anchor commute times (openrouteservice/OSM, no live traffic).
+const commuteBySuburb = new Map();
+for (const r of commute) {
+  if (r.status !== "ok") continue;
+  const m = commuteBySuburb.get(r.g) ?? {};
+  m[`${r.a}:${r.mode}`] = Math.round(r.s / 60);
+  commuteBySuburb.set(r.g, m);
+}
 
 const names = new Map(geo.features.map((f) => [f.properties.SA22023_V1_00, f.properties.SA22023_V1_00_NAME]));
 
@@ -85,6 +95,14 @@ function profileText(sa2) {
       ? `${sch.length} school${sch.length > 1 ? "s" : ""} located in the area: ${sch.slice(0, 4).map((s) => s.name).join("; ")}.`
       : "No schools located within the area.",
   );
+  const cm = commuteBySuburb.get(sa2);
+  if (cm) {
+    const parts = [];
+    if (cm["cbd:driving-car"] != null) parts.push(`${cm["cbd:driving-car"]} min drive`);
+    if (cm["cbd:cycling-regular"] != null) parts.push(`${cm["cbd:cycling-regular"]} min cycle`);
+    if (parts.length) bits.push(`Typical commute to the Auckland CBD: ${parts.join(", ")} (no live traffic).`);
+    if (cm["airport:driving-car"] != null) bits.push(`Drive to Auckland Airport: about ${cm["airport:driving-car"]} min.`);
+  }
   return bits.join(" ");
 }
 
