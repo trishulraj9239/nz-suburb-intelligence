@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getChat, getEmbeddings } from "@/lib/llm";
 import { orsMatrixToOne, OrsUnavailableError } from "@/lib/commute/ors";
 import { ptKey, routedCommute } from "@/lib/commute/service";
+import { DEFAULT_PERSONA, isPersonaKey, personaConfig } from "@/lib/persona";
 
 const MODE_LABEL: Record<string, string> = {
   "driving-car": "drive",
@@ -159,14 +160,19 @@ const PLAN_SCHEMA = {
 } as const;
 
 export async function POST(req: NextRequest) {
-  const { question, provider, workplace } = (await req.json()) as {
+  const { question, provider, workplace, persona } = (await req.json()) as {
     question?: string;
     provider?: string;
     workplace?: { address?: string; lng?: number; lat?: number };
+    persona?: string;
   };
   if (!question?.trim() || question.length > 500) {
     return Response.json({ error: "question required (max 500 chars)" }, { status: 400 });
   }
+  // Persona (TRI-61) — validated against the config registry like any other
+  // body input; unknown values fall back to the default persona. Weights are
+  // transparent emphasis stated in answers, never a computed score.
+  const personaCfg = personaConfig(isPersonaKey(persona) ? persona : DEFAULT_PERSONA);
   // Saved workplace (TRI-54) rides along from the client; only used when the
   // question says "work". Coordinates are validated like any other input.
   const work =
@@ -198,11 +204,30 @@ export async function POST(req: NextRequest) {
   const registry = defs ?? [];
   const scalarKeys = registry.filter((d) => d.value_type === "scalar").map((d) => d.metric_key);
 
+  // Persona emphasis (TRI-61) — only weights whose metrics exist in the live
+  // registry are surfaced. higher_is_better (nullable by design — NULL means
+  // "no better/worse") rides along so emphasis is direction-aware without
+  // ever becoming a composite score.
+  const weightNotes = Object.entries(personaCfg.metricWeights)
+    .map(([key, w]) => {
+      const d = registry.find((x) => x.metric_key === key);
+      if (!d) return null;
+      const dir =
+        d.higher_is_better === null
+          ? "no better/worse direction"
+          : d.higher_is_better
+            ? "higher is better"
+            : "lower is better";
+      return `${key} ×${w} (${dir})`;
+    })
+    .filter((s): s is string => s !== null);
+  const personaLine = `Active persona: ${personaCfg.key} ("${personaCfg.label}"). ${personaCfg.promptDescriptor}`;
+
   // ---- 1. PLAN -------------------------------------------------------------
   const planText = await chat.complete("reasoning", {
     system: `You convert questions about Auckland (NZ) suburbs into a structured query plan. Coverage: Auckland region SA2 areas only; Census 2023/2018/2013, NZDep2018 deprivation, school directory, typical routed commute times (openrouteservice/OSM — drive, cycle, walk; no live traffic). Metric registry (key | label | unit):\n${registry
       .map((d) => `${d.metric_key} | ${d.label} | ${d.unit ?? "-"}`)
-      .join("\n")}\nRules: deprivation and ethnicity have no "better/worse" — a rank by nzdep_decile is allowed but is informational only.\nCommute rules, in priority order:\n1. The question mentions "work" or "workplace" as a place → ALWAYS intent=commute with that commute field set to exactly "work". The workplace is a specific saved address${work ? ` (currently: ${work.address})` : " (currently NOT set — intent=unsupported instead, note the workplace isn't set)"} — it is NOT the CBD; never answer this from the commute_* metrics. Example: "How long is the commute from Ponsonby to work?" → {"intent":"commute","suburbs":["Ponsonby"],"commute":{"origin":"Ponsonby","destination":"work","mode":"driving-car","max_minutes":null}}.\n2. "how far/long is <suburb> from the CBD/airport" → intent=lookup with the commute_* metrics (precomputed).\n3. A commute between a suburb/address and any other specific destination → intent=commute with commute.origin/destination as written. "Suburbs within N min <mode> of <place>" combined with a metric constraint → intent=rank on that metric plus commute.destination and commute.max_minutes. PUBLIC TRANSPORT (train, bus, ferry) times are NOT supported — intent=unsupported, note that only typical drive/cycle/walk times exist.\nOther questions needing data we don't have (crime, house prices outside rent/income, other cities) are unsupported.`,
+      .join("\n")}\nRules: deprivation and ethnicity have no "better/worse" — a rank by nzdep_decile is allowed but is informational only.\nCommute rules, in priority order:\n1. The question mentions "work" or "workplace" as a place → ALWAYS intent=commute with that commute field set to exactly "work". The workplace is a specific saved address${work ? ` (currently: ${work.address})` : " (currently NOT set — intent=unsupported instead, note the workplace isn't set)"} — it is NOT the CBD; never answer this from the commute_* metrics. Example: "How long is the commute from Ponsonby to work?" → {"intent":"commute","suburbs":["Ponsonby"],"commute":{"origin":"Ponsonby","destination":"work","mode":"driving-car","max_minutes":null}}.\n2. "how far/long is <suburb> from the CBD/airport" → intent=lookup with the commute_* metrics (precomputed).\n3. A commute between a suburb/address and any other specific destination → intent=commute with commute.origin/destination as written. "Suburbs within N min <mode> of <place>" combined with a metric constraint → intent=rank on that metric plus commute.destination and commute.max_minutes. PUBLIC TRANSPORT (train, bus, ferry) times are NOT supported — intent=unsupported, note that only typical drive/cycle/walk times exist.\nOther questions needing data we don't have (crime, house prices outside rent/income, other cities) are unsupported.\n${personaLine} When the question is open-ended about which metrics matter, lean toward this persona's priorities — but never drop a metric the user explicitly asks for.`,
     messages: [{ role: "user", content: question }],
     maxTokens: 500,
     jsonSchema: PLAN_SCHEMA as unknown as Record<string, unknown>,
@@ -514,6 +539,7 @@ export async function POST(req: NextRequest) {
           intent: plan.intent,
           compare: compareCodes,
           sources: rows,
+          persona: personaCfg.key,
           // Which backend/model actually served this request — recorded by the eval.
           provider: chat.name,
           models: { plan: chat.modelFor("reasoning"), answer: chat.modelFor("reasoning") },
@@ -535,7 +561,7 @@ export async function POST(req: NextRequest) {
             )
             .join("\n");
           for await (const delta of chat.stream("reasoning", {
-            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation. ${plan.note ? `Context note: ${plan.note}` : ""}`,
+            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation.\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics. ${plan.note ? `Context note: ${plan.note}` : ""}`,
             messages: [
               {
                 role: "user",

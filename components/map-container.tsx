@@ -10,6 +10,8 @@ import type {
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useWorkspace } from "@/lib/workspace";
+import { usePersona } from "@/lib/preferences";
+import { personaConfig } from "@/lib/persona";
 import {
   fetchMetricDefs,
   fetchMetricShade,
@@ -256,6 +258,7 @@ export function MapContainer() {
   const skipFlyRef = useRef(false);
   const { resolvedTheme } = useTheme();
   const { selected, select, resetSeq } = useWorkspace();
+  const persona = usePersona();
   const selectRef = useRef(select);
   useEffect(() => {
     selectRef.current = select;
@@ -428,11 +431,28 @@ export function MapContainer() {
     [defs],
   );
 
-  // Home reset → ease back to the Auckland overview and drop any shading.
   const changeShadeRef = useRef(changeShade);
   useEffect(() => {
     changeShadeRef.current = changeShade;
   }, [changeShade]);
+
+  // Persona default shade (TRI-59) — the default state is the active
+  // persona's defaultMapMetric when it exists in the registry (a
+  // forward-declared Phase 3 key falls back to no shading). Applies on load
+  // and on persona switch, but a metric the user picked by hand wins for the
+  // rest of the session.
+  const userPickedRef = useRef(false);
+  const applyPersonaDefault = useCallback(() => {
+    const want = personaConfig(persona).defaultMapMetric;
+    changeShadeRef.current(defs.some((d) => d.metric_key === want) ? want : "");
+  }, [defs, persona]);
+  useEffect(() => {
+    if (!defs.length || userPickedRef.current) return;
+    applyPersonaDefault();
+  }, [defs, persona, applyPersonaDefault]);
+
+  // Home reset → ease back to the Auckland overview and the persona default
+  // shade (manual pick forgotten — Home means "default state").
   const resetReadyRef = useRef(false);
   useEffect(() => {
     if (!resetReadyRef.current) {
@@ -440,7 +460,10 @@ export function MapContainer() {
       return;
     }
     if (mapRef.current) fitCoverage(mapRef.current, true);
-    changeShadeRef.current("");
+    userPickedRef.current = false;
+    applyPersonaDefault();
+    // applyPersonaDefault is ref-stable in behaviour; resetSeq is the trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetSeq]);
 
   const [r, g, b] = typeof window !== "undefined" ? harbourRgb() : [14, 110, 115];
@@ -454,7 +477,10 @@ export function MapContainer() {
       <div className="absolute right-2 top-2 z-10 flex max-w-[calc(100%-1rem)] flex-col items-end gap-2">
         <select
           value={shadeKey}
-          onChange={(e) => changeShade(e.target.value)}
+          onChange={(e) => {
+            userPickedRef.current = true;
+            changeShade(e.target.value);
+          }}
           aria-label="Shade map by metric"
           className="h-8 max-w-full rounded-md border border-hairline bg-surface px-2 text-xs text-ink shadow-sm focus:border-harbour focus:outline-none"
         >

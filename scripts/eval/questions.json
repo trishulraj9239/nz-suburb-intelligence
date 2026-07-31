@@ -58,5 +58,19 @@
     "question": "How long is the train commute from Henderson to Britomart?",
     "intent": "unsupported",
     "expect": { "unsupported": true, "minSources": 0 }
+  },
+  {
+    "id": "q11-persona-renter",
+    "question": "I'm looking for a suburb — what matters most and where should I look?",
+    "intent": "rank",
+    "persona": "renter",
+    "expect": { "unsupported": false, "minSources": 1 }
+  },
+  {
+    "id": "q12-persona-buyer",
+    "question": "I'm looking for a suburb — what matters most and where should I look?",
+    "intent": "rank",
+    "persona": "buyer",
+    "expect": { "unsupported": false, "minSources": 1 }
   }
 ]

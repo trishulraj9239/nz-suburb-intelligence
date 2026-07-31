@@ -6,13 +6,14 @@ import { ThemeToggle } from "./theme-toggle";
 import { AuthButton } from "./auth-button";
 import { BudgetControl } from "./budget-control";
 import { WorkplaceControl } from "./workplace-control";
+import { PersonaToggle } from "./persona-toggle";
 
 /** Seeds the query bar so the box is never blank — also the state Home returns to. */
 const DEFAULT_QUERY = "Cheapest rent near Takapuna?";
 
 /**
  * Thin top bar: Home (full reset) · product name · query bar (clearable, seeded
- * with an example) · budget · auth · theme.
+ * with an example) · persona · workplace · budget · auth · theme.
  */
 export function TopBar() {
   const { ask, reset } = useWorkspace();
@@ -78,6 +79,7 @@ export function TopBar() {
       </form>
 
       <div className="ml-auto flex shrink-0 items-center gap-x-3">
+        <PersonaToggle />
         <WorkplaceControl />
         <BudgetControl />
         <AuthButton />
