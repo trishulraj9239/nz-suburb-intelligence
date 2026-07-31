@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   fetchProfile,
   fetchRegionalStats,
@@ -11,57 +11,11 @@ import {
   type SuburbProfile,
 } from "@/lib/suburb-data";
 import { COMPARE_LIMIT, useWorkspace } from "@/lib/workspace";
-import { useWorkplace } from "@/lib/preferences";
+import { usePersona, useWorkplace } from "@/lib/preferences";
+import { personaConfig, SECTION_EXPLAINERS, SECTION_LABELS } from "@/lib/persona";
 import { BudgetChip } from "./budget-chip";
+import { InfoTip } from "./info-tip";
 import { ConfidenceChip, Provenance, SourceChip } from "./provenance";
-
-const DIMENSION_ORDER = ["people", "housing", "deprivation", "commute"] as const;
-const DIMENSION_LABEL: Record<string, string> = {
-  people: "People",
-  housing: "Housing",
-  deprivation: "Deprivation",
-  commute: "Getting around",
-};
-
-const COMMUTE_EXPLAINER =
-  "Typical times from a representative point in this area, routed on OpenStreetMap roads by openrouteservice — no live traffic, so peak-hour drives will usually take longer. Walking times may use ferry links. Routing: openrouteservice · © OpenStreetMap contributors (ODbL).";
-
-const DEPRIVATION_EXPLAINER =
-  "NZDep2018 (University of Otago) measures relative socioeconomic deprivation of small areas — not of individual people. It combines nine Census 2018 variables: income, benefit receipt, employment, qualifications, home ownership, family structure, overcrowding, internet access, and living conditions. Decile 1 = the least deprived 10% of NZ areas; decile 10 = the most deprived 10%. It describes access to resources across areas and carries no judgment about residents or an area's worth.";
-
-/** Small ⓘ popover for dimension headings that need context. */
-function InfoTip({ text, label }: { text: string; label: string }) {
-  const [open, setOpen] = useState(false);
-  const boxRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent) => {
-      if (!boxRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [open]);
-
-  return (
-    <span ref={boxRef} className="relative inline-block align-middle">
-      <button
-        type="button"
-        aria-label={`What is ${label}?`}
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-        className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full border border-hairline text-[9px] font-semibold normal-case text-ink/55 transition-colors hover:border-harbour hover:text-harbour"
-      >
-        i
-      </button>
-      {open && (
-        <span className="absolute left-0 top-6 z-30 block w-64 rounded-lg border border-hairline bg-surface p-3 text-[11px] font-normal normal-case leading-snug tracking-normal text-ink/85 shadow-lg">
-          {text}
-        </span>
-      )}
-    </span>
-  );
-}
 
 /**
  * Percentile-vs-region bar. For metrics with higher_is_better NULL
@@ -230,6 +184,10 @@ function ScalarRow({ s, stat }: { s: ScalarValue; stat?: RegionalStat }) {
 
 export function ProfilePanel({ sa2 }: { sa2: string }) {
   const { compare, toggleCompare } = useWorkspace();
+  // Persona drives section order. The null server snapshot means SSR and the
+  // hydration render use DEFAULT_PERSONA; the stored persona applies in a
+  // post-mount re-render (same mechanism as the budget/workplace prefs).
+  const persona = usePersona();
   // Loading is derived: data is stale until its key matches the requested sa2.
   const [data, setData] = useState<{
     key: string;
@@ -276,6 +234,12 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
     stats.find((s) => s.metric_key === key && s.as_of_date === asOf);
   const inCompare = compare.includes(sa2);
 
+  // Persona section order, then any dimensions it doesn't list (in registry
+  // order) — personas reorder sections, they never hide data.
+  const dims = [...personaConfig(persona).sectionOrder];
+  for (const s of scalars) if (!dims.includes(s.def.dimension)) dims.push(s.def.dimension);
+  for (const b of breakdowns) if (!dims.includes(b.def.dimension)) dims.push(b.def.dimension);
+
   return (
     <div className="flex flex-col gap-4">
       {/* Header */}
@@ -312,64 +276,64 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
         )}
       </div>
 
-      {/* Scalar dimensions */}
-      {DIMENSION_ORDER.map((dim) => {
+      {/* Metric sections — persona-ordered; each dimension's breakdowns render
+          inside its section (composition, no better/worse framing). */}
+      {dims.map((dim) => {
         const rows = scalars.filter((s) => s.def.dimension === dim);
-        if (!rows.length) return null;
+        const comps = breakdowns.filter((b) => b.def.dimension === dim);
+        if (!rows.length && !comps.length) return null;
+        const label = SECTION_LABELS[dim] ?? dim;
         return (
           <section key={dim}>
             <h3 className="border-b border-hairline pb-1 font-display text-xs font-semibold uppercase tracking-wider text-ink/60">
-              {DIMENSION_LABEL[dim]}
-              {dim === "deprivation" && (
-                <InfoTip label="deprivation" text={DEPRIVATION_EXPLAINER} />
+              {label}
+              {SECTION_EXPLAINERS[dim] != null && (
+                <InfoTip label={label.toLowerCase()} text={SECTION_EXPLAINERS[dim]} />
               )}
               {dim === "commute" && (
-                <>
-                  <InfoTip label="commute times" text={COMMUTE_EXPLAINER} />
-                  <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">
-                    typical · no live traffic
-                  </span>
-                </>
+                <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">
+                  typical · no live traffic
+                </span>
               )}
             </h3>
-            <div className="divide-y divide-hairline/60">
-              {rows.map((s) => (
-                <ScalarRow key={s.def.metric_key} s={s} stat={statFor(s.def.metric_key, s.asOf)} />
-              ))}
-              {dim === "commute" && <WorkplaceCommuteRow sa2={sa2} />}
-            </div>
+            {(rows.length > 0 || dim === "commute") && (
+              <div className="divide-y divide-hairline/60">
+                {rows.map((s) => (
+                  <ScalarRow key={s.def.metric_key} s={s} stat={statFor(s.def.metric_key, s.asOf)} />
+                ))}
+                {dim === "commute" && <WorkplaceCommuteRow sa2={sa2} />}
+              </div>
+            )}
+            {comps.map((b) => (
+              <div key={b.def.metric_key} className="mt-3">
+                <h4 className="text-[11px] font-medium uppercase tracking-wider text-ink/45">
+                  {b.def.label}
+                </h4>
+                <div className="mt-2 flex flex-col gap-1.5">
+                  {b.categories.slice(0, 6).map((c) => (
+                    <div key={c.label} className="flex items-center gap-2">
+                      <span className="w-40 truncate text-xs text-ink/75" title={c.label}>
+                        {c.label}
+                      </span>
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-hairline">
+                        {c.pct != null && (
+                          <div className="h-full rounded-full bg-harbour/70" style={{ width: `${Math.min(c.pct, 100)}%` }} />
+                        )}
+                      </div>
+                      <span className="w-10 text-right font-mono text-[11px] text-ink">
+                        {c.pct != null ? `${c.pct.toFixed(0)}%` : "—"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-1 flex justify-end">
+                  <Provenance source={b.source} asOf={b.asOf} confidence={b.confidence} />
+                </div>
+              </div>
+            ))}
           </section>
         );
       })}
-
-      {/* Breakdowns — composition, no better/worse framing */}
-      {breakdowns.map((b) => (
-        <section key={b.def.metric_key}>
-          <h3 className="border-b border-hairline pb-1 font-display text-xs font-semibold uppercase tracking-wider text-ink/60">
-            {b.def.label}
-          </h3>
-          <div className="mt-2 flex flex-col gap-1.5">
-            {b.categories.slice(0, 6).map((c) => (
-              <div key={c.label} className="flex items-center gap-2">
-                <span className="w-40 truncate text-xs text-ink/75" title={c.label}>
-                  {c.label}
-                </span>
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-hairline">
-                  {c.pct != null && (
-                    <div className="h-full rounded-full bg-harbour/70" style={{ width: `${Math.min(c.pct, 100)}%` }} />
-                  )}
-                </div>
-                <span className="w-10 text-right font-mono text-[11px] text-ink">
-                  {c.pct != null ? `${c.pct.toFixed(0)}%` : "—"}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-1 flex justify-end">
-            <Provenance source={b.source} asOf={b.asOf} confidence={b.confidence} />
-          </div>
-        </section>
-      ))}
 
       {/* Schools — nearest by distance from the centroid (TRI-36), so zoned
           schools just over the boundary appear too. */}
