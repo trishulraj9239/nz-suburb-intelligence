@@ -65,7 +65,7 @@ export const PERSONAS: Record<string, PersonaConfig> = {
     key: "renter",
     label: "Renting",
     sectionOrder: ["housing", "commute", "people", "deprivation", "hazard", "planning"],
-    defaultMapMetric: "median_rent_weekly",
+    defaultMapMetric: "rent_median_weekly", // MBIE bond series (M13) — fresher than the census rent
     metricWeights: {
       median_rent_weekly: 2,
       commute_cbd_drive_min: 1.5,
