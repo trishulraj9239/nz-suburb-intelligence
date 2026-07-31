@@ -309,6 +309,7 @@ export function formatValue(def: MetricDef, v: number): string {
   if (def.unit === "$/year") return `$${Math.round(v).toLocaleString()}`;
   if (def.unit === "years") return v.toFixed(1);
   if (def.unit === "decile") return `${v} / 10`;
+  if (def.unit === "min") return `${Math.round(v)} min`;
   if (def.unit === "score") return `${Math.round(v)}`;
   return Math.round(v).toLocaleString();
 }

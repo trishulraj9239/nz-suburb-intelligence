@@ -78,6 +78,41 @@ export async function orsDirections(
   return { duration_s: Math.round(s.duration), distance_m: Math.round(s.distance) };
 }
 
+/**
+ * One matrix call: many origins → one destination. Used by the NL layer's
+ * commute-constrained ranking (≤25 origins ≈ 25 routes — far under the 3500
+ * routes/request cap; matrix quota is 500/day, see docs/sources.md).
+ * Returns seconds per origin (null = unroutable).
+ */
+export async function orsMatrixToOne(
+  mode: Mode,
+  origins: [number, number][],
+  dest: [number, number],
+): Promise<(number | null)[]> {
+  const key = process.env.ORS_API_KEY;
+  if (!key) throw new OrsUnavailableError("ORS_API_KEY not configured");
+  let res: Response;
+  try {
+    res = await fetch(`https://api.openrouteservice.org/v2/matrix/${mode}`, {
+      method: "POST",
+      headers: { authorization: key, "content-type": "application/json" },
+      body: JSON.stringify({
+        locations: [...origins, dest],
+        sources: origins.map((_, i) => i),
+        destinations: [origins.length],
+        metrics: ["duration"],
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch {
+    throw new OrsUnavailableError("ORS unreachable");
+  }
+  if (!res.ok) throw new OrsUnavailableError(`ORS matrix ${res.status}`);
+  const json = (await res.json()) as { durations?: (number | null)[][] };
+  if (!json.durations) throw new OrsUnavailableError("no durations in matrix response");
+  return json.durations.map((row) => (row[0] === null || row[0] === undefined ? null : row[0]));
+}
+
 /** Straight-line fallback — geodesic distance, clearly labelled by the caller. */
 export function haversineMeters(from: [number, number], to: [number, number]): number {
   const R = 6371000;

@@ -1,14 +1,7 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import {
-  ATTRIBUTION,
-  CAVEAT,
-  MODES,
-  type Mode,
-  OrsUnavailableError,
-  haversineMeters,
-  orsDirections,
-} from "@/lib/commute/ors";
+import { ATTRIBUTION, CAVEAT, MODES, type Mode } from "@/lib/commute/ors";
+import { ptKey, routedCommute } from "@/lib/commute/service";
 import { allowRequest, clientIp, RATE_LIMIT_MESSAGE } from "@/lib/commute/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -38,8 +31,6 @@ interface Body {
 function inAuckland(lng: number, lat: number): boolean {
   return lng >= AKL.minLng && lng <= AKL.maxLng && lat >= AKL.minLat && lat <= AKL.maxLat;
 }
-
-const ptKey = (lng: number, lat: number) => `pt:${lng.toFixed(5)},${lat.toFixed(5)}`;
 
 export async function POST(req: NextRequest) {
   if (!allowRequest(clientIp(req))) {
@@ -97,70 +88,25 @@ export async function POST(req: NextRequest) {
   }
 
   const to: [number, number] = [dest.lng, dest.lat];
-  const destKey = ptKey(dest.lng, dest.lat);
   const source = {
     name: "openrouteservice routing (OpenStreetMap)",
     licence: "ODbL 1.0",
     attribution: ATTRIBUTION,
   };
 
-  // 1. Cache — a hit never makes an external call.
-  const { data: cached } = await supabase.rpc("commute_cache_get", {
-    p_origin: originKey,
-    p_dest: destKey,
-    p_mode: mode,
+  const r = await routedCommute(supabase, originKey, from, to, mode);
+  return Response.json({
+    mode,
+    origin: originLabel ? { sa2_code: originLabel } : { lng: from[0], lat: from[1] },
+    duration_s: r.duration_s,
+    distance_m: r.distance_m,
+    fallback: r.fallback,
+    ...(r.fallback_reason ? { fallback_reason: r.fallback_reason } : {}),
+    cached: r.cached,
+    caveat: r.fallback
+      ? `Straight-line distance only — routing is temporarily unavailable (${r.fallback_reason}). ${CAVEAT}`
+      : CAVEAT,
+    source,
+    retrieved_at: r.retrieved_at,
   });
-  const hit = Array.isArray(cached) ? cached[0] : cached;
-  if (hit) {
-    return Response.json({
-      mode,
-      origin: originLabel ? { sa2_code: originLabel } : { lng: from[0], lat: from[1] },
-      duration_s: Number(hit.duration_s),
-      distance_m: Number(hit.distance_m),
-      fallback: false,
-      cached: true,
-      caveat: CAVEAT,
-      source,
-      retrieved_at: hit.retrieved_at,
-    });
-  }
-
-  // 2. Live ORS call; 3. labelled straight-line fallback.
-  try {
-    const leg = await orsDirections(mode, from, to);
-    const { error: putError } = await supabase.rpc("commute_cache_put", {
-      p_origin: originKey,
-      p_dest: destKey,
-      p_mode: mode,
-      p_duration_s: leg.duration_s,
-      p_distance_m: leg.distance_m,
-    });
-    if (putError) console.error("[commute] cache put failed:", putError.message);
-    return Response.json({
-      mode,
-      origin: originLabel ? { sa2_code: originLabel } : { lng: from[0], lat: from[1] },
-      duration_s: leg.duration_s,
-      distance_m: leg.distance_m,
-      fallback: false,
-      cached: false,
-      caveat: CAVEAT,
-      source,
-      retrieved_at: new Date().toISOString(),
-    });
-  } catch (err) {
-    const reason = err instanceof OrsUnavailableError ? err.message : "routing error";
-    console.warn(`[commute] fallback (${reason})`);
-    return Response.json({
-      mode,
-      origin: originLabel ? { sa2_code: originLabel } : { lng: from[0], lat: from[1] },
-      duration_s: null,
-      distance_m: haversineMeters(from, to),
-      fallback: true,
-      fallback_reason: reason,
-      cached: false,
-      caveat: `Straight-line distance only — routing is temporarily unavailable (${reason}). ${CAVEAT}`,
-      source,
-      retrieved_at: new Date().toISOString(),
-    });
-  }
 }
