@@ -322,18 +322,31 @@ export async function POST(req: NextRequest) {
       plan.commute.destination && plan.commute.max_minutes
         ? 25
         : Math.min(Math.max(plan.limit || 5, 1), 10);
-    const { data: vals } = await supabase
+    // TRI-64 — every metric ranks on its own latest vintage (census metrics on
+    // census day, NZDep2018 on its date, MBIE rent on the latest quarter), so a
+    // multi-vintage series never mixes dates within one ranking.
+    const { data: latestVal } = await supabase
       .from("metric_values")
-      .select(
-        "value_num, as_of_date, confidence, geographies!inner(name, sa2_code, is_active), metric_definitions!inner(metric_key,label,unit), sources(name)",
-      )
+      .select("as_of_date, metric_definitions!inner(metric_key)")
       .is("category", null)
       .eq("metric_definitions.metric_key", metric)
-      .eq("geographies.is_active", true)
-      .eq("as_of_date", "2023-03-07")
-      .not("value_num", "is", null)
-      .order("value_num", { ascending: plan.rank_direction === "asc" })
-      .limit(limit);
+      .order("as_of_date", { ascending: false })
+      .limit(1);
+    const latestDate = latestVal?.[0]?.as_of_date;
+    const { data: vals } = latestDate
+      ? await supabase
+          .from("metric_values")
+          .select(
+            "value_num, as_of_date, confidence, geographies!inner(name, sa2_code, is_active), metric_definitions!inner(metric_key,label,unit), sources(name)",
+          )
+          .is("category", null)
+          .eq("metric_definitions.metric_key", metric)
+          .eq("geographies.is_active", true)
+          .eq("as_of_date", latestDate)
+          .not("value_num", "is", null)
+          .order("value_num", { ascending: plan.rank_direction === "asc" })
+          .limit(limit)
+      : { data: [] };
     for (const v of vals ?? []) {
       const g = v.geographies as unknown as { name: string; sa2_code: string };
       rows.push({
@@ -348,35 +361,6 @@ export async function POST(req: NextRequest) {
         as_of: v.as_of_date,
         confidence: v.confidence,
       });
-    }
-    // NZDep rank for 2023 census date doesn't exist — retry on its own date.
-    if (rows.length === 0 && metric.startsWith("nzdep")) {
-      const { data: depVals } = await supabase
-        .from("metric_values")
-        .select(
-          "value_num, as_of_date, confidence, geographies!inner(name, sa2_code, is_active), metric_definitions!inner(metric_key,label,unit), sources(name)",
-        )
-        .is("category", null)
-        .eq("metric_definitions.metric_key", metric)
-        .eq("geographies.is_active", true)
-        .not("value_num", "is", null)
-        .order("value_num", { ascending: plan.rank_direction === "asc" })
-        .limit(limit);
-      for (const v of depVals ?? []) {
-        const g = v.geographies as unknown as { name: string; sa2_code: string };
-        rows.push({
-          n: rows.length + 1,
-          suburb: g.name,
-          sa2_code: g.sa2_code,
-          metric,
-          label: def?.label ?? metric,
-          value: Number(v.value_num),
-          unit: def?.unit ?? null,
-          source: (v.sources as unknown as { name: string } | null)?.name ?? "—",
-          as_of: v.as_of_date,
-          confidence: v.confidence,
-        });
-      }
     }
   }
 

@@ -39,7 +39,7 @@ select http_set_curlopt('CURLOPT_TIMEOUT', '120');
 
 with payload as (
   select content::jsonb as j
-  from http_get('https://raw.githubusercontent.com/trishulraj9239/nz-suburb-intelligence/m13-live-rent/data/rent/tri63-rent-metrics.json')
+  from http_get('https://raw.githubusercontent.com/trishulraj9239/nz-suburb-intelligence/main/data/rent/tri63-rent-metrics.json')
 ),
 r as (
   select x.* from payload, jsonb_to_recordset(payload.j)
