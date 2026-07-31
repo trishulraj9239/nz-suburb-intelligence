@@ -10,6 +10,8 @@ import {
   type SuburbProfile,
 } from "@/lib/suburb-data";
 import { useWorkspace } from "@/lib/workspace";
+import { usePersona } from "@/lib/preferences";
+import { orderBySection, personaConfig } from "@/lib/persona";
 import { BudgetChip } from "./budget-chip";
 import { ConfidenceChip, Provenance, SourceChip } from "./provenance";
 
@@ -36,11 +38,13 @@ function pctOf(
 function CompareColumn({
   p,
   stats,
+  sectionOrder,
   onOpen,
   onRemove,
 }: {
   p: SuburbProfile;
   stats: RegionalStat[];
+  sectionOrder: string[];
   onOpen: () => void;
   onRemove: () => void;
 }) {
@@ -76,7 +80,7 @@ function CompareColumn({
       )}
 
       <div className="mt-2 flex flex-col divide-y divide-hairline/60">
-        {p.scalars.map((s) => {
+        {orderBySection(p.scalars, (s) => s.def.dimension, sectionOrder).map((s) => {
           const stat = stats.find(
             (x) => x.metric_key === s.def.metric_key && x.as_of_date === s.asOf,
           );
@@ -146,6 +150,8 @@ function CompareColumn({
 
 export function ComparePanel() {
   const { compare, toggleCompare, select } = useWorkspace();
+  const persona = usePersona();
+  const sectionOrder = personaConfig(persona).sectionOrder;
   const key = compare.join("|");
   const [data, setData] = useState<{
     key: string;
@@ -188,7 +194,7 @@ export function ComparePanel() {
     );
   }
 
-  // Union of scalar metrics for the mobile table.
+  // Union of scalar metrics for the mobile table, in persona section order.
   const metricKeys: string[] = [];
   for (const p of profiles) {
     for (const s of p.scalars) {
@@ -197,6 +203,7 @@ export function ComparePanel() {
   }
   const defFor = (k: string) =>
     profiles.flatMap((p) => p.scalars).find((s) => s.def.metric_key === k)!.def;
+  const orderedKeys = orderBySection(metricKeys, (k) => defFor(k).dimension, sectionOrder);
 
   return (
     <div className="flex flex-col gap-3">
@@ -210,6 +217,7 @@ export function ComparePanel() {
             key={p.suburb.sa2_code}
             p={p}
             stats={stats}
+            sectionOrder={sectionOrder}
             onOpen={() => select(p.suburb.sa2_code)}
             onRemove={() => toggleCompare(p.suburb.sa2_code)}
           />
@@ -242,7 +250,7 @@ export function ComparePanel() {
           </tr>
         </thead>
         <tbody className="divide-y divide-hairline/60">
-          {metricKeys.map((k) => {
+          {orderedKeys.map((k) => {
             const def = defFor(k);
             // Source + vintage are shared per metric; confidence differs per suburb.
             const any = profiles

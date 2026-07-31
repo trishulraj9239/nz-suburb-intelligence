@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { DEFAULT_PERSONA, isPersonaKey } from "./persona";
 
 /**
  * User preferences (TRI-37) — client-only, persisted in localStorage, read
@@ -11,10 +12,13 @@ import { useSyncExternalStore } from "react";
  * (TRI-38). v2 (TRI-54): "my workplace" — a single geocode-confirmed address;
  * profile and NL answers show commute-to-work without re-typing it. Never
  * stored from a guess: the control only saves a confirmed geocode match.
+ * v3 (TRI-58): active persona key — drives section order, default map
+ * metric, and NL emphasis via lib/persona.ts.
  */
 
 const KEY = "nzsi:rent-budget";
 const WORKPLACE_KEY = "nzsi:workplace";
+const PERSONA_KEY = "nzsi:persona";
 const EVENT = "nzsi:prefs-changed";
 
 function subscribe(cb: () => void) {
@@ -87,6 +91,37 @@ export function getWorkplace(): Workplace | null {
 export function setWorkplace(w: Workplace | null): void {
   if (w === null) localStorage.removeItem(WORKPLACE_KEY);
   else localStorage.setItem(WORKPLACE_KEY, JSON.stringify(w));
+  window.dispatchEvent(new Event(EVENT));
+}
+
+function personaSnapshot(): string | null {
+  return localStorage.getItem(PERSONA_KEY);
+}
+
+/**
+ * Active persona key. SSR (and first client render, via the null server
+ * snapshot) resolves to DEFAULT_PERSONA — components that reorder content by
+ * persona need a mounted guard so server and first client render agree.
+ */
+export function usePersona(): string {
+  const raw = useSyncExternalStore(subscribe, personaSnapshot, () => null);
+  return isPersonaKey(raw) ? raw : DEFAULT_PERSONA;
+}
+
+/** Non-reactive read — for snapshotting the preference at ask time. */
+export function getPersona(): string {
+  try {
+    const raw = localStorage.getItem(PERSONA_KEY);
+    return isPersonaKey(raw) ? raw : DEFAULT_PERSONA;
+  } catch {
+    return DEFAULT_PERSONA;
+  }
+}
+
+export function setPersona(key: string): void {
+  if (!isPersonaKey(key)) return;
+  if (key === DEFAULT_PERSONA) localStorage.removeItem(PERSONA_KEY);
+  else localStorage.setItem(PERSONA_KEY, key);
   window.dispatchEvent(new Event(EVENT));
 }
 

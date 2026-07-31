@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { useWorkspace } from "@/lib/workspace";
-import { getWorkplace } from "@/lib/preferences";
+import { getPersona, getWorkplace } from "@/lib/preferences";
 import { ConfidenceChip, shortSource } from "./provenance";
 
 /**
@@ -82,8 +82,13 @@ export function AnswerPanel() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           // The saved workplace rides along so "commute to work" resolves
-          // server-side (TRI-54); snapshotted here, not reactive.
-          body: JSON.stringify({ question, workplace: getWorkplace() ?? undefined }),
+          // server-side (TRI-54), and the active persona steers metric
+          // emphasis (TRI-61); both snapshotted here, not reactive.
+          body: JSON.stringify({
+            question,
+            workplace: getWorkplace() ?? undefined,
+            persona: getPersona(),
+          }),
           signal: controller.signal,
         });
         if (!res.ok || !res.body) throw new Error(`ask failed (${res.status})`);

@@ -36,12 +36,13 @@ const PRICING = {
 
 const CITE = /\{\{c(\d+)\}\}/g;
 
-async function ask(question, provider) {
+async function ask(question, provider, persona) {
   const started = Date.now();
   const res = await fetch(`${BASE}/api/ask`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, provider }),
+    // persona is optional per-question (TRI-61); the server defaults to renter.
+    body: JSON.stringify({ question, provider, persona }),
   });
   // Non-2xx (e.g. 502 planning failed) → invalid plan, a real result.
   if (!res.ok) {
@@ -119,7 +120,7 @@ async function main() {
     const runs = {};
     for (const provider of PROVIDERS) {
       process.stdout.write(`  ${q.id} · ${provider} … `);
-      const run = { provider, ...(await ask(q.question, provider)) };
+      const run = { provider, ...(await ask(q.question, provider, q.persona)) };
       const s = score(q, run);
       runs[provider] = { run, score: s };
       perProvider[provider].push(s);
