@@ -69,11 +69,14 @@ as $$
          a.lat,
          a.sa2_code,
          g.name as sa2_name,
-         greatest(word_similarity(lower(p_query), lower(a.full_address)),
-                  similarity(lower(p_query), lower(a.full_address))) as score
+         -- No lower(): trigram extraction is already case-insensitive, and
+         -- wrapping the indexed column defeats the GIN index (5.5 s seq scan
+         -- vs indexed — caught at load, 2026-07-31).
+         greatest(word_similarity(p_query, a.full_address),
+                  similarity(p_query, a.full_address)) as score
   from addresses a
   left join geographies g on g.sa2_code = a.sa2_code and g.geo_type = 'SA2'
-  where lower(p_query) <% lower(a.full_address)
+  where p_query <% a.full_address
   order by score desc, a.full_address
   limit least(greatest(p_limit, 1), 10);
 $$;

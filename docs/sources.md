@@ -40,11 +40,20 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
 
 ## LINZ NZ Addresses — geocoding
 
-- **What:** authoritative NZ address points (LINZ Data Service layer 105689
+- **What:** authoritative NZ address points (LINZ Data Service layer 123113
   "NZ Addresses"), clipped to Auckland region → `addresses` table for
   pg_trgm fuzzy geocoding. No third-party geocode API in the request path.
 - **Cadence:** LINZ updates the layer roughly weekly; our table is a one-off
   load, refreshed manually if stale addresses become a problem.
+- **Loaded 2026-07-31:** 725,981 rows (full Auckland clip via SA2
+  point-in-polygon; 37,891 bbox-spill rows dropped). `addresses` total
+  171 MB incl. 43 MB trigram GIN index; whole DB 206 MB of the 500 MB
+  free tier. Geocode fn ~95 ms steady-state (don't `lower()` the indexed
+  column — trigrams are case-insensitive; wrapping it forces a seq scan).
+- **Key note:** needs a data.linz.govt.nz key (`LINZ_LDS_API_KEY`,
+  local/ETL only). Keys are per-Koordinates-site — a koordinates.com or
+  Basemaps key will NOT work; an unknown key isn't rejected, it just sees
+  zero layers ("Feature type unknown").
 - **Licence / attribution:** **CC BY 4.0**.
   - UI source-chip string: **"Addresses: Toitū Te Whenua LINZ (CC BY 4.0)"**
 
