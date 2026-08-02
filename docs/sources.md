@@ -82,6 +82,37 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
   Business, Innovation and Employment".
   - UI source-chip string: **"MBIE Tenancy bonds · <quarter>"**
 
+## Auckland Council Open Data — hazard + planning layers (M14)
+
+- **What:** seven layers from the council ArcGIS hub
+  (`services1.arcgis.com/n4yPwebTjJCmXB6W`, keyless REST, maxRecordCount
+  2000): Flood Plains 1% AEP, Overland Flow Paths, Coastal Inundation 1% AEP
+  (base + +1 m SLR variant), Liquefaction Vulnerability (Calibrated),
+  Historic Heritage Overlay, Unitary Plan Base Zone. Feed the `hazard` and
+  `planning` metric dimensions. Full audit + locked decisions:
+  `docs/spikes/tri-67-hazard-licence-audit.md`.
+- **Licence / attribution:** **CC BY 4.0** (portal-wide user-licence page —
+  hub "Custom License" labels are disclaimer text). Attribute Auckland
+  Council (zoning + heritage: "Plans and Places, Auckland Council";
+  liquefaction adds the UoA Uniservices report). **Rider on the AUP-family
+  layers:** "no substantial republication without prior written consent" —
+  our derived per-suburb statistics + simplified attributed overlays are
+  within the licence; verbatim bulk redistribution is not done.
+- **Cadence / vintage:** layers update continually (flood layers edited
+  2026-07-31; AUP layers = "AUP July 2026"; liquefaction static 2022;
+  coastal model TR2020/24). `as_of` on metric rows = each service's
+  `lastEditDate` at retrieval; retrieval is part of the vintage.
+- **ETL:** per-SA2 envelope-filtered REST fetches (three layers are
+  0.6–1.7 GB monolithically; overland flow alone is 1.18 M polylines) with a
+  gitignored `data/hazards/raw/` cache + per-layer checkpoint/resume —
+  `scripts/etl/tri-68-hazard-metrics.mjs`.
+- **HAIL / contaminated land: NOT openly published for Auckland** —
+  LIM/property-file only (verified against the council's full ArcGIS
+  catalogue, 2026-08-03). The app states this gap rather than substituting.
+- **Caveat (verbatim, on every hazard surface):** "Area-level model — not a
+  property assessment. Check the council Flood Viewer and a LIM report for
+  any specific property."
+
 ## Existing sources (for completeness)
 
 | Source | Used for | Licence |
