@@ -80,6 +80,11 @@ function score(q, run) {
   const declined = (run.meta?.intent === "unsupported" || sources.length === 0) && markers.length === 0;
   const refusal_ok = q.expect.unsupported ? declined : !declined || sources.length === 0;
   const enoughSources = sources.length >= (q.expect.minSources ?? 0);
+  // Optional: at least one cited row must come from the named source (TRI-66 —
+  // e.g. a live-rent question must be answered from the MBIE bond series).
+  const source_match = q.expect.sourceIncludes
+    ? sources.some((s) => (s.source ?? "").includes(q.expect.sourceIncludes))
+    : true;
 
   const tokensEst = Math.ceil((q.question.length + run.text.length) / 4);
   const p = PRICING[run.provider];
@@ -93,6 +98,7 @@ function score(q, run) {
     citations_ok,
     refusal_ok,
     enough_sources: enoughSources,
+    source_match,
     latency_ms: run.latencyMs,
     tokens_est: tokensEst,
     cost_est_usd: costEst,
@@ -124,7 +130,9 @@ async function main() {
       const s = score(q, run);
       runs[provider] = { run, score: s };
       perProvider[provider].push(s);
-      console.log(`${s.latency_ms}ms  plan=${s.plan_valid} cites=${s.citations_ok} refusal=${s.refusal_ok}`);
+      console.log(
+        `${s.latency_ms}ms  plan=${s.plan_valid} cites=${s.citations_ok} refusal=${s.refusal_ok}${q.expect.sourceIncludes ? ` src=${s.source_match}` : ""}`,
+      );
     }
 
     // Blind A/B judge — randomise slot assignment (plain node: Math.random is fine).

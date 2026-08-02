@@ -6,6 +6,7 @@ import {
   fetchRegionalStats,
   formatValue,
   percentileOf,
+  PRIMARY_RENT_METRIC,
   type RegionalStat,
   type SuburbProfile,
 } from "@/lib/suburb-data";
@@ -89,7 +90,7 @@ function CompareColumn({
               <div className="flex items-baseline justify-between gap-1">
                 <span className="truncate text-[11px] text-ink/65">{s.def.label}</span>
                 <span className="flex shrink-0 items-center gap-1.5">
-                  {s.def.metric_key === "median_rent_weekly" && <BudgetChip rent={s.value} />}
+                  {s.def.metric_key === PRIMARY_RENT_METRIC && <BudgetChip rent={s.value} />}
                   <span className="font-mono text-xs font-medium text-ink">
                     {formatValue(s.def, s.value)}
                   </span>
@@ -271,7 +272,7 @@ export function ComparePanel() {
                   return (
                     <td key={p.suburb.sa2_code} className="px-1 py-2 font-mono text-xs text-ink">
                       {s ? formatValue(def, s.value) : "—"}
-                      {s && k === "median_rent_weekly" && (
+                      {s && k === PRIMARY_RENT_METRIC && (
                         <div className="mt-0.5">
                           <BudgetChip rent={s.value} />
                         </div>

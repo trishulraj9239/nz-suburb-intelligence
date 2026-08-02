@@ -5,7 +5,10 @@ import {
   fetchProfile,
   fetchRegionalStats,
   formatValue,
+  MIN_TREND_POINTS,
   percentileOf,
+  PRIMARY_RENT_METRIC,
+  SECONDARY_METRICS,
   type RegionalStat,
   type ScalarValue,
   type SuburbProfile,
@@ -41,10 +44,11 @@ function PercentileBar({ pct, judged }: { pct: number; judged: boolean }) {
   );
 }
 
-/** 2013→2023 census sparkline + delta vs the previous census (TRI-36). */
+/** History sparkline + delta vs the previous point (TRI-36; TRI-65 extends it
+ * to the 25-quarter rent series, gated by the per-metric minimum-history rule). */
 function Trend({ s }: { s: ScalarValue }) {
   const h = s.history;
-  if (h.length < 2) return null;
+  if (h.length < Math.max(MIN_TREND_POINTS[s.def.metric_key] ?? 2, 2)) return null;
   const W = 52;
   const H = 14;
   const vals = h.map((p) => p.value);
@@ -56,7 +60,11 @@ function Trend({ s }: { s: ScalarValue }) {
         `${((i / (h.length - 1)) * (W - 2) + 1).toFixed(1)},${(H - 1.5 - ((p.value - min) / span) * (H - 3)).toFixed(1)}`,
     )
     .join(" ");
-  const prev = h[h.length - 2].value;
+  // Quarterly series (those with a min-history rule) compare year-over-year —
+  // four quarters back — so the arrow agrees with the 12-month trend metric;
+  // census series keep comparing to the previous census.
+  const back = s.def.metric_key in MIN_TREND_POINTS ? 5 : 2;
+  const prev = h[Math.max(h.length - back, 0)].value;
   const last = h[h.length - 1].value;
   const pct = prev === 0 ? 0 : ((last - prev) / Math.abs(prev)) * 100;
   const arrow = pct > 0.5 ? "↑" : pct < -0.5 ? "↓" : "→";
@@ -155,19 +163,26 @@ function WorkplaceCommuteRow({ sa2 }: { sa2: string }) {
 }
 
 function ScalarRow({ s, stat }: { s: ScalarValue; stat?: RegionalStat }) {
+  // Secondary rows (census rent, bond quartiles) render compact under the
+  // headline: smaller, indented, no percentile bar — provenance stays.
+  const secondary = SECONDARY_METRICS.has(s.def.metric_key);
   return (
-    <div className="py-2">
+    <div className={secondary ? "py-1 pl-3" : "py-2"}>
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-sm text-ink/80">{s.def.label}</span>
+        <span className={secondary ? "text-xs text-ink/60" : "text-sm text-ink/80"}>
+          {s.def.label}
+        </span>
         <span className="flex items-center gap-2">
-          {s.def.metric_key === "median_rent_weekly" && <BudgetChip rent={s.value} />}
+          {s.def.metric_key === PRIMARY_RENT_METRIC && <BudgetChip rent={s.value} />}
           <Trend s={s} />
-          <span className="font-mono text-sm font-medium text-ink">
+          <span
+            className={`font-mono font-medium ${secondary ? "text-xs text-ink/75" : "text-sm text-ink"}`}
+          >
             {formatValue(s.def, s.value)}
           </span>
         </span>
       </div>
-      {stat && (
+      {stat && !secondary && (
         <div className="mt-1.5">
           <PercentileBar
             pct={percentileOf(s.value, stat)}

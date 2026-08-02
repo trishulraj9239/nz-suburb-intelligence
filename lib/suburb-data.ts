@@ -304,7 +304,27 @@ export async function fetchProfile(sa2: string): Promise<SuburbProfile | null> {
   };
 }
 
+/**
+ * TRI-65 — the MBIE bond series is the headline rent row (registry
+ * display_order puts it first in Housing); the census rent and the bond
+ * quartiles render as compact secondary rows. BudgetChip follows the primary.
+ */
+export const PRIMARY_RENT_METRIC = "rent_median_weekly";
+export const SECONDARY_METRICS = new Set([
+  "median_rent_weekly",
+  "rent_lower_quartile_weekly",
+  "rent_upper_quartile_weekly",
+]);
+
+/**
+ * Minimum history points before a sparkline/trend renders. TRI-62 checkpoint:
+ * the quarterly rent series needs ≥8 quarters of signal; census series keep
+ * rendering from their 2-3 points (the default).
+ */
+export const MIN_TREND_POINTS: Record<string, number> = { rent_median_weekly: 8 };
+
 export function formatValue(def: MetricDef, v: number): string {
+  if (def.unit === "%") return `${v > 0 ? "+" : ""}${v.toFixed(1)}%`;
   if (def.unit === "$/week") return `$${Math.round(v).toLocaleString()}/wk`;
   if (def.unit === "$/year") return `$${Math.round(v).toLocaleString()}`;
   if (def.unit === "years") return v.toFixed(1);

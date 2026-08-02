@@ -227,7 +227,7 @@ export async function POST(req: NextRequest) {
   const planText = await chat.complete("reasoning", {
     system: `You convert questions about Auckland (NZ) suburbs into a structured query plan. Coverage: Auckland region SA2 areas only; Census 2023/2018/2013, NZDep2018 deprivation, school directory, typical routed commute times (openrouteservice/OSM — drive, cycle, walk; no live traffic). Metric registry (key | label | unit):\n${registry
       .map((d) => `${d.metric_key} | ${d.label} | ${d.unit ?? "-"}`)
-      .join("\n")}\nRules: deprivation and ethnicity have no "better/worse" — a rank by nzdep_decile is allowed but is informational only.\nCommute rules, in priority order:\n1. The question mentions "work" or "workplace" as a place → ALWAYS intent=commute with that commute field set to exactly "work". The workplace is a specific saved address${work ? ` (currently: ${work.address})` : " (currently NOT set — intent=unsupported instead, note the workplace isn't set)"} — it is NOT the CBD; never answer this from the commute_* metrics. Example: "How long is the commute from Ponsonby to work?" → {"intent":"commute","suburbs":["Ponsonby"],"commute":{"origin":"Ponsonby","destination":"work","mode":"driving-car","max_minutes":null}}.\n2. "how far/long is <suburb> from the CBD/airport" → intent=lookup with the commute_* metrics (precomputed).\n3. A commute between a suburb/address and any other specific destination → intent=commute with commute.origin/destination as written. "Suburbs within N min <mode> of <place>" combined with a metric constraint → intent=rank on that metric plus commute.destination and commute.max_minutes. PUBLIC TRANSPORT (train, bus, ferry) times are NOT supported — intent=unsupported, note that only typical drive/cycle/walk times exist.\nOther questions needing data we don't have (crime, house prices outside rent/income, other cities) are unsupported.\n${personaLine} When the question is open-ended about which metrics matter, lean toward this persona's priorities — but never drop a metric the user explicitly asks for.`,
+      .join("\n")}\nRules: deprivation and ethnicity have no "better/worse" — a rank by nzdep_decile is allowed but is informational only.\nCommute rules, in priority order:\n1. The question mentions "work" or "workplace" as a place → ALWAYS intent=commute with that commute field set to exactly "work". The workplace is a specific saved address${work ? ` (currently: ${work.address})` : " (currently NOT set — intent=unsupported instead, note the workplace isn't set)"} — it is NOT the CBD; never answer this from the commute_* metrics. Example: "How long is the commute from Ponsonby to work?" → {"intent":"commute","suburbs":["Ponsonby"],"commute":{"origin":"Ponsonby","destination":"work","mode":"driving-car","max_minutes":null}}.\n2. "how far/long is <suburb> from the CBD/airport" → intent=lookup with the commute_* metrics (precomputed).\n3. A commute between a suburb/address and any other specific destination → intent=commute with commute.origin/destination as written. "Suburbs within N min <mode> of <place>" combined with a metric constraint → intent=rank on that metric plus commute.destination and commute.max_minutes. PUBLIC TRANSPORT (train, bus, ferry) times are NOT supported — intent=unsupported, note that only typical drive/cycle/walk times exist.\nRent questions about a specific dwelling type or bedroom count ARE supported: intent=lookup with the rent metrics — the data covers all dwelling types combined and the answer will say so; do not refuse them.\nOther questions needing data we don't have (crime, house prices outside rent/income, other cities) are unsupported.\n${personaLine} When the question is open-ended about which metrics matter, lean toward this persona's priorities — but never drop a metric the user explicitly asks for.`,
     messages: [{ role: "user", content: question }],
     maxTokens: 500,
     jsonSchema: PLAN_SCHEMA as unknown as Record<string, unknown>,
@@ -322,18 +322,31 @@ export async function POST(req: NextRequest) {
       plan.commute.destination && plan.commute.max_minutes
         ? 25
         : Math.min(Math.max(plan.limit || 5, 1), 10);
-    const { data: vals } = await supabase
+    // TRI-64 — every metric ranks on its own latest vintage (census metrics on
+    // census day, NZDep2018 on its date, MBIE rent on the latest quarter), so a
+    // multi-vintage series never mixes dates within one ranking.
+    const { data: latestVal } = await supabase
       .from("metric_values")
-      .select(
-        "value_num, as_of_date, confidence, geographies!inner(name, sa2_code, is_active), metric_definitions!inner(metric_key,label,unit), sources(name)",
-      )
+      .select("as_of_date, metric_definitions!inner(metric_key)")
       .is("category", null)
       .eq("metric_definitions.metric_key", metric)
-      .eq("geographies.is_active", true)
-      .eq("as_of_date", "2023-03-07")
-      .not("value_num", "is", null)
-      .order("value_num", { ascending: plan.rank_direction === "asc" })
-      .limit(limit);
+      .order("as_of_date", { ascending: false })
+      .limit(1);
+    const latestDate = latestVal?.[0]?.as_of_date;
+    const { data: vals } = latestDate
+      ? await supabase
+          .from("metric_values")
+          .select(
+            "value_num, as_of_date, confidence, geographies!inner(name, sa2_code, is_active), metric_definitions!inner(metric_key,label,unit), sources(name)",
+          )
+          .is("category", null)
+          .eq("metric_definitions.metric_key", metric)
+          .eq("geographies.is_active", true)
+          .eq("as_of_date", latestDate)
+          .not("value_num", "is", null)
+          .order("value_num", { ascending: plan.rank_direction === "asc" })
+          .limit(limit)
+      : { data: [] };
     for (const v of vals ?? []) {
       const g = v.geographies as unknown as { name: string; sa2_code: string };
       rows.push({
@@ -348,35 +361,6 @@ export async function POST(req: NextRequest) {
         as_of: v.as_of_date,
         confidence: v.confidence,
       });
-    }
-    // NZDep rank for 2023 census date doesn't exist — retry on its own date.
-    if (rows.length === 0 && metric.startsWith("nzdep")) {
-      const { data: depVals } = await supabase
-        .from("metric_values")
-        .select(
-          "value_num, as_of_date, confidence, geographies!inner(name, sa2_code, is_active), metric_definitions!inner(metric_key,label,unit), sources(name)",
-        )
-        .is("category", null)
-        .eq("metric_definitions.metric_key", metric)
-        .eq("geographies.is_active", true)
-        .not("value_num", "is", null)
-        .order("value_num", { ascending: plan.rank_direction === "asc" })
-        .limit(limit);
-      for (const v of depVals ?? []) {
-        const g = v.geographies as unknown as { name: string; sa2_code: string };
-        rows.push({
-          n: rows.length + 1,
-          suburb: g.name,
-          sa2_code: g.sa2_code,
-          metric,
-          label: def?.label ?? metric,
-          value: Number(v.value_num),
-          unit: def?.unit ?? null,
-          source: (v.sources as unknown as { name: string } | null)?.name ?? "—",
-          as_of: v.as_of_date,
-          confidence: v.confidence,
-        });
-      }
     }
   }
 
@@ -561,7 +545,7 @@ export async function POST(req: NextRequest) {
             )
             .join("\n");
           for await (const delta of chat.stream("reasoning", {
-            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation.\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics. ${plan.note ? `Context note: ${plan.note}` : ""}`,
+            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts; NZDep2018 decile semantics: 1 = least deprived, 10 = most deprived. Rent rows from MBIE tenancy bonds cover new tenancies across ALL dwelling types — if the question asks about a specific dwelling type or bedroom count, give the all-dwellings figure and say that's what it is; never present it as type-specific. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation.\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics. ${plan.note ? `Context note: ${plan.note}` : ""}`,
             messages: [
               {
                 role: "user",

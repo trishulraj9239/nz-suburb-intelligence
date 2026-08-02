@@ -44,7 +44,16 @@ export function ConfidenceChip({ confidence }: { confidence: string }) {
 
 /** Abbreviate long source names for chip-sized surfaces. */
 export function shortSource(source: string): string {
-  return source.replace("NZDep2018 Deprivation Index", "NZDep2018");
+  return source
+    .replace("NZDep2018 Deprivation Index", "NZDep2018")
+    .replace("Tenancy bond data (quarterly, SA2)", "MBIE Tenancy bonds");
+}
+
+/** Quarter-start dates (the MBIE bond series) label as "2026 Q1"; all other
+ * vintages stay year-only. */
+function asOfLabel(asOf: string): string {
+  const m = asOf.match(/^(\d{4})-(01|04|07|10)-01$/);
+  return m ? `${m[1]} Q${{ "01": 1, "04": 2, "07": 3, "10": 4 }[m[2]]}` : asOf.slice(0, 4);
 }
 
 /** Plain-text confidence label for non-React surfaces (map popup HTML). */
@@ -55,7 +64,7 @@ export function confidenceLabel(confidence: string): string {
 export function SourceChip({ source, asOf }: { source: string; asOf: string }) {
   return (
     <span className="font-mono text-[10px] text-ink/45">
-      {shortSource(source)} · {asOf.slice(0, 4)}
+      {shortSource(source)} · {asOfLabel(asOf)}
     </span>
   );
 }
