@@ -86,22 +86,24 @@ wasteful and turf-on-whole-file memory-risky. Proposed pattern instead —
   simplification or zoom-dependent tiling — tolerance decisions recorded in
   README when made.
 
-## Checkpoint decisions requested (sign-off gate)
+## Checkpoint decisions — LOCKED (signed off 2026-08-03)
 
-1. **Licence reading accepted?** All 7 surviving layers CC BY 4.0 with
-   attribution (portal-wide terms; "Custom" hub labels are disclaimers).
-   Specifically confirm the AUP-layer rider ("no substantial republication
-   without written consent") is acceptable for derived per-suburb stats +
-   simplified overlays with attribution.
-2. **HAIL dropped** (no open Auckland dataset exists — LIM-only): cut
-   `hail_site_count`, README note "not openly available", never substituted?
-3. **Overland-flow metric = density (km/km²)** rather than an invented 10 m
-   buffer — accept recommendation?
-4. **Liquefaction layer = Calibrated** (5-class) with Basic as fallback?
-5. **Scope confirmations:** Flood Prone Areas out of v1; coastal inundation
-   base layer only (no SLR variants) for v1?
-6. **ETL pattern = per-SA2 envelope-filtered fetches** with gitignored raw
-   cache (instead of monolithic downloads) — accept?
+1. **Licence reading ACCEPTED** — CC BY 4.0 + attribution on every surface;
+   the AUP rider is acceptable for derived stats + simplified attributed
+   overlays; rider noted in docs/sources.md.
+2. **HAIL DROPPED with README note** — the gap is stated honestly
+   ("contaminated-land data is not openly published for Auckland — check a
+   LIM"); no substitution.
+3. **Overland-flow metric = density km/km²** (`overland_flow_density`, UI
+   label "Overland flow path density"). No invented buffer.
+4. **Liquefaction = Calibrated 5-class layer**; "Undetermined" renders as its
+   own honest class. Basic layer is the documented fallback.
+5. **Scope: planned 6 PLUS the coastal +1 m sea-level-rise variant** —
+   new metric `coastal_inundation_slr1m_pct` (% of SA2 land inside coastal
+   inundation 1% AEP with +1 m SLR; higher_is_better NULL; label must state
+   the SLR assumption). Flood Prone Areas stays out of v1 (future add).
+6. **ETL = per-SA2 envelope-filtered REST fetches** with gitignored
+   `data/hazards/raw/` cache and checkpoint/resume.
 
 ## Proposed metric definitions (insert at TRI-68, not now)
 
@@ -116,6 +118,7 @@ per **residential** SA2 (the M3 residential filter) with local turf.js
 | `flood_plain_pct` | % of SA2 land area inside the 1% AEP flood plain | scalar | % |
 | `overland_flow_pct` *or* `overland_flow_density` | see decision below | scalar | % or km/km² |
 | `coastal_inundation_pct` | % of SA2 land area inside coastal inundation 1% AEP (present-day, no SLR offset) | scalar | % |
+| `coastal_inundation_slr1m_pct` | % of SA2 land area inside coastal inundation 1% AEP **with +1 m sea-level rise** (scope decision 5) | scalar | % |
 | `liquefaction_share` | share of SA2 land area by susceptibility class | **breakdown** | % per class |
 | ~~`hail_site_count`~~ | **CUT** — no open Auckland HAIL dataset exists (LIM-only); README notes the gap | — | — |
 | `heritage_overlay_pct` | % of SA2 land area inside the Historic Heritage Overlay | scalar | % |
