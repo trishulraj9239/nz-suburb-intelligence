@@ -6,6 +6,14 @@
  * class of problem as the ADE gateway, see tri-17), assigns features to
  * candidate SA2s via a local bbox grid index, clips with turf, accumulates.
  *
+ * CRITICAL: pages are fetched as native Esri JSON (f=json) and converted with
+ * @terraformer/arcgis — this org's f=geojson endpoint FLATTENS interior rings
+ * into filled polygon parts (verified: coastal OBJECTID 2359 has 3 outer
+ * rings + 675 holes in f=json, but 678 hole-less parts in f=geojson), which
+ * silently fills every hole and inflated island suburbs to 100% coastal
+ * inundation. Never use f=geojson on services1.arcgis.com/n4yPwebTjJCmXB6W
+ * for polygon layers.
+ *
  * NOTE — refinement of TRI-67 decision 6: sign-off chose "per-SA2 envelope
  * fetches"; measured reality was ~22 s per SA2 (node-fetch instability +
  * 627 spatial queries × 7 layers ≈ days). Paged whole-layer streaming keeps
@@ -38,6 +46,8 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import * as turf from "@turf/turf";
+import pkg from "@terraformer/arcgis";
+const { arcgisToGeoJSON } = pkg;
 
 const BASE = "https://services1.arcgis.com/n4yPwebTjJCmXB6W/arcgis/rest/services";
 
@@ -243,10 +253,14 @@ for (;;) {
     `${BASE}/${layer.service}/FeatureServer/0/query?where=1%3D1&outFields=*` +
     `&outSR=4326&geometryPrecision=6&resultOffset=${state.offset}&resultRecordCount=${layer.page}` +
     (layer.offsetDeg ? `&maxAllowableOffset=${layer.offsetDeg}` : "") +
-    `&f=geojson`;
+    `&f=json`;
   const page = curlJson(url);
-  const feats = page.features ?? [];
-  if (!feats.length) break;
+  const raw = page.features ?? [];
+  if (!raw.length) break;
+  // Esri JSON → GeoJSON with correct ring/hole assignment (see header).
+  const feats = raw
+    .filter((f) => f.geometry)
+    .map((f) => ({ type: "Feature", properties: f.attributes ?? {}, geometry: arcgisToGeoJSON(f.geometry) }));
 
   for (const f of feats) {
     if (!f.geometry) continue;
@@ -277,13 +291,12 @@ for (;;) {
     }
   }
 
-  state.offset += feats.length;
-  state.features += feats.length;
+  state.offset += raw.length;
+  state.features += raw.length;
   state.failures = failures.count;
   writeFileSync(statePath, JSON.stringify(state));
-  console.log(`  offset ${state.offset} (+${feats.length}); failures ${failures.count}`);
-  const more = page.properties?.exceededTransferLimit || page.exceededTransferLimit || feats.length === layer.page;
-  if (!more) break;
+  console.log(`  offset ${state.offset} (+${raw.length}); failures ${failures.count}`);
+  if (!(page.exceededTransferLimit || raw.length === layer.page)) break;
 }
 
 // --- emit rows ---------------------------------------------------------------
