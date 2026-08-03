@@ -418,13 +418,26 @@ export function MapContainer() {
         breaks: [sorted[0], q(0.2), q(0.4), q(0.6), q(0.8), sorted[sorted.length - 1]],
       };
       shadeRef.current = shade;
+      // One legend entry per source, vintages compressed: two years stay
+      // explicit ("Census 2018+2023" — suppression honesty, the shade is
+      // latest-per-suburb), three or more become a range ("2020–2026").
+      const yearsBySource = new Map<string, Set<string>>();
+      for (const r of rows) {
+        const s = shortSource(r.source);
+        (yearsBySource.get(s) ?? yearsBySource.set(s, new Set()).get(s)!).add(r.asOf.slice(0, 4));
+      }
+      const sourceLabel = [...yearsBySource.entries()]
+        .map(([s, ys]) => {
+          const yrs = [...ys].sort();
+          return `${s} ${yrs.length > 2 ? `${yrs[0]}–${yrs[yrs.length - 1]}` : yrs.join("+")}`;
+        })
+        .sort()
+        .join(" · ");
       setLegend({
         label: def.label,
         min: sorted[0].toLocaleString(),
         max: sorted[sorted.length - 1].toLocaleString(),
-        source: [...new Set(rows.map((r) => `${shortSource(r.source)} ${r.asOf.slice(0, 4)}`))]
-          .sort()
-          .join(" · "),
+        source: sourceLabel,
       });
       if (mapRef.current) applyShadePaint(mapRef.current, shade);
     },
