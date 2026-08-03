@@ -283,9 +283,16 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
         {profile.cbdKm != null && (
           <p
             className="mt-1 flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-ink/60"
-            title="Straight-line distance from the suburb centroid to the Auckland CBD (Sky Tower). Routed drive/cycle/walk times are in Getting around below."
+            title={
+              profile.cbdMethod === "road"
+                ? "Driving distance to the Auckland CBD (Britomart) via openrouteservice/OSM — typical route, no live traffic. Drive/cycle/walk times are in Getting around below."
+                : "Straight-line distance from the suburb centroid to the Auckland CBD — road routing unavailable for this suburb (e.g. islands)."
+            }
           >
-            <span>CBD {profile.cbdKm.toFixed(1)} km (straight line)</span>
+            <span>
+              CBD {profile.cbdKm.toFixed(1)} km{" "}
+              {profile.cbdMethod === "road" ? "by road" : "(straight line)"}
+            </span>
             <ConfidenceChip confidence="derived" />
           </p>
         )}
@@ -350,8 +357,8 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
         );
       })}
 
-      {/* Schools — nearest by distance from the centroid (TRI-36), so zoned
-          schools just over the boundary appear too. */}
+      {/* Schools — nearest by road distance (TRI-76; geodesic fallback), so
+          zoned schools just over the boundary appear too. */}
       <section>
         <h3 className="border-b border-hairline pb-1 font-display text-xs font-semibold uppercase tracking-wider text-ink/60">
           Schools nearby{" "}
@@ -374,10 +381,21 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
                   </p>
                 </div>
                 <span
-                  className="shrink-0 font-mono text-xs text-ink/70"
-                  title="Straight-line distance from the suburb centroid"
+                  className="shrink-0 text-right font-mono text-xs text-ink/70"
+                  title={
+                    sc.method === "road"
+                      ? "Driving distance from the suburb origin via openrouteservice/OSM — typical route, no live traffic"
+                      : "Straight-line distance from the suburb centroid — road routing unavailable"
+                  }
                 >
                   {sc.distance_km.toFixed(1)} km
+                  {sc.method === "road" ? (
+                    sc.drive_min != null && (
+                      <span className="text-ink/45"> · {sc.drive_min.toFixed(0)} min</span>
+                    )
+                  ) : (
+                    <span className="text-ink/45"> · straight line</span>
+                  )}
                 </span>
               </li>
             ))}
@@ -387,7 +405,7 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
           <SourceChip source="MOE Schools Directory" asOf="2026" />
           <span
             className="font-mono text-[10px] text-ink/45"
-            title="Distances are straight-line from the suburb centroid, computed here"
+            title="Driving distances from the suburb origin via openrouteservice/OSM; straight-line (labelled) where routing is unavailable"
           >
             · distances
           </span>

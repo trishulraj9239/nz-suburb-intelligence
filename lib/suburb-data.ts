@@ -52,6 +52,9 @@ export interface School {
 
 export interface NearbySchool extends School {
   distance_km: number;
+  /** Routed driving minutes — null when routing failed (straight-line fallback). */
+  drive_min: number | null;
+  method: "road" | "straight line";
 }
 
 export interface SuburbProfile {
@@ -60,10 +63,11 @@ export interface SuburbProfile {
   breakdowns: BreakdownValue[];
   /** Schools located within the SA2 (compare counts use this). */
   schools: School[];
-  /** Closest schools by geodesic distance from the centroid (TRI-36). */
+  /** Closest schools — road distance where precomputed, geodesic fallback (TRI-76). */
   nearbySchools: NearbySchool[];
-  /** Straight-line km, suburb centroid → Auckland CBD. */
+  /** Km to the Auckland CBD — ORS road distance, straight-line fallback (TRI-76). */
   cbdKm: number | null;
+  cbdMethod: "road" | "straight line" | null;
 }
 
 export interface RegionalStat {
@@ -216,7 +220,7 @@ export async function fetchProfile(sa2: string): Promise<SuburbProfile | null> {
     { data: rows, error: e1 },
     { data: schoolRows, error: e2 },
     { data: nearbyRows },
-    { data: cbdKmRaw },
+    { data: cbdRows },
   ] = await Promise.all([
     supabase
       .from("metric_values")
@@ -230,7 +234,7 @@ export async function fetchProfile(sa2: string): Promise<SuburbProfile | null> {
       .eq("geo_id", suburb.id)
       .order("roll", { ascending: false, nullsFirst: false }),
     supabase.rpc("nearby_schools", { p_sa2_code: sa2, p_count: 8 }),
-    supabase.rpc("cbd_distance_km", { p_sa2_code: sa2 }),
+    supabase.rpc("cbd_distance_routed", { p_sa2_code: sa2 }),
   ]);
   if (e1) throw e1;
   if (e2) throw e2;
@@ -294,13 +298,17 @@ export async function fetchProfile(sa2: string): Promise<SuburbProfile | null> {
   scalars.sort((a, b) => a.def.display_order - b.def.display_order);
   breakdowns.sort((a, b) => a.def.display_order - b.def.display_order);
 
+  const cbd =
+    ((cbdRows ?? null) as { distance_km: number | null; method: "road" | "straight line" }[] | null)?.[0] ?? null;
+
   return {
     suburb,
     scalars,
     breakdowns,
     schools: (schoolRows ?? []) as School[],
     nearbySchools: (nearbyRows ?? []) as NearbySchool[],
-    cbdKm: cbdKmRaw === null || cbdKmRaw === undefined ? null : Number(cbdKmRaw),
+    cbdKm: cbd?.distance_km == null ? null : Number(cbd.distance_km),
+    cbdMethod: cbd?.method ?? null,
   };
 }
 

@@ -50,7 +50,10 @@ next-env.d.ts
 # Screenshots â€” kept on Linear, not in the repo (heavy)
 /shots/
 
-# Local dev utility â€” kept for reference, not tracked
+# User-provided reference/test screenshots for Claude sessions
+/Reference_or_test_files/
+
+# Local dev utility — kept for reference, not tracked
 /scripts/capture-shots.mjs
 
 # Local architecture notes â€” kept out of the repo
