@@ -17,7 +17,7 @@
  * Override the target with EVAL_BASE_URL (default http://localhost:3000).
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { judge, JUDGE_MODEL } from "./judge.mjs";
@@ -119,9 +119,29 @@ function avg(rows, key) {
 async function main() {
   const questions = JSON.parse(readFileSync(join(HERE, "questions.json"), "utf8"));
   const perProvider = Object.fromEntries(PROVIDERS.map((p) => [p, []]));
-  const detail = [];
+
+  // Checkpoint/resume: the suite now outruns the 10-minute background-task
+  // cap, so each finished question lands in results/partial.json and a rerun
+  // skips completed ids. Delete the partial for a forced full rerun; it is
+  // removed automatically on successful completion.
+  const PARTIAL = join(HERE, "results", "partial.json");
+  let detail = [];
+  try {
+    detail = JSON.parse(readFileSync(PARTIAL, "utf8"));
+    console.log(`resume: ${detail.length} questions already scored`);
+    // detail rows store quality as the full judge object; the summary rows
+    // need the numeric overall (matches what the fresh path pushes).
+    for (const d of detail)
+      for (const p of PROVIDERS)
+        perProvider[p].push({ ...d.results[p], quality: d.results[p].quality?.overall ?? null });
+  } catch {
+    /* no partial — fresh run */
+  }
+  const done = new Set(detail.map((d) => d.id));
+  mkdirSync(join(HERE, "results"), { recursive: true });
 
   for (const q of questions) {
+    if (done.has(q.id)) continue;
     // Run both providers for this question.
     const runs = {};
     for (const provider of PROVIDERS) {
@@ -160,10 +180,10 @@ async function main() {
         PROVIDERS.map((p) => [p, { ...runs[p].score, answer: runs[p].run.text, quality: quality?.[p] ?? null }]),
       ),
     });
+    writeFileSync(PARTIAL, JSON.stringify(detail));
   }
 
   // ---- Emit -----------------------------------------------------------------
-  mkdirSync(join(HERE, "results"), { recursive: true });
   const raw = { base: BASE, judge_model: JUDGE_MODEL, providers: PRICING, questions: detail };
   // No Date.now()-based filename to keep runs diffable; overwrite latest.*
   writeFileSync(join(HERE, "results", "latest.json"), JSON.stringify(raw, null, 2));
@@ -185,6 +205,7 @@ async function main() {
 
   console.log("\n" + md);
   console.log(`Wrote scripts/eval/results/latest.json and latest.md`);
+  rmSync(PARTIAL, { force: true });
 }
 
 main().catch((e) => {

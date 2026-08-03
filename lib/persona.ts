@@ -84,17 +84,21 @@ export const PERSONAS: Record<string, PersonaConfig> = {
     key: "buyer",
     label: "Buying",
     sectionOrder: ["housing", "planning", "hazard", "people", "deprivation", "commute"],
-    defaultMapMetric: "consents_per_1000_dwellings", // M15; falls back to no shading until loaded
+    defaultMapMetric: "consents_per_1000_dwellings", // M15 — live since TRI-73
+    // TRI-74 re-tune: every weighted metric now exists in the live registry.
+    // The rate (per-1000) carries the comparison weight; the raw 12m count
+    // stays lightly emphasised (big suburbs would otherwise dominate).
     metricWeights: {
       median_household_income: 1.25,
       zoning_share: 1.5, // M14
       intensification_capacity_indicator: 1.5, // M14
       flood_plain_pct: 1.5, // M14
-      consents_new_dwellings_12m: 1.5, // M15
+      consents_per_1000_dwellings: 1.5, // M15 — the comparable rate
+      consents_new_dwellings_12m: 1.25, // M15 — absolute volume, size-biased
       rent_median_weekly: 0.75,
     },
     promptDescriptor:
-      "The user is a prospective buyer: prioritise zoning and intensification capacity, consenting activity, and hazard exposure alongside housing stock; current rent levels matter less.",
+      "The user is a prospective buyer: prioritise zoning and intensification capacity, consenting activity (prefer the per-1,000-dwellings rate when comparing suburbs), and hazard exposure alongside housing stock; current rent levels matter less.",
   },
 };
 
