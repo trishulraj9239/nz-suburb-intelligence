@@ -7,6 +7,7 @@ import type {
   Popup as MapLibrePopup,
   StyleSpecification,
   ExpressionSpecification,
+  GeoJSONSource,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useWorkspace } from "@/lib/workspace";
@@ -120,6 +121,9 @@ function overlayLayers(): StyleSpecification["layers"] {
       source: "sa2",
       paint: { "fill-color": token("--harbour", "#0e6e73"), "fill-opacity": 0.04 },
     },
+    // Hazards sit above the choropleth fill but below suburb borders and
+    // selection, so boundaries stay legible with overlays on.
+    ...hazardLayerSpecs(),
     {
       id: "sa2-line",
       type: "line",
@@ -172,13 +176,55 @@ const COVERAGE_SOURCE = {
   data: "/geo/auckland-coverage.geojson",
 } as const;
 
+// Hazard overlays (TRI-69) — simplified geometry in public/geo/hazards/
+// (scripts/etl/tri-69-hazard-overlays.mjs). Sources start as EMPTY feature
+// collections and layers as visibility:'none' (all layers exist at style
+// build time); the file is only fetched on first toggle via setData(url).
+// One flat hue per layer — sequential, no red-means-bad, distinct from the
+// harbour choropleth ramp. Liquefaction shows only the elevated class
+// ("damage possible"); the full 5-class breakdown lives in the profile.
+const HAZARD_LAYERS = [
+  { key: "flood", label: "Flood plains (1% AEP)", vintage: "2026", color: "#2f6db6" },
+  { key: "coastal", label: "Coastal inundation (1% AEP)", vintage: "2025", color: "#6d5bb8" },
+  { key: "coastal_slr1m", label: "Coastal inundation, +1 m sea level", vintage: "2025", color: "#9b8ed6" },
+  { key: "liquefaction", label: "Liquefaction — damage possible", vintage: "2022", color: "#b0803a" },
+  { key: "heritage", label: "Heritage overlay", vintage: "2026", color: "#7a5c3e" },
+] as const;
+
+const EMPTY_FC: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
+
+function hazardSources(): Record<string, { type: "geojson"; data: GeoJSON.FeatureCollection }> {
+  return Object.fromEntries(
+    HAZARD_LAYERS.map((h) => [`hz-${h.key}`, { type: "geojson" as const, data: EMPTY_FC }]),
+  );
+}
+
+function hazardLayerSpecs(): StyleSpecification["layers"] {
+  return HAZARD_LAYERS.flatMap((h) => [
+    {
+      id: `hz-${h.key}-fill`,
+      type: "fill" as const,
+      source: `hz-${h.key}`,
+      layout: { visibility: "none" as const },
+      paint: { "fill-color": h.color, "fill-opacity": 0.32 },
+    },
+    {
+      id: `hz-${h.key}-line`,
+      type: "line" as const,
+      source: `hz-${h.key}`,
+      layout: { visibility: "none" as const },
+      paint: { "line-color": h.color, "line-width": 0.6, "line-opacity": 0.5 },
+    },
+  ]);
+}
+
 async function buildStyle(): Promise<StyleSpecification> {
   if (LINZ_KEY) {
     try {
       const res = await fetch(LINZ_STYLE);
       if (res.ok) {
         const base = (await res.json()) as StyleSpecification;
-        base.sources = { ...base.sources, sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE };
+        base.sources = { ...base.sources, sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE, ...hazardSources() };
         base.layers = [...base.layers, ...overlayLayers()];
         return base;
       }
@@ -188,7 +234,7 @@ async function buildStyle(): Promise<StyleSpecification> {
   }
   return {
     version: 8,
-    sources: { sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE },
+    sources: { sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE, ...hazardSources() },
     layers: [
       {
         id: "background",
@@ -228,6 +274,16 @@ function applyThemePaint(map: MapLibreMap, dark: boolean) {
   if (map.getLayer("coverage-line")) {
     map.setPaintProperty("coverage-line", "line-color", token("--ink", dark ? "#e6ecee" : "#13212e"));
   }
+  // Hazard overlays: flat hues stay fixed, opacity lifts against the dark
+  // basemap veil — without this they wash out after a theme swap.
+  for (const h of HAZARD_LAYERS) {
+    if (map.getLayer(`hz-${h.key}-fill`)) {
+      map.setPaintProperty(`hz-${h.key}-fill`, "fill-opacity", dark ? 0.42 : 0.32);
+    }
+    if (map.getLayer(`hz-${h.key}-line`)) {
+      map.setPaintProperty(`hz-${h.key}-line`, "line-opacity", dark ? 0.65 : 0.5);
+    }
+  }
 }
 
 function applyShadePaint(map: MapLibreMap, shade: ShadeState | null) {
@@ -266,6 +322,33 @@ export function MapContainer() {
 
   const [defs, setDefs] = useState<MetricDef[]>([]);
   const [shadeKey, setShadeKey] = useState<string>("");
+  const [hazardsOpen, setHazardsOpen] = useState(false);
+  const [hazardOn, setHazardOn] = useState<ReadonlySet<string>>(new Set());
+  const hazardLoadedRef = useRef<Set<string>>(new Set());
+
+  // Toggle a hazard overlay. First enable lazily points the (empty) source at
+  // the static file — setData(url) lets MapLibre fetch it; nothing loads at
+  // page-open. Subsequent toggles only flip layer visibility.
+  const toggleHazard = useCallback(
+    (key: string) => {
+      const map = mapRef.current;
+      if (!map) return;
+      const wasOn = hazardOn.has(key);
+      const next = new Set(hazardOn);
+      if (wasOn) next.delete(key);
+      else next.add(key);
+      setHazardOn(next);
+      if (!wasOn && !hazardLoadedRef.current.has(key)) {
+        hazardLoadedRef.current.add(key);
+        (map.getSource(`hz-${key}`) as GeoJSONSource | undefined)?.setData(`/geo/hazards/${key}.geojson`);
+      }
+      for (const suffix of ["fill", "line"]) {
+        const id = `hz-${key}-${suffix}`;
+        if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", wasOn ? "none" : "visible");
+      }
+    },
+    [hazardOn],
+  );
   const [legend, setLegend] = useState<{
     label: string;
     min: string;
@@ -504,6 +587,51 @@ export function MapContainer() {
             </option>
           ))}
         </select>
+
+        {/* Hazard layer toggles (TRI-69) — collapsed by default, all layers
+            off by default. Exposure is information, never a verdict. */}
+        <div className="w-52 max-w-full rounded-md border border-hairline bg-surface/95 shadow-sm">
+          <button
+            type="button"
+            onClick={() => setHazardsOpen((o) => !o)}
+            aria-expanded={hazardsOpen}
+            className="flex h-8 w-full items-center justify-between px-2.5 text-xs text-ink"
+          >
+            <span>
+              Hazard layers
+              {hazardOn.size > 0 && <span className="ml-1 text-ink/45">({hazardOn.size} on)</span>}
+            </span>
+            <span aria-hidden className="font-mono text-ink/50">{hazardsOpen ? "−" : "+"}</span>
+          </button>
+          {hazardsOpen && (
+            <div className="border-t border-hairline px-2.5 py-1.5">
+              {HAZARD_LAYERS.map((h) => (
+                <label
+                  key={h.key}
+                  className="flex cursor-pointer items-center gap-1.5 py-1 text-[11px] leading-tight text-ink/80"
+                >
+                  <input
+                    type="checkbox"
+                    checked={hazardOn.has(h.key)}
+                    onChange={() => toggleHazard(h.key)}
+                  />
+                  <span
+                    aria-hidden
+                    className="inline-block h-2 w-2 shrink-0 rounded-[2px]"
+                    style={{ background: h.color }}
+                  />
+                  <span>
+                    {h.label} <span className="font-mono text-[10px] text-ink/40">{h.vintage}</span>
+                  </span>
+                </label>
+              ))}
+              <p className="mt-1.5 border-t border-hairline/60 pt-1.5 text-[9px] leading-snug text-ink/50">
+                Area-level model — not a property assessment. Check the council Flood
+                Viewer and a LIM report for any specific property.
+              </p>
+            </div>
+          )}
+        </div>
 
         {legend && (
           <div className="rounded-md border border-hairline bg-surface/95 px-2.5 py-1.5 shadow-sm">
