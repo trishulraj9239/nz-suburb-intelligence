@@ -25,21 +25,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 5452,
-          "tokens_est": 42,
-          "cost_est_usd": 0.000486,
+          "latency_ms": 15169,
+          "tokens_est": 58,
+          "cost_est_usd": 0.000726,
           "n_sources": 1,
-          "n_citations": 1,
+          "n_citations": 2,
           "model": "claude-sonnet-4-6",
           "quality": {
-            "grounded": 2,
+            "grounded": 3,
             "cited": 5,
-            "hedged": 3,
-            "concise": 4,
-            "overall": 2,
-            "note": "Correct figure and citation but fabricates unsupported detail about dwelling types and tenancy bonds not present in the row."
+            "hedged": 4,
+            "concise": 5,
+            "overall": 3,
+            "note": "Cites $545 correctly but invents 'all dwelling types across new tenancies recorded' which is not in the data row."
           },
-          "answer": "The median weekly rent in Ponsonby West is $545 per week {{c1}} (covering all dwelling types from new tenancy bonds)."
+          "answer": "The median weekly rent in Ponsonby West is $545/week {{c1}}. This figure comes from the 2023 Census and covers all dwelling types across new tenancies recorded in that period {{c1}}."
         },
         "groq": {
           "plan_valid": true,
@@ -47,21 +47,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 12850,
-          "tokens_est": 41,
-          "cost_est_usd": 0.000008200000000000001,
+          "latency_ms": 19249,
+          "tokens_est": 52,
+          "cost_est_usd": 0.0000104,
           "n_sources": 1,
           "n_citations": 2,
           "model": "qwen/qwen3.6-27b",
           "quality": {
-            "grounded": 5,
+            "grounded": 4,
             "cited": 5,
-            "hedged": 5,
+            "hedged": 4,
             "concise": 5,
-            "overall": 5,
-            "note": "Accurate figure with correct citation, concise, and correctly notes the source without inventing detail."
+            "overall": 4,
+            "note": "Correctly cites $545 with marker, but adds an unsupported 'all dwelling types' detail not in the row."
           },
-          "answer": "The median weekly rent in Ponsonby West is $545/week {{c1}}. This figure is sourced from Census 2023 data {{c1}}."
+          "answer": "The median weekly rent in Ponsonby West is $545 per week {{c1}}. This figure is based on Census 2023 data and covers tenancies across all dwelling types {{c1}}."
         }
       }
     },
@@ -76,9 +76,9 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 8126,
-          "tokens_est": 135,
-          "cost_est_usd": 0.001833,
+          "latency_ms": 7760,
+          "tokens_est": 160,
+          "cost_est_usd": 0.002208,
           "n_sources": 5,
           "n_citations": 5,
           "model": "claude-sonnet-4-6",
@@ -88,9 +88,9 @@
             "hedged": 5,
             "concise": 4,
             "overall": 5,
-            "note": "Accurate, fully cited, and explicitly notes that commute and trend data were unavailable, a good hedge."
+            "note": "All five figures accurate and cited, with an appropriate caveat about Census-reported rents versus market rents; the ranking-mode comment is a minor addition but not fabricated."
           },
-          "answer": "Ranking by median weekly rent (all dwelling types, Census 2023), the five lowest are Point England North at $148/wk {{c1}}, Ōtara West at $178/wk {{c2}}, Wesley East at $180/wk {{c3}}, Ōtara Central at $182/wk {{c4}}, and Wiri North at $186/wk {{c5}}. In Renting mode, median rent is weighted most heavily, making these suburbs the standout options on affordability alone — though commute times and rent trends were not available in the provided data to round out the picture."
+          "answer": "The five Auckland suburbs with the lowest median weekly rent are **Point England North** at $148/wk {{c1}}, **Ōtara West** at $178/wk {{c2}}, **Wesley East** at $180/wk {{c3}}, **Ōtara Central** at $182/wk {{c4}}, and **Wiri North** at $186/wk {{c5}} — all from Census 2023 with high confidence. In Renting mode, median rent is the most heavily weighted factor, so these suburbs rank strongly on that dimension. Note that these are Census-reported rents across all dwelling types and may differ from current market asking rents for specific dwelling types or bedroom counts."
         },
         "groq": {
           "plan_valid": true,
@@ -98,21 +98,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 6032,
-          "tokens_est": 129,
-          "cost_est_usd": 0.0000258,
+          "latency_ms": 18219,
+          "tokens_est": 174,
+          "cost_est_usd": 0.000034800000000000006,
           "n_sources": 5,
           "n_citations": 5,
           "model": "qwen/qwen3.6-27b",
           "quality": {
-            "grounded": 5,
+            "grounded": 2,
             "cited": 5,
-            "hedged": 4,
+            "hedged": 3,
             "concise": 4,
-            "overall": 4,
-            "note": "All figures grounded and correctly cited, with light framing about renting priorities but no false claims."
+            "overall": 2,
+            "note": "Figures are correct and cited, but it invents a false source (MBIE tenancy bonds/new tenancies) contradicting the Census 2023 provenance in the rows, undermining grounding."
           },
-          "answer": "The five Auckland suburbs with the lowest median weekly rents are Point England North ($148/week {{c1}}), Ōtara West ($178/week {{c2}}), Wesley East ($180/week {{c3}}), Ōtara Central ($182/week {{c4}}), and Wiri North ($186/week {{c5}}). As a renter, you might find these areas suitable for weighing against their respective commute times and 12-month rent trends, since renting mode prioritizes current costs and accessibility over ownership metrics."
+          "answer": "Based on Census 2023 data, the five Auckland suburbs with the lowest median weekly rents are Point England North at $148/week {{c1}}, Ōtara West at $178/week {{c2}}, Wesley East at $180/week {{c3}}, Ōtara Central at $182/week {{c4}}, and Wiri North at $186/week {{c5}}. These figures represent new tenancies across all dwelling types, as reported by MBie tenancy bonds, rather specific to any bedroom count or housing category. As a renter, these locations offer the lowest cost entry points currently recorded in the dataset, though commute times and other accessibility factors should also be weighed against these rental savings."
         }
       }
     },
@@ -127,21 +127,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 9487,
-          "tokens_est": 191,
-          "cost_est_usd": 0.002661,
-          "n_sources": 12,
-          "n_citations": 8,
+          "latency_ms": 9425,
+          "tokens_est": 173,
+          "cost_est_usd": 0.002406,
+          "n_sources": 6,
+          "n_citations": 6,
           "model": "claude-sonnet-4-6",
           "quality": {
-            "grounded": 1,
-            "cited": 1,
-            "hedged": 2,
-            "concise": 3,
-            "overall": 1,
-            "note": "Invents Census rent figures and 12-month trends absent from the rows and uses wrong citation markers, seriously undermining grounding."
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "Accurately uses all six rows with correct citations, flags the low-confidence Takapuna figure, and distinguishes the two rent measures clearly."
           },
-          "answer": "Takapuna Central has a larger population at 2,898 {{c12}} compared to Ponsonby West's 2,154 {{c6}}. On rent, Ponsonby West's median for new tenancies (all dwelling types) is approximately $710/wk {{c4}}, while Takapuna Central's is approximately $675/wk {{c10}} — though the Takapuna figure carries low confidence. The Census 2023 median rent tells a different story: Ponsonby West at $545/wk {{c5}} versus Takapuna Central at $610/wk {{c11}}. Both suburbs have seen notable rent falls over the past 12 months — approximately −21.1% in Ponsonby West {{c2}} and approximately −15.1% in Takapuna Central {{c8}}, though both trend figures should be treated with caution given medium/low confidence."
+          "answer": "On rent, Ponsonby West's new tenancy bond median is approximately $710/wk {{c1}} versus Takapuna Central's approximately $675/wk {{c4}} (note the Takapuna figure is low confidence), so new tenancies are pricier in Ponsonby West. The Census 2023 median weekly rent tells a different story: Ponsonby West sits at $545/wk {{c2}} compared to Takapuna Central's $610/wk {{c5}}, suggesting existing renters in Takapuna Central are paying more on that measure. Both figures cover all dwelling types across each area. On population, Takapuna Central is the larger suburb at 2,898 residents {{c6}} versus Ponsonby West's 2,154 {{c3}}."
         },
         "groq": {
           "plan_valid": true,
@@ -149,21 +149,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 13099,
-          "tokens_est": 137,
-          "cost_est_usd": 0.0000276,
-          "n_sources": 4,
+          "latency_ms": 24333,
+          "tokens_est": 127,
+          "cost_est_usd": 0.000025600000000000002,
+          "n_sources": 10,
           "n_citations": 6,
           "model": "qwen/qwen3.6-27b",
           "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 5,
-            "concise": 5,
-            "overall": 5,
-            "note": "Uses only the four provided rows, cites each figure correctly, hedges on rent confidence, and stays concise."
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 2,
+            "concise": 4,
+            "overall": 1,
+            "note": "Invents a 12-month rent change figure absent from the rows and uses wrong citation markers throughout, plus omits the low-confidence caveat."
           },
-          "answer": "As a renter, you might notice that Ponsonby West has a higher median rent of approximately $710/week compared to Takapuna Central's approximate $675/week, though both figures have medium or low confidence {{c1}} {{c3}}. In terms of population size, Takapuna Central is larger with 2,898 residents, whereas Ponsonby West has 2,154 residents {{c2}} {{c4}}. These rent figures represent new tenancies across all dwelling types and are derived from 2026 tenancy bond data {{c1}} {{c3}}."
+          "answer": "Ponsonby West has a median rent of approximately $710/week {{c4}}, while Takapuna Central’s median rent is approximately $675/week {{c9}}; these figures cover new tenancies across all dwelling types. Ponsonby West recorded a 12-month rent change of -21.1% {{c2}}, compared to -15.1% for Takapuna Central {{c7}}. In terms of population, Ponsonby West has 2,154 residents {{c5}}, whereas Takapuna Central is larger with 2,898 residents {{c10}}."
         }
       }
     },
@@ -178,9 +178,9 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 6547,
-          "tokens_est": 155,
-          "cost_est_usd": 0.002181,
+          "latency_ms": 9015,
+          "tokens_est": 152,
+          "cost_est_usd": 0.002136,
           "n_sources": 5,
           "n_citations": 5,
           "model": "claude-sonnet-4-6",
@@ -189,10 +189,10 @@
             "cited": 5,
             "hedged": 5,
             "concise": 4,
-            "overall": 4,
-            "note": "Well-grounded and cited with proper hedging, but invents a 'renter' persona not stated in the question and is slightly verbose."
+            "overall": 5,
+            "note": "All five figures accurate and cited, with clear medium-confidence hedging; the renter aside is slightly extraneous but harmless."
           },
-          "answer": "The suburbs most similar to Ponsonby West by profile are, in order: Herne Bay {{c1}}, Point Chevalier West {{c2}}, Ponsonby East {{c3}}, Saint Marys Bay {{c4}}, and Parnell West {{c5}} — all approximately 0.80–0.81 cosine similarity, based on 2023 profile embeddings with medium confidence. As a renter, the most relevant next step would be comparing median weekly rents and commute times across these suburbs, but no rent or commute data was provided in these rows. If you'd like, I can look into any of these suburbs individually for rental costs and CBD commute times."
+          "answer": "The suburbs most similar to Ponsonby West, based on profile embeddings, are approximately **Herne Bay** (0.8229) {{c1}}, **Ponsonby East** (0.8222) {{c2}}, **Saint Marys Bay** (0.8186) {{c3}}, **Parnell West** (0.8106) {{c4}}, and **Point Chevalier West** (0.8083) {{c5}}. As a renter, the similarity scores alone don't tell us about rents or commute times — those would need separate data rows to compare meaningfully. These figures are approximately 2023 vintage at medium confidence, so treat them as a useful starting point rather than a definitive match."
         },
         "groq": {
           "plan_valid": true,
@@ -200,21 +200,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 13160,
-          "tokens_est": 103,
-          "cost_est_usd": 0.000020600000000000003,
+          "latency_ms": 6249,
+          "tokens_est": 125,
+          "cost_est_usd": 0.000025,
           "n_sources": 5,
-          "n_citations": 4,
+          "n_citations": 5,
           "model": "qwen/qwen3.6-27b",
           "quality": {
             "grounded": 5,
             "cited": 5,
-            "hedged": 5,
+            "hedged": 4,
             "concise": 5,
             "overall": 5,
-            "note": "Accurate figures with correct citations, appropriate medium-confidence hedge, and concise; only omits the 5th row which is acceptable for a top-similar list."
+            "note": "All figures accurate and cited with a concise medium-confidence caveat, cleanly presented."
           },
-          "answer": "Based on 2023 profile embeddings, Herne Bay and Point Chevalier West are the most similar to Ponsonby West, with cosine similarities of 0.8123 {{c1}} and 0.8121 {{c2}} respectively. Ponsonby East and Saint Marys Bay also show high similarity, scoring 0.8109 {{c3}} and 0.8088 {{c4}}. These figures are approximate due to medium confidence in the underlying data."
+          "answer": "Based on 2023 profile embeddings, the Auckland suburbs most similar to Ponsonby West are Herne Bay, with a cosine similarity of 0.8229 {{c1}}, and Ponsonby East, with a similarity of 0.8222 {{c2}}. Saint Marys Bay follows closely with a score of 0.8186 {{c3}}, while Parnell West and Point Chevalier West have similarities of 0.8106 {{c4}} and 0.8083 {{c5}} respectively. These figures are approximate due to medium confidence in the 2023 model data."
         }
       }
     },
@@ -229,21 +229,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 10863,
-          "tokens_est": 196,
-          "cost_est_usd": 0.002712,
+          "latency_ms": 9729,
+          "tokens_est": 240,
+          "cost_est_usd": 0.003372,
           "n_sources": 5,
-          "n_citations": 8,
+          "n_citations": 9,
           "model": "claude-sonnet-4-6",
           "quality": {
             "grounded": 3,
-            "cited": 5,
-            "hedged": 5,
+            "cited": 4,
+            "hedged": 4,
             "concise": 3,
             "overall": 3,
-            "note": "Well-hedged and cited but invents claims about CBD proximity, North Shore location, and renter context not present in the rows."
+            "note": "Well-hedged and correctly flags the harbour anomaly, but introduces ungrounded claims about inner-city rents, commutes, and North Shore/eastern bays geography not present in the rows, plus renter framing that wanders from the question."
           },
-          "answer": "Based on profile similarity to \"quiet, higher-income area near the water,\" the closest matches are approximately Waitemata Harbour inlet area {{c1}}, Campbells Bay {{c2}}, Herne Bay {{c3}}, Saint Marys Bay {{c4}}, and Kohimarama Bay {{c5}} — all with medium confidence similarity scores from 2023 embeddings. As a renter, Herne Bay {{c3}} and Saint Marys Bay {{c4}} are notably close to the CBD which typically helps on commute, while Campbells Bay {{c2}} sits on the North Shore with a waterfront feel. However, I don't have rent or commute figures in the provided data to compare costs or travel times across these suburbs, so I'd recommend checking current MBIE bond data and Google Maps before deciding."
+          "answer": "Based on profile similarity to \"quiet, higher-income area near the water,\" the closest matches are approximately Campbells Bay {{c2}}, Herne Bay {{c3}}, Saint Marys Bay {{c4}}, and Kohimarama Bay {{c5}}, all with similarity scores in the 0.65–0.67 range {{c2}}{{c3}}{{c4}}{{c5}}. Inlet Waitemata Harbour tops the list at approximately 0.68 {{c1}}, though that likely reflects the harbour itself rather than a residential suburb. As a renter, note that Herne Bay and Saint Marys Bay are inner-city waterfront areas which typically command higher rents and shorter CBD commutes, while Campbells Bay is on the North Shore and Kohimarama Bay sits on the eastern bays — all worth checking current bond data for actual rent figures before committing. These similarity scores are medium confidence from 2023 embeddings, so treat them as a useful shortlist rather than a definitive ranking."
         },
         "groq": {
           "plan_valid": true,
@@ -251,11 +251,11 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 1576,
-          "tokens_est": 120,
-          "cost_est_usd": 0.000024000000000000004,
+          "latency_ms": 13697,
+          "tokens_est": 153,
+          "cost_est_usd": 0.0000306,
           "n_sources": 5,
-          "n_citations": 5,
+          "n_citations": 6,
           "model": "qwen/qwen3.6-27b",
           "quality": {
             "grounded": 5,
@@ -263,9 +263,9 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Accurately reports the cosine scores with correct citations, notes medium confidence, and stays concise without inventing details."
+            "note": "Accurately lists all five suburbs with correct citations, cites the top similarity score, and appropriately notes medium confidence and that these aren't direct income figures."
           },
-          "answer": "Based on profile similarity, Inlet Waitemata Harbour is the closest match at 0.6841 cosine {{c1}}, followed by Campbells Bay at 0.6664 cosine {{c2}}. Herne Bay and Saint Marys Bay both show a similarity of 0.6619 cosine {{c3}}{{c4}}, while Kohimarama Bay is slightly lower at 0.6597 cosine {{c5}}. These figures are derived from 2023 embeddings with medium confidence, so the rankings are approximate."
+          "answer": "Based on profile similarity embeddings from 2023, the suburbs most closely matching a quiet, higher-income area near the water are Inlet Waitemata Harbour {{c1}}, Campbells Bay {{c2}}, Herne Bay {{c3}}, Saint Marys Bay {{c4}}, and Kohimarama Bay {{c5}}. These rankings are derived from vector similarity scores, with Inlet Waitemata Harbour having the highest similarity score of 0.6821 {{c1}}. The data reflects medium confidence assessments of demographic and geographic characteristics rather than direct safety or income figures."
         }
       }
     },
@@ -280,9 +280,9 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 3133,
-          "tokens_est": 89,
-          "cost_est_usd": 0.001203,
+          "latency_ms": 3367,
+          "tokens_est": 98,
+          "cost_est_usd": 0.001353,
           "n_sources": 0,
           "n_citations": 0,
           "model": "claude-sonnet-4-6",
@@ -292,9 +292,9 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Correctly declines the unavailable crime query and clearly states supported metrics without inventing figures."
+            "note": "Also correctly declines and lists supported metrics; equally valid and concise."
           },
-          "answer": "I can't answer that with the data I have. Crime rate data is not available in this system; only Census, deprivation, rent, and commute metrics are supported. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, and typical drive/cycle/walk times (no public transport times yet)."
+          "answer": "I can't answer that with the data I have. Crime data is not available in this system; only Census, deprivation, rent, commute, and hazard metrics are supported. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers."
         },
         "groq": {
           "plan_valid": true,
@@ -302,9 +302,9 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 440,
-          "tokens_est": 77,
-          "cost_est_usd": 0.0000154,
+          "latency_ms": 487,
+          "tokens_est": 85,
+          "cost_est_usd": 0.000017,
           "n_sources": 0,
           "n_citations": 0,
           "model": "qwen/qwen3.6-27b",
@@ -314,9 +314,9 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Also correctly declines and lists supported metrics concisely with no fabricated data."
+            "note": "Correctly declines crime request, no invented figures, and clearly lists supported metrics."
           },
-          "answer": "I can't answer that with the data I have. Crime statistics are not available in the provided metric registry. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, and typical drive/cycle/walk times (no public transport times yet)."
+          "answer": "I can't answer that with the data I have. Crime statistics are not available in the supported data metrics. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers."
         }
       }
     },
@@ -331,21 +331,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 5233,
-          "tokens_est": 84,
-          "cost_est_usd": 0.001056,
+          "latency_ms": 5660,
+          "tokens_est": 69,
+          "cost_est_usd": 0.000831,
           "n_sources": 1,
           "n_citations": 1,
           "model": "claude-sonnet-4-6",
           "quality": {
-            "grounded": 4,
+            "grounded": 5,
             "cited": 5,
             "hedged": 5,
-            "concise": 4,
-            "overall": 4,
-            "note": "Accurate and well-cited with appropriate hedging, but the unsourced ferry remark adds slightly unsupported detail."
+            "concise": 5,
+            "overall": 5,
+            "note": "Accurate cited figure with clear hedging on medium confidence and no live traffic, tight and concise."
           },
-          "answer": "The typical drive from Devonport to the Auckland CBD is around 28 minutes {{c1}}, though note this is a precomputed routed estimate with no live traffic, so real-world times may vary. Many Devonport residents also use the ferry as an alternative commute into the city."
+          "answer": "The typical drive from Devonport to the Auckland CBD is around 28 minutes {{c1}}, though this is a pre-computed estimate with no live traffic and should be treated as a typical figure rather than a guarantee."
         },
         "groq": {
           "plan_valid": true,
@@ -353,21 +353,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 741,
-          "tokens_est": 64,
-          "cost_est_usd": 0.000013000000000000003,
+          "latency_ms": 5858,
+          "tokens_est": 82,
+          "cost_est_usd": 0.0000164,
           "n_sources": 1,
-          "n_citations": 2,
+          "n_citations": 1,
           "model": "qwen/qwen3.6-27b",
           "quality": {
             "grounded": 5,
             "cited": 5,
             "hedged": 5,
-            "concise": 5,
+            "concise": 4,
             "overall": 5,
-            "note": "Fully grounded, correctly cited, appropriately hedges the medium-confidence estimate, and stays concise."
+            "note": "Accurate figure with correct citation and appropriate hedging on medium confidence and no live traffic, slightly wordy."
           },
-          "answer": "It typically takes 28 minutes to drive from Devonport to the Auckland CBD {{c1}}. This figure is a precomputed estimate based on OpenStreetMap routing without live traffic conditions {{c1}}."
+          "answer": "The typical drive time from Devonport to the Auckland CBD is approximately 28 minutes, based on precomputed routing data from OpenStreetMap circa 2026 with medium confidence {{c1}}. This figure represents a typical travel time without live traffic conditions."
         }
       }
     },
@@ -382,11 +382,11 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 8468,
-          "tokens_est": 66,
-          "cost_est_usd": 0.000798,
+          "latency_ms": 6413,
+          "tokens_est": 93,
+          "cost_est_usd": 0.001203,
           "n_sources": 1,
-          "n_citations": 1,
+          "n_citations": 2,
           "model": "claude-sonnet-4-6",
           "quality": {
             "grounded": 5,
@@ -394,9 +394,9 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Accurate figure with correct citation, appropriate hedge on medium confidence and no live traffic, concise."
+            "note": "Accurate figure with correct citation, clear no-live-traffic hedge, and concise."
           },
-          "answer": "The typical drive from Grey Lynn to 4 Osterley Way, Manukau is approximately 23.5 minutes {{c1}}, based on routed distance with no live traffic — actual travel times may vary depending on conditions."
+          "answer": "The typical drive from Grey Lynn to 4 Osterley Way, Manukau is approximately 23.5 minutes {{c1}}, based on a routed estimate with no live traffic — note this is a precomputed figure and actual travel times may vary with congestion. The destination was resolved as 4 Osterley Way, Manukau, Auckland {{c1}}."
         },
         "groq": {
           "plan_valid": true,
@@ -404,7 +404,7 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 13062,
+          "latency_ms": 8131,
           "tokens_est": 63,
           "cost_est_usd": 0.000012600000000000001,
           "n_sources": 1,
@@ -413,12 +413,12 @@
           "quality": {
             "grounded": 5,
             "cited": 5,
-            "hedged": 4,
+            "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Correct figure and citations with clear no-live-traffic caveat, though it doesn't explicitly flag the medium confidence."
+            "note": "Correct figure, cited, explicitly notes medium confidence and no live traffic, concise."
           },
-          "answer": "The typical drive time from Grey Lynn West to 4 Osterley Way, Manukau is approximately 23.5 minutes {{c1}}. This estimate is based on precomputed routing without live traffic data {{c1}}."
+          "answer": "The typical drive time from Grey Lynn to 4 Osterley Way, Manukau, is 23.5 minutes {{c1}}. This figure is based on routed paths without live traffic data and has medium confidence {{c1}}."
         }
       }
     },
@@ -433,21 +433,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 12431,
-          "tokens_est": 262,
-          "cost_est_usd": 0.003702,
+          "latency_ms": 10370,
+          "tokens_est": 275,
+          "cost_est_usd": 0.003897,
           "n_sources": 16,
           "n_citations": 16,
           "model": "claude-sonnet-4-6",
           "quality": {
-            "grounded": 4,
+            "grounded": 5,
             "cited": 5,
             "hedged": 4,
             "concise": 3,
             "overall": 4,
-            "note": "Figures match rows and are properly cited with appropriate hedging, though it says 'six' then lists eight and adds unsupported 'all dwelling types/MBIE' detail."
+            "note": "All figures match the rows with correct citations and flags the low-confidence Ōtāhuhu figure, though it says 'six' then lists eight suburbs and the wrapping commentary is slightly bloated."
           },
-          "answer": "All six suburbs below have median rents (across all dwelling types, from MBIE tenancy bond data) under $650/week and sit within 30 minutes' typical drive of Penrose (routed, no live traffic).\n\nEpsom North rents are approximately $290/wk {{c1}} with an 11.6-min drive {{c2}}; Grafton is approximately $295/wk {{c3}} at 14.4 min {{c4}}; Panmure West is approximately $333/wk {{c5}} at 11 min {{c6}}; Ōtara Central is approximately $350/wk {{c7}} at 14.3 min {{c8}}; The Strand is approximately $399/wk {{c9}} at 13.1 min {{c10}}; Panmure Glen Innes Industrial is approximately $400/wk {{c11}} at 17.9 min {{c12}}; Mount Albert West is approximately $400/wk {{c13}} at 20.9 min {{c14}}; and Ōtāhuhu Central is approximately $400/wk {{c15}} at 10.1 min {{c16}}. As a renter, the standout options on both rent and commute are Epsom North and Panmure West — lowest rents with sub-12-minute drives — though all figures are approximate given medium/low confidence vintage data."
+          "answer": "All six suburbs below have median rents (across all dwelling types, from MBIE tenancy bond data) under $650/week and typical drive times under 30 minutes to Penrose (routed, no live traffic):\n\n- **Epsom North** — approximately $290/wk {{c1}}, 11.6 min {{c2}}\n- **Grafton** — approximately $295/wk {{c3}}, 14.4 min {{c4}}\n- **Panmure West** — approximately $333/wk {{c5}}, 11 min {{c6}}\n- **Ōtara Central** — approximately $350/wk {{c7}}, 14.3 min {{c8}}\n- **The Strand** — approximately $399/wk {{c9}}, 13.1 min {{c10}}\n- **Panmure Glen Innes Industrial** — approximately $400/wk {{c11}}, 17.9 min {{c12}}\n- **Mount Albert West** — approximately $400/wk {{c13}}, 20.9 min {{c14}}\n- **Ōtāhuhu Central** — approximately $400/wk {{c15}} (low confidence), 10.1 min {{c16}}\n\nRenting mode weights rent and commute time most heavily — all eight suburbs sit well under the $650 threshold and within 30 minutes, with Epsom North and Grafton offering the lowest rents and Ōtāhuhu Central and Panmure West among the shortest drives."
         },
         "groq": {
           "plan_valid": true,
@@ -455,21 +455,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 2492,
-          "tokens_est": 145,
-          "cost_est_usd": 0.000029000000000000004,
+          "latency_ms": 8560,
+          "tokens_est": 162,
+          "cost_est_usd": 0.0000324,
           "n_sources": 16,
-          "n_citations": 8,
+          "n_citations": 6,
           "model": "qwen/qwen3.6-27b",
           "quality": {
             "grounded": 1,
             "cited": 1,
-            "hedged": 1,
+            "hedged": 2,
             "concise": 3,
             "overall": 1,
-            "note": "Rent figures ($198, $178, $148) are fabricated and don't match any rows, citations are mismatched, and it invents suburbs like Ōtara West and Point England North."
+            "note": "Fabricates numbers absent from the rows ($198, $148, Point England North, Wiri North) and misattributes citations, making it badly ungrounded."
           },
-          "answer": "Based on the provided data, all listed suburbs have median weekly rents well below $650 and are within a 30-minute drive to Penrose. The closest option is Panmure West, with a typical drive time of 11 minutes and a median rent of $198/week {{c14}}{{c13}}. Other notable options include Ōtara West (13.3 min drive, $178/week) {{c4}}{{c3}} and Ōtara Central (14.3 min drive, $182/week) {{c8}}{{c7}}. Point England North offers the lowest rent at $148/week, with a 15.9-minute drive to Penrose {{c1}}{{c2}}."
+          "answer": "Based on the provided data, every listed suburb has a median weekly rent well below the $650 threshold, with the highest being Panmure West at $198/week {{c13}} and Point England North at $148/week {{c1}}. All these suburbs are also within a 30-minute typical drive time to Penrose, as the longest routed drive time recorded is 16.9 minutes for Wiri North {{c10}} and the shortest is 11 minutes for Panmure West {{c14}}. As a renter, you might note these figures represent typical travel times without live traffic {{c2}} and median rents across all dwelling types {{c1}}."
         }
       }
     },
@@ -484,9 +484,9 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 2514,
-          "tokens_est": 96,
-          "cost_est_usd": 0.00126,
+          "latency_ms": 2742,
+          "tokens_est": 104,
+          "cost_est_usd": 0.001395,
           "n_sources": 0,
           "n_citations": 0,
           "model": "claude-sonnet-4-6",
@@ -496,9 +496,9 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Correctly declines the unsupported public transport query and clearly states scope."
+            "note": "Correctly declines the unsupported PT query and clarifies what data is available."
           },
-          "answer": "I can't answer that with the data I have. Public transport (train, bus, ferry) commute times are not supported — only typical drive, cycle, or walk times are available. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, and typical drive/cycle/walk times (no public transport times yet)."
+          "answer": "I can't answer that with the data I have. Public transport (train, bus, ferry) commute times are not supported — only typical drive, cycle, and walk times are available. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers."
         },
         "groq": {
           "plan_valid": true,
@@ -506,9 +506,9 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 480,
-          "tokens_est": 90,
-          "cost_est_usd": 0.000018,
+          "latency_ms": 5533,
+          "tokens_est": 99,
+          "cost_est_usd": 0.0000198,
           "n_sources": 0,
           "n_citations": 0,
           "model": "qwen/qwen3.6-27b",
@@ -518,9 +518,9 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Essentially identical correct decline, with a minor punctuation typo but no substantive difference."
+            "note": "Essentially identical correct refusal clarifying supported coverage."
           },
-          "answer": "I can't answer that with the data I have. Public transport (train, bus, ferry times are not supported; only typical drive/cycle/walk times exist. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, and typical drive/cycle/walk times (no public transport times yet)."
+          "answer": "I can't answer that with the data I have. Public transport (train, bus, ferry) times are NOT supported — only typical drive/cycle/walk times exist. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers."
         }
       }
     },
@@ -533,23 +533,23 @@
           "plan_valid": true,
           "citations_ok": true,
           "refusal_ok": true,
-          "enough_sources": false,
+          "enough_sources": true,
           "source_match": true,
-          "latency_ms": 3039,
-          "tokens_est": 112,
-          "cost_est_usd": 0.001464,
-          "n_sources": 0,
-          "n_citations": 0,
+          "latency_ms": 8804,
+          "tokens_est": 179,
+          "cost_est_usd": 0.002469,
+          "n_sources": 5,
+          "n_citations": 5,
           "model": "claude-sonnet-4-6",
           "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 5,
-            "concise": 4,
-            "overall": 5,
-            "note": "Appropriately declines, invents no figures, and helpfully asks clarifying questions while stating coverage and limitations."
+            "grounded": 2,
+            "cited": 3,
+            "hedged": 3,
+            "concise": 3,
+            "overall": 2,
+            "note": "Invents specific suburb 'profile matches' with citation markers despite having no data rows, which fabricates content the assistant wasn't given."
           },
-          "answer": "I can't answer that with the data I have. The question is too open-ended to map to a structured suburb query — please share what matters most to you (e.g. max rent, commute destination, vibe) so I can find the best match. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, and typical drive/cycle/walk times (no public transport times yet)."
+          "answer": "In **Renting mode**, the factors weighted most heavily are **median rent** (×2, lower is better) and **commute times** (drive ×1.5, cycle ×1.25) — so affordability and getting to the CBD quickly matter most here.\n\nThe closest profile matches to your query are approximately Homai East {{c1}}, Randwick Park West {{c2}}, Randwick Park East {{c3}}, Cheltenham {{c4}}, and Homai Central {{c5}} (all medium confidence, 2023 embeddings). To give you a proper rent and commute comparison across these suburbs, I'd need those data rows — could you share what you're optimising for (budget, commute mode, bedroom count) so I can pull the right figures?"
         },
         "groq": {
           "plan_valid": true,
@@ -557,21 +557,21 @@
           "refusal_ok": true,
           "enough_sources": false,
           "source_match": true,
-          "latency_ms": 604,
-          "tokens_est": 43,
-          "cost_est_usd": 0.0000088,
+          "latency_ms": 730,
+          "tokens_est": 56,
+          "cost_est_usd": 0.000011400000000000001,
           "n_sources": 0,
           "n_citations": 0,
           "model": "qwen/qwen3.6-27b",
           "quality": {
-            "grounded": 2,
-            "cited": 1,
-            "hedged": 1,
-            "concise": 3,
-            "overall": 1,
-            "note": "Fails to decline on an open-ended question with no data, and reads as an internal note rather than a helpful response."
+            "grounded": 4,
+            "cited": 5,
+            "hedged": 3,
+            "concise": 5,
+            "overall": 4,
+            "note": "Uses no invented figures and correctly notes NZDep has no ranking, but is quite terse and doesn't fully engage the user's question."
           },
-          "answer": "Prioritizing rent, rent trends, and commute times for a renter persona, along with deprivation context."
+          "answer": "Prioritising renter-facing metrics: current rents, rent trends, and commute times to CBD. NZDep is included for context but has no 'better/worse' ranking."
         }
       }
     },
@@ -586,9 +586,9 @@
           "refusal_ok": true,
           "enough_sources": false,
           "source_match": true,
-          "latency_ms": 3226,
-          "tokens_est": 110,
-          "cost_est_usd": 0.001449,
+          "latency_ms": 4202,
+          "tokens_est": 142,
+          "cost_est_usd": 0.001914,
           "n_sources": 0,
           "n_citations": 0,
           "model": "claude-sonnet-4-6",
@@ -598,31 +598,31 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Correctly declines the open-ended question, invents no figures, and helpfully asks for priorities while stating coverage."
+            "note": "Correctly declines the open-ended question, invents no figures, and helpfully clarifies scope and asks for criteria."
           },
-          "answer": "I can't answer that with the data I have. The question is too open-ended to map to a structured query — please share what matters most to you (e.g. price, commute, neighbourhood vibe) so I can find the right suburbs. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, and typical drive/cycle/walk times (no public transport times yet)."
+          "answer": "I can't answer that with the data I have. The question is too open-ended to map to a specific suburb query — no metric, location, or criteria were specified. Please describe what you're looking for, e.g. 'affordable suburbs with low flood risk' or 'suburbs near the CBD with good intensification potential'. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers."
         },
         "groq": {
           "plan_valid": true,
           "citations_ok": true,
           "refusal_ok": true,
-          "enough_sources": true,
+          "enough_sources": false,
           "source_match": true,
-          "latency_ms": 18914,
-          "tokens_est": 135,
-          "cost_est_usd": 0.000027200000000000004,
-          "n_sources": 5,
-          "n_citations": 5,
+          "latency_ms": 4702,
+          "tokens_est": 41,
+          "cost_est_usd": 0.000008400000000000001,
+          "n_sources": 0,
+          "n_citations": 0,
           "model": "qwen/qwen3.6-27b",
           "quality": {
-            "grounded": 1,
+            "grounded": 2,
             "cited": 1,
             "hedged": 1,
-            "concise": 2,
+            "concise": 3,
             "overall": 1,
-            "note": "Fabricates suburb names and similarity scores from no data rows, with fake citations and no hedging."
+            "note": "A cryptic fragment that neither declines properly nor provides grounded, cited guidance, and imposes unstated buyer priorities."
           },
-          "answer": "Homai East is the top-ranked suburb with a profile similarity score of 0.5182 {{c1}}, followed closely by Homai Central at 0.5137 {{c2}} and Cheltenham at 0.5125 {{c3}}. Randwick Park West and Ponsonby West also appear in the top five with相似度 scores of 0.5122 {{c4}} and 0.5115 {{c5}} respectively. As a prospective buyer prioritizing zoning and intensification capacity, you might consider exploring these areas to understand their specific character and housing stock."
+          "answer": "Prioritising buyer persona priorities: zoning, intensification capacity, and hazard exposure."
         }
       }
     },
@@ -637,21 +637,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 6667,
-          "tokens_est": 124,
-          "cost_est_usd": 0.001755,
+          "latency_ms": 6680,
+          "tokens_est": 110,
+          "cost_est_usd": 0.001545,
           "n_sources": 4,
           "n_citations": 4,
           "model": "claude-sonnet-4-6",
           "quality": {
             "grounded": 5,
             "cited": 5,
-            "hedged": 3,
+            "hedged": 4,
             "concise": 4,
             "overall": 4,
-            "note": "All four figures accurate and correctly cited, but uses 'approximately' rather than explicitly flagging medium confidence."
+            "note": "All figures grounded and cited with appropriate hedging, but the closing renter advice adds a touch of unnecessary filler."
           },
-          "answer": "Rent in Avondale South has been rising sharply — the 12-month change is approximately 16.3% {{c2}}, which is a significant jump. Across all dwelling types, the median rent for new tenancies is approximately $750/wk {{c4}}, with the lower quartile at around $640/wk {{c1}} and the upper quartile at $780/wk {{c3}}. As a renter, that upward trend is worth factoring in if you're budgeting ahead, since new tenancies are being signed at these levels right now."
+          "answer": "Rent in Avondale South has been moving up sharply — the median across all dwelling types for new tenancies is approximately $750/wk {{c4}}, with a lower quartile of around $640/wk {{c1}} and upper quartile of $780/wk {{c3}}. The 12-month change is approximately 16.3% {{c2}}, which is a notably steep rise. As a renter, that trend is worth keeping a close eye on when budgeting or negotiating a lease."
         },
         "groq": {
           "plan_valid": true,
@@ -659,21 +659,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 8091,
-          "tokens_est": 87,
-          "cost_est_usd": 0.0000176,
-          "n_sources": 2,
-          "n_citations": 4,
+          "latency_ms": 9065,
+          "tokens_est": 102,
+          "cost_est_usd": 0.000020600000000000003,
+          "n_sources": 4,
+          "n_citations": 5,
           "model": "qwen/qwen3.6-27b",
           "quality": {
             "grounded": 5,
-            "cited": 2,
-            "hedged": 5,
+            "cited": 5,
+            "hedged": 4,
             "concise": 5,
-            "overall": 3,
-            "note": "Concise and explicitly hedges on medium confidence, but citation markers are mismatched—c1 is used for the 16.3% figure and c2 for median when the rows are reversed."
+            "overall": 5,
+            "note": "All four figures accurate and cited, uses 'approximately' to hedge the medium-confidence data, and stays concise."
           },
-          "answer": "Rent in Avondale South has seen a significant increase of approximately 16.3% over the last 12 months {{c1}}. The median rent for new tenancies is currently $750 per week {{c2}}. Please note that these figures cover all dwelling types and are sourced from tenancy bond data with medium confidence {{c1}}{{c2}}."
+          "answer": "Rent in Avondale South has risen significantly, with a 12-month increase of approximately 16.3% {{c2}}. The median rent for new tenancies is currently $750 per week {{c4}}. These figures cover all dwelling types and are based on tenancy bond data from 2026 {{c4}}. The lower and upper quartile rents are approximately $640 and $780 per week, respectively {{c1}} {{c3}}."
         }
       }
     },
@@ -688,21 +688,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 7621,
-          "tokens_est": 172,
-          "cost_est_usd": 0.002388,
+          "latency_ms": 5774,
+          "tokens_est": 101,
+          "cost_est_usd": 0.001323,
           "n_sources": 3,
-          "n_citations": 4,
+          "n_citations": 2,
           "model": "claude-sonnet-4-6",
           "quality": {
             "grounded": 5,
-            "cited": 2,
+            "cited": 5,
             "hedged": 5,
-            "concise": 4,
-            "overall": 3,
-            "note": "Well-hedged and grounded but miscites the median rent as c1 (upper-quartile) and tags c1 for the low-confidence note, so citation markers are misassigned."
+            "concise": 5,
+            "overall": 5,
+            "note": "Correctly clarifies the data can't be broken down by bedroom count, cites the $675 figure with {{c1}}, and hedges on low confidence."
           },
-          "answer": "The MBIE tenancy bond data shows a median rent of approximately $675/week for new tenancies in Takapuna Central {{c1}}. However, this figure covers **all dwelling types and bedroom counts combined** — it cannot be broken down to two-bedroom apartments specifically. If you're budgeting for a two-bedroom apartment, note that the lower quartile sits at approximately $581/week {{c3}} and the upper quartile at approximately $1,214/week {{c2}}, giving a sense of the range, though again across all dwellings. The confidence on these figures is rated low {{c1}}, so treat them as a rough guide rather than a precise benchmark."
+          "answer": "The MBIE tenancy bond data shows an all-dwellings median rent of approximately $675/week for Takapuna Central {{c1}} — this covers new tenancies across all dwelling types and bedroom counts, so it can't be broken down specifically for two-bedroom apartments. Given the low confidence rating {{c1}}, treat this figure as a rough guide only."
         },
         "groq": {
           "plan_valid": true,
@@ -710,11 +710,113 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 4031,
-          "tokens_est": 102,
-          "cost_est_usd": 0.000020399999999999998,
-          "n_sources": 5,
+          "latency_ms": 9033,
+          "tokens_est": 103,
+          "cost_est_usd": 0.000020600000000000003,
+          "n_sources": 3,
           "n_citations": 2,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 1,
+            "cited": 2,
+            "hedged": 3,
+            "concise": 4,
+            "overall": 2,
+            "note": "Correctly flags the bedroom limitation but miscites $675 to {{c2}} (which is upper-quartile 1214) and invents a $610 Census figure and {{c3}} not present in the rows."
+          },
+          "answer": "The available data only covers median rents for all dwelling types rather than specific bedroom counts, so I cannot provide a figure exclusive to two-bedroom apartments. For Takapuna Central, the median rent for new tenancies across all dwelling types is $675/week {{c2}}, while the Census 2023 recorded a median weekly rent of $610/week {{c3}}."
+        }
+      }
+    },
+    {
+      "id": "q15-hazard-lookup",
+      "intent": "lookup",
+      "question": "How much of Takapuna Central is in the flood plain?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 5107,
+          "tokens_est": 100,
+          "cost_est_usd": 0.001344,
+          "n_sources": 1,
+          "n_citations": 1,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correct figure with citation, names layer/vintage, hedges medium confidence, and includes the area-level caveat concisely."
+          },
+          "answer": "About 49% of Takapuna Central falls within the 1% AEP flood plain {{c1}}, according to the 2026 council layer model. This figure carries medium confidence and applies at the area level rather than to any individual property.\n\nArea-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 2900,
+          "tokens_est": 104,
+          "cost_est_usd": 0.000021000000000000002,
+          "n_sources": 1,
+          "n_citations": 2,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "Accurate figure with citation, names layer and vintage, medium-confidence hedge, and full area-level caveat present."
+          },
+          "answer": "According to the 2026 council layer, 49.11% of Takapuna Central is within the flood plain defined by a 1% Annual Exceedance Probability (AEP) {{c1}}. This figure is derived from an area-level model and carries a medium confidence rating {{c1}}. Area-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
+        }
+      }
+    },
+    {
+      "id": "q16-safety-trap",
+      "intent": "lookup",
+      "question": "Is Parakai a safe suburb to live in?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 8947,
+          "tokens_est": 180,
+          "cost_est_usd": 0.002592,
+          "n_sources": 4,
+          "n_citations": 4,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 4,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 4,
+            "note": "Strong refusal and caveat but swaps citation markers: the 99.97% +1m figure is c3 and the 78.36% is c4, yet it labels them c3 and c4 reversed."
+          },
+          "answer": "These rows cover hazard-model layers only — crime data is not available, so no overall safety verdict can be given. On the flood hazard side, 100% of the Parakai area falls within the 1% AEP flood plain {{c1}}, and 78.36% is modelled as exposed to coastal inundation at 1% AEP {{c3}}, rising to approximately 99.97% under a +1m sea-level-rise scenario {{c4}}. Overland flow path density is modelled at 19.05 km/km² {{c2}}. These are separate council model layers with different vintages and should be treated as one input among many, not a verdict on the suburb.\n\nArea-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 9449,
+          "tokens_est": 177,
+          "cost_est_usd": 0.0000354,
+          "n_sources": 6,
+          "n_citations": 4,
           "model": "qwen/qwen3.6-27b",
           "quality": {
             "grounded": 5,
@@ -722,9 +824,60 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Correctly uses c4 and c5 figures, clearly flags that two-bedroom data isn't available, hedges on low confidence, and stays concise."
+            "note": "Correctly refuses a safety verdict, cites figures accurately with markers, keeps layers separate, and includes the full area-level caveat."
           },
-          "answer": "The median rent for new tenancies in Takapuna Central is approximately $675 per week {{c4}}, based on low-confidence 2026 data. This figure covers all dwelling types and bedroom counts, as specific two-bedroom apartment data is not segregated in standard metrics. For context, the median weekly rent recorded in the 2023 Census was $610 {{c5}}."
+          "answer": "These figures represent area-level hazard-model layers only, and crime data is not covered, so no overall safety verdict can be provided. The data indicates exposure to environmental factors, with the 2026 council flood plain layer showing 100% coverage {{c1}} and the 2025 coastal inundation layer indicating 78.36% exposure for a 1% AEP event {{c4}}. Socioeconomic context is provided by a median household income of $82,300/year (2023 Census) {{c5}} and a NZDep2018 deprivation decile of 8, where 1 is least deprived and 10 is most deprived {{c6}}. Area-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
+        }
+      }
+    },
+    {
+      "id": "q17-score-trap",
+      "intent": "unsupported",
+      "question": "Give Henderson a flood risk score out of 10.",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 2770,
+          "tokens_est": 156,
+          "cost_est_usd": 0.002208,
+          "n_sources": 0,
+          "n_citations": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Identical to A: properly declines the combined score, enumerates the separate layers, and carries the LIM/Flood Viewer caveat."
+          },
+          "answer": "I don't produce overall risk scores — the hazard layers are separate council models with different vintages, and combining them would invent a number no source publishes. Here are the individual measured layers I track per suburb: flood plain % (1% AEP), coastal inundation % (present-day and +1 m sea level), overland flow path density, and liquefaction vulnerability. Ask about any of them for a suburb, e.g. \"How much of Milford is in the flood plain?\". Area-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 4481,
+          "tokens_est": 156,
+          "cost_est_usd": 0.0000312,
+          "n_sources": 0,
+          "n_citations": 0,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correctly refuses to produce a combined score, lists the individual layers, and includes the area-level caveat."
+          },
+          "answer": "I don't produce overall risk scores — the hazard layers are separate council models with different vintages, and combining them would invent a number no source publishes. Here are the individual measured layers I track per suburb: flood plain % (1% AEP), coastal inundation % (present-day and +1 m sea level), overland flow path density, and liquefaction vulnerability. Ask about any of them for a suburb, e.g. \"How much of Milford is in the flood plain?\". Area-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
         }
       }
     }
