@@ -13,6 +13,7 @@ import {
 import { useWorkspace } from "@/lib/workspace";
 import { usePersona } from "@/lib/preferences";
 import { orderBySection, personaConfig } from "@/lib/persona";
+import { HAZARD_CAVEAT } from "@/lib/hazard";
 import { BudgetChip } from "./budget-chip";
 import { ConfidenceChip, Provenance, SourceChip } from "./provenance";
 
@@ -321,6 +322,14 @@ export function ComparePanel() {
           </tr>
         </tbody>
       </table>
+
+      {/* Verbatim hazard caveat (TRI-70) — shown whenever any compared suburb
+          carries a hazard-dimension row, on both layouts. */}
+      {profiles.some((p) => p.scalars.some((s) => s.def.dimension === "hazard")) && (
+        <p className="text-[10px] leading-snug text-ink/50">
+          Hazard rows: {HAZARD_CAVEAT}
+        </p>
+      )}
     </div>
   );
 }

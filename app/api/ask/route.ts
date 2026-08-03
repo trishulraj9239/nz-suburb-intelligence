@@ -4,6 +4,7 @@ import { getChat, getEmbeddings } from "@/lib/llm";
 import { orsMatrixToOne, OrsUnavailableError } from "@/lib/commute/ors";
 import { ptKey, routedCommute } from "@/lib/commute/service";
 import { DEFAULT_PERSONA, isPersonaKey, personaConfig } from "@/lib/persona";
+import { HAZARD_CAVEAT, HAZARD_METRIC_KEYS, hazardRowLabel } from "@/lib/hazard";
 
 const MODE_LABEL: Record<string, string> = {
   "driving-car": "drive",
@@ -227,7 +228,7 @@ export async function POST(req: NextRequest) {
   const planText = await chat.complete("reasoning", {
     system: `You convert questions about Auckland (NZ) suburbs into a structured query plan. Coverage: Auckland region SA2 areas only; Census 2023/2018/2013, NZDep2018 deprivation, school directory, typical routed commute times (openrouteservice/OSM — drive, cycle, walk; no live traffic). Metric registry (key | label | unit):\n${registry
       .map((d) => `${d.metric_key} | ${d.label} | ${d.unit ?? "-"}`)
-      .join("\n")}\nRules: deprivation and ethnicity have no "better/worse" — a rank by nzdep_decile is allowed but is informational only.\nCommute rules, in priority order:\n1. The question mentions "work" or "workplace" as a place → ALWAYS intent=commute with that commute field set to exactly "work". The workplace is a specific saved address${work ? ` (currently: ${work.address})` : " (currently NOT set — intent=unsupported instead, note the workplace isn't set)"} — it is NOT the CBD; never answer this from the commute_* metrics. Example: "How long is the commute from Ponsonby to work?" → {"intent":"commute","suburbs":["Ponsonby"],"commute":{"origin":"Ponsonby","destination":"work","mode":"driving-car","max_minutes":null}}.\n2. "how far/long is <suburb> from the CBD/airport" → intent=lookup with the commute_* metrics (precomputed).\n3. A commute between a suburb/address and any other specific destination → intent=commute with commute.origin/destination as written. "Suburbs within N min <mode> of <place>" combined with a metric constraint → intent=rank on that metric plus commute.destination and commute.max_minutes. PUBLIC TRANSPORT (train, bus, ferry) times are NOT supported — intent=unsupported, note that only typical drive/cycle/walk times exist.\nRent questions about a specific dwelling type or bedroom count ARE supported: intent=lookup with the rent metrics — the data covers all dwelling types combined and the answer will say so; do not refuse them.\nOther questions needing data we don't have (crime, house prices outside rent/income, other cities) are unsupported.\n${personaLine} When the question is open-ended about which metrics matter, lean toward this persona's priorities — but never drop a metric the user explicitly asks for.`,
+      .join("\n")}\nRules: deprivation and ethnicity have no "better/worse" — a rank by nzdep_decile is allowed but is informational only.\nCommute rules, in priority order:\n1. The question mentions "work" or "workplace" as a place → ALWAYS intent=commute with that commute field set to exactly "work". The workplace is a specific saved address${work ? ` (currently: ${work.address})` : " (currently NOT set — intent=unsupported instead, note the workplace isn't set)"} — it is NOT the CBD; never answer this from the commute_* metrics. Example: "How long is the commute from Ponsonby to work?" → {"intent":"commute","suburbs":["Ponsonby"],"commute":{"origin":"Ponsonby","destination":"work","mode":"driving-car","max_minutes":null}}.\n2. "how far/long is <suburb> from the CBD/airport" → intent=lookup with the commute_* metrics (precomputed).\n3. A commute between a suburb/address and any other specific destination → intent=commute with commute.origin/destination as written. "Suburbs within N min <mode> of <place>" combined with a metric constraint → intent=rank on that metric plus commute.destination and commute.max_minutes. PUBLIC TRANSPORT (train, bus, ferry) times are NOT supported — intent=unsupported, note that only typical drive/cycle/walk times exist.\nRent questions about a specific dwelling type or bedroom count ARE supported: intent=lookup with the rent metrics — the data covers all dwelling types combined and the answer will say so; do not refuse them.\nHazard rules: questions about individual hazard layers (flood plain, coastal inundation, overland flow, liquefaction) or zoning/heritage ARE supported — intent=lookup or rank on those metrics. BUT a question asking for an overall/combined risk score, a safety rating, "how risky is X overall", or to merge hazard layers into one figure → intent=unsupported with note set to exactly "composite-risk".\nOther questions needing data we don't have (crime, house prices outside rent/income, other cities) are unsupported.\n${personaLine} When the question is open-ended about which metrics matter, lean toward this persona's priorities — but never drop a metric the user explicitly asks for.`,
     messages: [{ role: "user", content: question }],
     maxTokens: 500,
     jsonSchema: PLAN_SCHEMA as unknown as Record<string, unknown>,
@@ -304,7 +305,12 @@ export async function POST(req: NextRequest) {
           suburb: geo.name,
           sa2_code: geo.sa2_code,
           metric: md.metric_key,
-          label: md.label,
+          // Hazard rows bake layer + vintage + caveat into the label (TRI-70,
+          // commute row-label precedent) — the model can only cite rows that
+          // already carry the framing.
+          label: HAZARD_METRIC_KEYS.has(md.metric_key)
+            ? hazardRowLabel(md.label, v.as_of_date)
+            : md.label,
           value: Number(v.value_num),
           unit: md.unit,
           source: (v.sources as unknown as { name: string } | null)?.name ?? "—",
@@ -354,7 +360,9 @@ export async function POST(req: NextRequest) {
         suburb: g.name,
         sa2_code: g.sa2_code,
         metric,
-        label: def?.label ?? metric,
+        label: HAZARD_METRIC_KEYS.has(metric)
+          ? hazardRowLabel(def?.label ?? metric, v.as_of_date)
+          : (def?.label ?? metric),
         value: Number(v.value_num),
         unit: def?.unit ?? null,
         source: (v.sources as unknown as { name: string } | null)?.name ?? "—",
@@ -531,9 +539,13 @@ export async function POST(req: NextRequest) {
       );
       try {
         if (plan.intent === "unsupported" || rows.length === 0) {
+          // Composite-risk refusal (TRI-70) — deterministic text, same path as
+          // every other unsupported answer; no new intent, no model wording.
           const msg =
-            plan.intent === "unsupported"
-              ? `I can't answer that with the data I have. ${plan.note} I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, and typical drive/cycle/walk times (no public transport times yet).`
+            plan.intent === "unsupported" && /composite-risk/i.test(plan.note)
+              ? `I don't produce overall risk scores — the hazard layers are separate council models with different vintages, and combining them would invent a number no source publishes. Here are the individual measured layers I track per suburb: flood plain % (1% AEP), coastal inundation % (present-day and +1 m sea level), overland flow path density, and liquefaction vulnerability. Ask about any of them for a suburb, e.g. "How much of Milford is in the flood plain?". ${HAZARD_CAVEAT}`
+              : plan.intent === "unsupported"
+              ? `I can't answer that with the data I have. ${plan.note} I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers.`
               : plan.note ||
                 "I couldn't match that question to any suburbs or metrics I track. Try naming an Auckland suburb, or asking for a ranking like “lowest median rent”.";
           controller.enqueue(ndjson({ type: "delta", text: msg }));
@@ -545,7 +557,7 @@ export async function POST(req: NextRequest) {
             )
             .join("\n");
           for await (const delta of chat.stream("reasoning", {
-            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts; NZDep2018 decile semantics: 1 = least deprived, 10 = most deprived. Rent rows from MBIE tenancy bonds cover new tenancies across ALL dwelling types — if the question asks about a specific dwelling type or bedroom count, give the all-dwellings figure and say that's what it is; never present it as type-specific. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation.\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics. ${plan.note ? `Context note: ${plan.note}` : ""}`,
+            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts; NZDep2018 decile semantics: 1 = least deprived, 10 = most deprived. Rent rows from MBIE tenancy bonds cover new tenancies across ALL dwelling types — if the question asks about a specific dwelling type or bedroom count, give the all-dwellings figure and say that's what it is; never present it as type-specific. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation. Hazard rules: hazard rows are separate council model layers with different vintages — cite each with its layer and year as given in the row label, treat hazard exposure as one input among many (never a verdict on a suburb), NEVER combine hazard layers into a single risk figure or score, and when any hazard row is cited end the answer with: "${HAZARD_CAVEAT}".\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics. ${plan.note ? `Context note: ${plan.note}` : ""}`,
             messages: [
               {
                 role: "user",

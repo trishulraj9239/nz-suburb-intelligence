@@ -16,9 +16,11 @@ import {
 import { COMPARE_LIMIT, useWorkspace } from "@/lib/workspace";
 import { usePersona, useWorkplace } from "@/lib/preferences";
 import { personaConfig, SECTION_EXPLAINERS, SECTION_LABELS } from "@/lib/persona";
+import { HAZARD_CAVEAT } from "@/lib/hazard";
 import { BudgetChip } from "./budget-chip";
 import { InfoTip } from "./info-tip";
 import { ConfidenceChip, Provenance, SourceChip } from "./provenance";
+import { StackedBar } from "./stacked-bar";
 
 /**
  * Percentile-vs-region bar. For metrics with higher_is_better NULL
@@ -318,6 +320,9 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
                 </span>
               )}
             </h3>
+            {dim === "hazard" && (
+              <p className="mt-1 text-[10px] leading-snug text-ink/50">{HAZARD_CAVEAT}</p>
+            )}
             {(rows.length > 0 || dim === "commute") && (
               <div className="divide-y divide-hairline/60">
                 {rows.map((s) => (
@@ -331,6 +336,11 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
                 <h4 className="text-[11px] font-medium uppercase tracking-wider text-ink/45">
                   {b.def.label}
                 </h4>
+                {b.def.metric_key === "zoning_share" ? (
+                  <div className="mt-2">
+                    <StackedBar b={b} />
+                  </div>
+                ) : (
                 <div className="mt-2 flex flex-col gap-1.5">
                   {b.categories.slice(0, 6).map((c) => (
                     <div key={c.label} className="flex items-center gap-2">
@@ -348,6 +358,7 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
                     </div>
                   ))}
                 </div>
+                )}
                 <div className="mt-1 flex justify-end">
                   <Provenance source={b.source} asOf={b.asOf} confidence={b.confidence} />
                 </div>
