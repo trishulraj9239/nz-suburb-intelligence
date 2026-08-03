@@ -1,4 +1,4 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+﻿# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
 /node_modules
@@ -47,7 +47,7 @@ next-env.d.ts
 # ETL intermediates
 /tmp/
 
-# Screenshots — kept on Linear, not in the repo (heavy)
+# Screenshots â€” kept on Linear, not in the repo (heavy)
 /shots/
 
 # User-provided reference/test screenshots for Claude sessions
@@ -56,5 +56,12 @@ next-env.d.ts
 # Local dev utility — kept for reference, not tracked
 /scripts/capture-shots.mjs
 
-# Local architecture notes — kept out of the repo
+# Local architecture notes â€” kept out of the repo
 /docs/architecture.md
+
+# TRI-68: hazard layer intermediates (streamed pages, state, per-layer results)
+data/hazards/*
+!data/hazards/tri68-hazard-metrics.json
+
+# TRI-71: embed checkpoint (rows land in tri30-embeddings.json when complete)
+data/embeddings/tri30-state.json

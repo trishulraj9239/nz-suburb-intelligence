@@ -28,6 +28,22 @@ const deprivation = JSON.parse(readFileSync("data/census/tri18-deprivation.json"
 const schools = JSON.parse(readFileSync("data/census/tri18-schools.json", "utf8"));
 const commute = JSON.parse(readFileSync("data/commute/tri46-staging.json", "utf8"));
 const rent = JSON.parse(readFileSync("data/rent/tri63-rent-metrics.json", "utf8"));
+const hazards = JSON.parse(readFileSync("data/hazards/tri68-hazard-metrics.json", "utf8"));
+
+// TRI-71: hazard + planning facts, neutral framing — shares of modelled
+// layers with source + vintage, never good/bad language (retrieval and the
+// answer layer both stay verdict-free; the caveat lives in lib/hazard.ts).
+const hazardBySuburb = new Map();
+for (const r of hazards) {
+  const m = hazardBySuburb.get(r.g) ?? {};
+  if (r.c === null || r.c === undefined) {
+    m[r.m] = { v: r.v, y: r.d.slice(0, 4) };
+  } else {
+    (m[`${r.m}:cats`] ??= {})[r.c] = r.v;
+    m[`${r.m}:y`] = r.d.slice(0, 4);
+  }
+  hazardBySuburb.set(r.g, m);
+}
 
 // TRI-66: latest-quarter MBIE bond rents (new tenancies) + 12-month trend.
 let latestRentQ = "";
@@ -127,6 +143,41 @@ function profileText(sa2) {
     if (parts.length) bits.push(`Typical commute to the Auckland CBD: ${parts.join(", ")} (no live traffic).`);
     if (cm["airport:driving-car"] != null) bits.push(`Drive to Auckland Airport: about ${cm["airport:driving-car"]} min.`);
   }
+  // TRI-71 — hazard screen + planning (Auckland Council layers, area-level).
+  const hz = hazardBySuburb.get(sa2);
+  if (hz) {
+    if (hz.flood_plain_pct)
+      bits.push(
+        `${hz.flood_plain_pct.v}% of the land area is within the modelled 1% AEP flood plain (Auckland Council, ${hz.flood_plain_pct.y}).`,
+      );
+    if (hz.coastal_inundation_pct && hz.coastal_inundation_pct.v > 0) {
+      const slr = hz.coastal_inundation_slr1m_pct;
+      bits.push(
+        `${hz.coastal_inundation_pct.v}% is within modelled present-day coastal storm-tide inundation (1% AEP${slr ? `; ${slr.v}% with +1 m sea-level rise` : ""}; Auckland Council, ${hz.coastal_inundation_pct.y}).`,
+      );
+    }
+    const liq = hz["liquefaction_share:cats"];
+    if (liq?.Total > 0 && liq["Liquefaction Damage is Possible"] > 0) {
+      const p = Math.round((100 * liq["Liquefaction Damage is Possible"]) / liq.Total);
+      if (p >= 1)
+        bits.push(`${p}% of assessed land is classed liquefaction damage possible (calibrated assessment, ${hz["liquefaction_share:y"]}).`);
+    }
+    if (hz.heritage_overlay_pct && hz.heritage_overlay_pct.v >= 0.5)
+      bits.push(`${hz.heritage_overlay_pct.v}% of the land is inside the AUP Historic Heritage Overlay.`);
+    const zon = hz["zoning_share:cats"];
+    if (zon?.Total > 0) {
+      const top = Object.entries(zon)
+        .filter(([c]) => c !== "Total")
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([c, v]) => `${c} ${Math.round((100 * v) / zon.Total)}%`);
+      if (top.length) bits.push(`Zoning mix (AUP July 2026): ${top.join(", ")}.`);
+    }
+    if (hz.intensification_capacity_indicator)
+      bits.push(
+        `Intensification capacity: ${hz.intensification_capacity_indicator.v}% of residential-zoned land is Mixed Housing Urban or Terrace Housing & Apartments (capacity indicator, not a forecast).`,
+      );
+  }
   return bits.join(" ");
 }
 
@@ -134,6 +185,17 @@ function profileText(sa2) {
 const codes = [...names.keys()].filter((c) => bySuburb.has(c));
 console.log(`profiles to embed: ${codes.length}`);
 const texts = codes.map(profileText);
+
+// --dry: print sample texts and exit WITHOUT spending the daily embed quota
+// (free tier ~1000 req/day — one full 633 run is ~2/3 of it).
+if (process.argv[2] === "--dry") {
+  for (const want of ["Ponsonby West", "Parakai", "Takapuna Central"]) {
+    const i = codes.findIndex((c) => names.get(c) === want);
+    if (i >= 0) console.log(`\n--- ${want} ---\n${texts[i]}`);
+  }
+  console.log(`\navg length: ${Math.round(texts.reduce((n, t) => n + t.length, 0) / texts.length)} chars`);
+  process.exit(0);
+}
 
 // Free tier: 100 embed requests/min (each batch item counts). Pace batches a
 // minute apart and honour 429 retryDelay so the full 633 takes ~7 minutes.
@@ -165,18 +227,45 @@ async function embedBatch(batch, attempt = 0) {
   return res.json();
 }
 
+// Batch 50, not 100: with the TRI-71 hazard/planning sentences the average
+// profile is ~1,150 chars, and 100-text batches now trip the free tier's
+// per-minute token quota (observed 2026-08-04: batch of 100 429s forever,
+// single requests fine). 50 × ~300 tokens stays comfortably under it.
+//
+// Checkpoint/resume: rows land in the state file after every batch, keyed by
+// (sa2, content) — a rerun re-embeds only suburbs whose text changed or which
+// weren't finished, so a mid-run kill (10-min background cap) never wastes
+// the daily request quota. Delete the state file for a forced full re-embed.
+const BATCH = 50;
+const STATE = "data/embeddings/tri30-state.json";
+mkdirSync("data/embeddings", { recursive: true });
+const prior = new Map(); // content-keyed rows from an interrupted run
+try {
+  for (const r of JSON.parse(readFileSync(STATE, "utf8"))) prior.set(`${r.g} ${r.content}`, r);
+} catch {
+  /* no state — fresh run */
+}
 const out = [];
-for (let i = 0; i < texts.length; i += 100) {
-  if (i > 0) await sleep(62_000); // stay under the per-minute quota
-  const batch = texts.slice(i, i + 100);
-  const data = await embedBatch(batch);
+const todo = []; // [index into codes/texts]
+for (let i = 0; i < codes.length; i++) {
+  const hit = prior.get(`${codes[i]} ${texts[i]}`);
+  if (hit) out.push(hit);
+  else todo.push(i);
+}
+if (out.length) console.log(`resume: ${out.length} rows already embedded, ${todo.length} to go`);
+
+for (let b = 0; b < todo.length; b += BATCH) {
+  if (b > 0 || out.length) await sleep(62_000); // stay under the per-minute quota
+  const idxs = todo.slice(b, b + BATCH);
+  const data = await embedBatch(idxs.map((i) => texts[i]));
   data.embeddings.forEach((e, j) => {
     const v = e.values;
     const len = Math.hypot(...v);
     const norm = v.map((x) => +(x / len).toFixed(6));
-    out.push({ g: codes[i + j], content: texts[i + j], e: `[${norm.join(",")}]` });
+    out.push({ g: codes[idxs[j]], content: texts[idxs[j]], e: `[${norm.join(",")}]` });
   });
-  console.log(`embedded ${Math.min(i + 100, texts.length)}/${texts.length}`);
+  writeFileSync(STATE, JSON.stringify(out));
+  console.log(`embedded ${out.length}/${texts.length}`);
 }
 
 if (out.some((r) => JSON.parse(r.e).length !== DIM)) throw new Error("dimension mismatch");

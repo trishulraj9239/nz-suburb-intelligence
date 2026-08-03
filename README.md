@@ -140,6 +140,32 @@ node scripts/build-coverage-outline.mjs   # → public/geo/auckland-coverage.geo
 Re-run it whenever `public/geo/auckland-sa2.geojson` changes. The map fits its
 default and Home-reset view to this extent.
 
+## Hazard overlays (TRI-69)
+
+Toggleable map overlays in `public/geo/hazards/*.geojson` are simplified copies
+of the Auckland Council layers, rebuilt by:
+
+```bash
+node scripts/etl/tri-69-hazard-overlays.mjs   # per layer: flood|coastal|coastal_slr1m|liquefaction|heritage
+```
+
+They are **map furniture, not analysis inputs** — the TRI-68 hazard metrics were
+computed from full-detail geometry before any simplification here. Each layer is
+fetched server-generalized (`maxAllowableOffset` ≈ 18 m water layers / 5 m
+heritage), then walked up a `{simplify tolerance, min polygon-part area}` ladder
+until it fits a ≤1 MB budget (hard fail at 2 MB); coordinates are quantized to
+4 dp (≈11 m). The tolerance each layer shipped with is printed by the script and
+recorded in the Linear ticket. Tiny flood/coastal cells below the rung's
+part-area floor are dropped — invisible at region zoom and the dominant size
+cost. Liquefaction shows only the elevated "damage possible" class (the full
+5-class breakdown is in the suburb profile); overland flow paths (1.18M
+polylines) have no overlay — they surface as the density metric instead.
+
+Files are served from `public/geo/` like the SA2 polygons (TRI-16 precedent) —
+a deliberate deviation from the Phase-3 brief's "Supabase Storage" wording;
+Storage is unused in this repo. Overlays load lazily on first toggle, so the
+map page pays nothing until a layer is switched on.
+
 ## Project tracking
 
 Work is tracked in Linear (`TRI-XX`); commits reference those tickets. The build

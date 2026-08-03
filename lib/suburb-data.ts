@@ -332,7 +332,9 @@ export const SECONDARY_METRICS = new Set([
 export const MIN_TREND_POINTS: Record<string, number> = { rent_median_weekly: 8 };
 
 export function formatValue(def: MetricDef, v: number): string {
-  if (def.unit === "%") return `${v > 0 ? "+" : ""}${v.toFixed(1)}%`;
+  // Sign only CHANGE metrics (trends) — hazard/planning shares are levels.
+  if (def.unit === "%")
+    return `${v > 0 && def.metric_key.includes("trend") ? "+" : ""}${v.toFixed(1)}%`;
   if (def.unit === "$/week") return `$${Math.round(v).toLocaleString()}/wk`;
   if (def.unit === "$/year") return `$${Math.round(v).toLocaleString()}`;
   if (def.unit === "years") return v.toFixed(1);

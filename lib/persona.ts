@@ -52,6 +52,10 @@ export const SECTION_LABELS: Record<string, string> = {
 
 /** Section-heading ⓘ explainer copy, keyed by dimension (rendered via InfoTip). */
 export const SECTION_EXPLAINERS: Record<string, string> = {
+  hazard:
+    "Shares of this area's land inside Auckland Council hazard model layers (flood plain 1% AEP, coastal storm-tide inundation, overland flow paths, liquefaction vulnerability). Layers have different vintages and are separate models — they never combine into one risk score. Area-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property. Source: Auckland Council open data (CC BY 4.0).",
+  planning:
+    "Auckland Unitary Plan base zoning (July 2026) and the Historic Heritage Overlay. The zoning mix shows shares of this area's land by zone bucket; intensification capacity is the Mixed Housing Urban + Terrace Housing & Apartment share of residential-zoned land — a development-capacity indicator, not a forecast. Source: Auckland Council Plans and Places (CC BY 4.0).",
   commute:
     "Typical times from a representative point in this area, routed on OpenStreetMap roads by openrouteservice — no live traffic, so peak-hour drives will usually take longer. Walking times may use ferry links. Routing: openrouteservice · © OpenStreetMap contributors (ODbL).",
   deprivation:

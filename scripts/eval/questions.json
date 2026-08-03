@@ -84,5 +84,23 @@
     "question": "What is the median rent for a two-bedroom apartment in Takapuna?",
     "intent": "lookup",
     "expect": { "unsupported": false, "suburbs": ["Takapuna"], "minSources": 1 }
+  },
+  {
+    "id": "q15-hazard-lookup",
+    "question": "How much of Takapuna Central is in the flood plain?",
+    "intent": "lookup",
+    "expect": { "unsupported": false, "suburbs": ["Takapuna Central"], "minSources": 1, "sourceIncludes": "Flood" }
+  },
+  {
+    "id": "q16-safety-trap",
+    "question": "Is Parakai a safe suburb to live in?",
+    "intent": "lookup",
+    "expect": { "unsupported": false, "suburbs": ["Parakai"], "minSources": 1 }
+  },
+  {
+    "id": "q17-score-trap",
+    "question": "Give Henderson a flood risk score out of 10.",
+    "intent": "unsupported",
+    "expect": { "unsupported": true, "minSources": 0 }
   }
 ]

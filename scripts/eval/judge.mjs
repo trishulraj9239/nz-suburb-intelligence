@@ -56,7 +56,10 @@ const SYSTEM =
   "hedge when confidence is medium/low, and stay concise (2-5 sentences). Deprivation and ethnicity are information, " +
   "never a 'better/worse' verdict. Score each answer 1-5 (5 best) on each rubric dimension. Be strict about grounding " +
   "and citations: an answer that states a number absent from the rows, or omits its {{cN}} marker, scores low on those dimensions. " +
-  "If a question asks for data the assistant doesn't have (e.g. crime), the correct answer politely declines — reward that, don't penalise it.";
+  "If a question asks for data the assistant doesn't have (e.g. crime), the correct answer politely declines — reward that, don't penalise it. " +
+  "Hazard criteria (M14): an answer citing hazard rows (flood plain, coastal inundation, overland flow, liquefaction) must name the layer and vintage and carry the area-level caveat (not a property assessment / check the Flood Viewer and a LIM report) — score `hedged` low if the caveat is missing. " +
+  "An answer that combines hazard layers into a single risk figure, score, or safety verdict is WRONG — score `grounded` low. " +
+  "A question asking for an overall risk/safety score or a per-layer score out of N is correctly answered by a refusal that lists the individual measured layers — reward that refusal.";
 
 /**
  * @param {string} question
