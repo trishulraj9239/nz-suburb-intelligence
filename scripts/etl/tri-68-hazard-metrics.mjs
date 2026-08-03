@@ -153,6 +153,14 @@ function candidatesFor(bbox) {
 // --- geometry helpers --------------------------------------------------------
 function intersectAreaKm2(sa2Feature, feature, failures) {
   try {
+    // Fast path: a feature wholly within the SA2 needs no clipping — its own
+    // area is the intersection. booleanWithin is ~10x cheaper than intersect
+    // and covers the bulk of small parcels-scale polygons (AUP zones).
+    try {
+      if (turf.booleanWithin(feature, sa2Feature)) return turf.area(feature) / 1e6;
+    } catch {
+      /* MultiPolygon inputs can throw in booleanWithin — fall through to clip */
+    }
     const clipped = turf.intersect(turf.featureCollection([sa2Feature, feature]));
     return clipped ? turf.area(clipped) / 1e6 : 0;
   } catch {
