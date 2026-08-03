@@ -74,9 +74,14 @@ function CompareColumn({
       {p.cbdKm != null && (
         <p
           className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] text-ink/50"
-          title="Straight-line, centroid to Sky Tower — computed here"
+          title={
+            p.cbdMethod === "road"
+              ? "Driving distance to the CBD via openrouteservice/OSM — typical route"
+              : "Straight-line to the CBD — road routing unavailable for this suburb"
+          }
         >
-          CBD {p.cbdKm.toFixed(1)} km <ConfidenceChip confidence="derived" />
+          CBD {p.cbdKm.toFixed(1)} km{p.cbdMethod === "road" ? " by road" : ""}{" "}
+          <ConfidenceChip confidence="derived" />
         </p>
       )}
 
@@ -289,7 +294,7 @@ export function ComparePanel() {
             );
           })}
           <tr>
-            <td className="py-2 pr-2 text-xs text-ink/70" title="Straight-line, centroid to Sky Tower — computed here">
+            <td className="py-2 pr-2 text-xs text-ink/70" title="Driving distance to the CBD via openrouteservice/OSM (straight-line where routing is unavailable)">
               CBD distance
               <div className="mt-0.5">
                 <ConfidenceChip confidence="derived" />
