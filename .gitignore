@@ -62,3 +62,6 @@ next-env.d.ts
 # TRI-68: hazard layer intermediates (streamed pages, state, per-layer results)
 data/hazards/*
 !data/hazards/tri68-hazard-metrics.json
+
+# TRI-71: embed checkpoint (rows land in tri30-embeddings.json when complete)
+data/embeddings/tri30-state.json
