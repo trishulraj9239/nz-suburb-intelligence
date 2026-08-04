@@ -83,6 +83,10 @@ interface WorkspaceState {
   askSeq: number;
   ask: (q: string) => void;
   clearAsk: () => void;
+  /** Transient row-hover from the Results table (TRI-104) — the map paints an
+   *  emphasis for it. Not selection: hovering never opens a profile. */
+  hovered: string | null;
+  setHovered: (sa2: string | null) => void;
   /** Every turn this session, oldest first (M18-ready). */
   turns: AnswerTurn[];
   /** The turn matching the live askSeq — what the answer surfaces render. */
@@ -102,6 +106,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [askSeq, setAskSeq] = useState(0);
   const [resetSeq, setResetSeq] = useState(0);
   const [turns, setTurns] = useState<AnswerTurn[]>([]);
+  const [hovered, setHovered] = useState<string | null>(null);
 
   const select = useCallback((sa2: string | null) => setSelected(sa2), []);
   const toggleCompare = useCallback((sa2: string) => {
@@ -147,6 +152,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     setCompare([]);
     setQuestion(null);
     setTurns([]);
+    setHovered(null);
     setResetSeq((s) => s + 1);
   }, []);
 
@@ -209,6 +215,16 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
             if (msg.type === "meta") {
               sources = msg.sources ?? [];
               if (msg.compare && msg.compare.length >= 2) setCompareSet(msg.compare);
+              // TRI-89 — the planner's intent drives the map, not just the
+              // panel. A lookup/commute answer about ONE suburb opens it (the
+              // answer and the map agree on what's being discussed); a rank
+              // deliberately does NOT select, so the map stays at coverage and
+              // the whole ranked field remains visible. Only ever a suburb the
+              // server actually cited.
+              if (msg.intent === "lookup" || msg.intent === "commute") {
+                const codes = [...new Set(sources.map((s) => s.sa2_code))];
+                if (codes.length === 1) setSelected(codes[0]);
+              }
               patchTurn(key, {
                 text: "",
                 sources,
@@ -262,12 +278,14 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       askSeq,
       ask,
       clearAsk,
+      hovered,
+      setHovered,
       turns,
       currentTurn,
       reset,
       resetSeq,
     }),
-    [selected, select, compare, toggleCompare, clearCompare, setCompareSet, question, askSeq, ask, clearAsk, turns, currentTurn, reset, resetSeq],
+    [selected, select, compare, toggleCompare, clearCompare, setCompareSet, question, askSeq, ask, clearAsk, hovered, turns, currentTurn, reset, resetSeq],
   );
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;

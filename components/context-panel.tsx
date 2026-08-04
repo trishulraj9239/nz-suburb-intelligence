@@ -7,6 +7,7 @@ import { SuburbSearch } from "./suburb-search";
 import { ProfilePanel } from "./profile-panel";
 import { ComparePanel } from "./compare-panel";
 import { AnswerThread } from "./answer-thread";
+import { ResultsPanel, rankedRows } from "./results-panel";
 
 const EXAMPLES: { sa2: string; name: string }[] = [
   { sa2: "130400", name: "Ponsonby West" },
@@ -21,7 +22,7 @@ const panelMax = () => Math.round(window.innerWidth * 0.6); // keep ≥40% map
 // grab handle + search; "half"/"full" are fractions of the available map area.
 /** Right-pane views. "answer" exists only below lg — on desktop the answer is
  *  the full-width strip (TRI-83), so the tab set differs by frame. */
-type Tab = "answer" | "profile" | "compare";
+type Tab = "answer" | "profile" | "compare" | "results";
 
 type Snap = "peek" | "half" | "full";
 const SNAP_ORDER: Snap[] = ["peek", "half", "full"];
@@ -171,6 +172,10 @@ export function ContextPanel() {
   // --- Shared content ------------------------------------------------------
   const showCompareTab = compare.length >= 2;
   const showAnswerTab = !isLg && !!question;
+  // TRI-104: Results is the home for a rank answer, so it exists once one has
+  // been given and persists while the user explores — it is not cleared by
+  // opening a profile.
+  const showResultsTab = rankedRows(currentTurn).length > 1;
 
   // TRI-84: an answer that pins suburbs used to leave the user staring at the
   // Profile tab (the compare set changed with nothing on screen to show it).
@@ -182,6 +187,7 @@ export function ContextPanel() {
     setPrevIntentKey(intentKey);
     if (currentTurn) {
       if (currentTurn.intent === "compare" && compare.length >= 2) setTab("compare");
+      else if (currentTurn.intent === "rank") setTab("results");
       else if (!isLg) setTab("answer");
     }
   }
@@ -190,11 +196,18 @@ export function ContextPanel() {
     ...(showAnswerTab ? (["answer"] as const) : []),
     "profile",
     ...(showCompareTab ? (["compare"] as const) : []),
+    ...(showResultsTab ? (["results"] as const) : []),
   ];
   const activeTab: Tab = available.includes(tab) ? tab : "profile";
 
   const tabLabel = (t: Tab) =>
-    t === "answer" ? "Answer" : t === "profile" ? "Profile" : `Compare (${compare.length})`;
+    t === "answer"
+      ? "Answer"
+      : t === "profile"
+        ? "Profile"
+        : t === "results"
+          ? "Results"
+          : `Compare (${compare.length})`;
 
   const tabsEl = available.length > 1 ? (
     <div className="flex gap-1 rounded-lg border border-hairline bg-canvas p-0.5">
@@ -218,6 +231,8 @@ export function ContextPanel() {
       // Same body as the desktop strip; only the cap number differs — it comes
       // from the sheet's live snap height rather than a viewport fraction.
       <AnswerThread maxHeight={`${Math.max(140, (dragH ?? snapHeight(snap)) - 210)}px`} />
+    ) : activeTab === "results" ? (
+      <ResultsPanel />
     ) : activeTab === "compare" ? (
       <ComparePanel />
     ) : selected ? (

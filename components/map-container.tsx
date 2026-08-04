@@ -215,6 +215,19 @@ function overlayLayers(): StyleSpecification["layers"] {
       },
     },
     {
+      // TRI-104 — transient emphasis for the Results row under the cursor.
+      // Outline only: hovering is not selecting, so it must not look like it.
+      id: "sa2-hover-line",
+      type: "line",
+      source: "sa2",
+      filter: ["==", ["get", "SA22023_V1_00"], ""],
+      paint: {
+        "line-color": token("--ink", "#13212e"),
+        "line-width": 2,
+        "line-opacity": 0.75,
+      },
+    },
+    {
       // TRI-88 — compare-set emphasis, under the single-selection layers so a
       // suburb that is both selected and compared still reads as selected.
       id: "sa2-compare-fill",
@@ -438,7 +451,25 @@ export function MapContainer() {
   /** Transient geolocation feedback (TRI-86) — never persisted. */
   const [geoNotice, setGeoNotice] = useState<string | null>(null);
   const { resolvedTheme } = useTheme();
-  const { selected, select, compare, resetSeq } = useWorkspace();
+  const { selected, select, compare, hovered, resetSeq } = useWorkspace();
+
+  // TRI-104 — Results-row hover highlight. Its own effect: hovering is high
+  // frequency and must never re-run the fit/connector work below.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const apply = () => {
+      if (map.getLayer("sa2-hover-line")) {
+        map.setFilter("sa2-hover-line", [
+          "==",
+          ["get", "SA22023_V1_00"],
+          hovered ?? "",
+        ] as never);
+      }
+    };
+    if (map.isStyleLoaded()) apply();
+    else map.once("load", apply);
+  }, [hovered]);
   const persona = usePersona();
   const selectRef = useRef(select);
   useEffect(() => {
