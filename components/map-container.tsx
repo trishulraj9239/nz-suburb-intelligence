@@ -19,6 +19,7 @@ import {
   type MetricDef,
   type ShadeRow,
 } from "@/lib/suburb-data";
+import { createClient } from "@/lib/supabase/client";
 import { confidenceLabel, shortSource } from "./provenance";
 
 /**
@@ -82,15 +83,81 @@ function loadCoverageBounds(): Promise<LngLatBounds | null> {
 // sheet overlays the lower map, so bias the fit upward; on desktop the panel is
 // a separate column, so even padding is enough.
 function fitPadding(map: MapLibreMap) {
-  const h = map.getContainer().clientHeight;
-  const mobile = typeof window !== "undefined" && window.innerWidth < 1024;
-  return { top: 28, left: 24, right: 24, bottom: mobile ? Math.round(h * 0.42) : 28 };
+  const box = map.getContainer().getBoundingClientRect();
+  const base = { top: 28, left: 24, right: 24, bottom: 28 };
+
+  // TRI-85: measure what actually covers the map instead of assuming. The old
+  // `h * 0.42` was a guess that disagreed with the sheet's real snap heights
+  // (peek/half/full), so a fit could centre a suburb underneath the sheet. Any
+  // element tagged data-nzsi-occludes (today: the mobile bottom sheet) is
+  // intersected with the map's own box, so the padding tracks a drag in real
+  // time and is simply 0 when nothing overlaps — which is the desktop case,
+  // where the strip and panel are siblings in the layout, not overlays.
+  let bottom = base.bottom;
+  if (typeof document !== "undefined") {
+    for (const el of document.querySelectorAll("[data-nzsi-occludes]")) {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) continue;
+      const overlap = box.bottom - Math.max(r.top, box.top);
+      if (overlap > 0) bottom = Math.max(bottom, Math.round(overlap) + 16);
+    }
+  }
+
+  // Never let padding eat the whole viewport — fitBounds throws if padding
+  // exceeds the container, and a full-snap sheet can legitimately cover ~92%.
+  const maxBottom = Math.max(0, Math.round(box.height * 0.6));
+  return { ...base, bottom: Math.min(bottom, maxBottom) };
 }
 
 function fitCoverage(map: MapLibreMap, animate: boolean) {
   loadCoverageBounds().then((b) => {
     if (b) map.fitBounds(b, { padding: fitPadding(map), duration: animate ? 700 : 0 });
   });
+}
+
+/**
+ * TRI-88 — representative points for the compared suburbs, from the public-read
+ * `commute_origin_points` view (ST_PointOnSurface, the same origins the routed
+ * commute matrix used). Deliberately NOT the stored centroids: 11 of those sit
+ * outside their own SA2 on peninsulas, which would draw a connector starting in
+ * the sea. Cached per session — the points never change.
+ */
+const originPointCache = new Map<string, [number, number]>();
+async function loadOriginPoints(codes: string[]) {
+  const missing = codes.filter((c) => !originPointCache.has(c));
+  if (missing.length) {
+    const { data } = await createClient()
+      .from("commute_origin_points")
+      .select("sa2_code,lng,lat")
+      .in("sa2_code", missing);
+    for (const r of data ?? []) {
+      originPointCache.set(r.sa2_code as string, [r.lng as number, r.lat as number]);
+    }
+  }
+  const out: Record<string, [number, number]> = {};
+  for (const c of codes) {
+    const p = originPointCache.get(c);
+    if (p) out[c] = p;
+  }
+  return out;
+}
+
+/** Union of several features' bounds — the compare-set fit (TRI-85). */
+function unionBounds(
+  list: [[number, number], [number, number]][],
+): [[number, number], [number, number]] | null {
+  if (!list.length) return null;
+  let [[minX, minY], [maxX, maxY]] = list[0];
+  for (const [[a, b], [c, d]] of list.slice(1)) {
+    minX = Math.min(minX, a);
+    minY = Math.min(minY, b);
+    maxX = Math.max(maxX, c);
+    maxY = Math.max(maxY, d);
+  }
+  return [
+    [minX, minY],
+    [maxX, maxY],
+  ];
 }
 
 function boundsOf(f: GeoJSON.Feature): [[number, number], [number, number]] {
@@ -145,6 +212,75 @@ function overlayLayers(): StyleSpecification["layers"] {
         "line-color": token("--ink", "#13212e"),
         "line-width": ["interpolate", ["linear"], ["zoom"], 7, 1.2, 11, 2.2, 14, 3],
         "line-opacity": 0.85,
+      },
+    },
+    {
+      // TRI-104 — transient emphasis for the Results row under the cursor.
+      // Outline only: hovering is not selecting, so it must not look like it.
+      id: "sa2-hover-line",
+      type: "line",
+      source: "sa2",
+      filter: ["==", ["get", "SA22023_V1_00"], ""],
+      paint: {
+        "line-color": token("--ink", "#13212e"),
+        "line-width": 2,
+        "line-opacity": 0.75,
+      },
+    },
+    {
+      // TRI-88 — compare-set emphasis, under the single-selection layers so a
+      // suburb that is both selected and compared still reads as selected.
+      id: "sa2-compare-fill",
+      type: "fill",
+      source: "sa2",
+      filter: ["in", ["get", "SA22023_V1_00"], ["literal", []]],
+      paint: { "fill-color": token("--harbour", "#0e6e73"), "fill-opacity": 0.1 },
+    },
+    {
+      id: "sa2-compare-line",
+      type: "line",
+      source: "sa2",
+      filter: ["in", ["get", "SA22023_V1_00"], ["literal", []]],
+      paint: {
+        "line-color": token("--harbour", "#0e6e73"),
+        "line-width": 2,
+        "line-opacity": 0.9,
+      },
+    },
+    {
+      // Dashed link between the compared suburbs' representative points. This
+      // is a STRAIGHT LINE, not a route: it is dashed, unlabelled with any
+      // duration, and carries a "straight-line" label on the map so it can
+      // never be read as a travel path or time (the same honesty rule the
+      // commute layer follows for its fallback rows).
+      id: "compare-connector",
+      type: "line",
+      source: "compare-links",
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: {
+        "line-color": token("--harbour", "#0e6e73"),
+        "line-width": 2.5,
+        "line-opacity": 0.9,
+        // Long dashes: unmistakably a drawn link, never mistakable for a road.
+        "line-dasharray": [3, 2],
+      },
+    },
+    {
+      id: "compare-connector-label",
+      type: "symbol",
+      source: "compare-links",
+      layout: {
+        "symbol-placement": "line-center",
+        "text-field": "straight-line",
+        "text-font": ["Noto Sans Regular"],
+        "text-size": 11,
+        "text-letter-spacing": 0.04,
+      },
+      paint: {
+        "text-color": token("--ink", "#13212e"),
+        "text-opacity": 0.55,
+        "text-halo-color": token("--canvas", "#f4f6f5"),
+        "text-halo-width": 1.5,
       },
     },
     {
@@ -224,7 +360,7 @@ async function buildStyle(): Promise<StyleSpecification> {
       const res = await fetch(LINZ_STYLE);
       if (res.ok) {
         const base = (await res.json()) as StyleSpecification;
-        base.sources = { ...base.sources, sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE, ...hazardSources() };
+        base.sources = { ...base.sources, sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE, "compare-links": { type: "geojson", data: EMPTY_FC }, ...hazardSources() };
         base.layers = [...base.layers, ...overlayLayers()];
         return base;
       }
@@ -234,7 +370,7 @@ async function buildStyle(): Promise<StyleSpecification> {
   }
   return {
     version: 8,
-    sources: { sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE, ...hazardSources() },
+    sources: { sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE, "compare-links": { type: "geojson", data: EMPTY_FC }, ...hazardSources() },
     layers: [
       {
         id: "background",
@@ -312,8 +448,28 @@ export function MapContainer() {
   const popupRef = useRef<MapLibrePopup | null>(null);
   const shadeRef = useRef<ShadeState | null>(null);
   const skipFlyRef = useRef(false);
+  /** Transient geolocation feedback (TRI-86) — never persisted. */
+  const [geoNotice, setGeoNotice] = useState<string | null>(null);
   const { resolvedTheme } = useTheme();
-  const { selected, select, resetSeq } = useWorkspace();
+  const { selected, select, compare, hovered, resetSeq } = useWorkspace();
+
+  // TRI-104 — Results-row hover highlight. Its own effect: hovering is high
+  // frequency and must never re-run the fit/connector work below.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const apply = () => {
+      if (map.getLayer("sa2-hover-line")) {
+        map.setFilter("sa2-hover-line", [
+          "==",
+          ["get", "SA22023_V1_00"],
+          hovered ?? "",
+        ] as never);
+      }
+    };
+    if (map.isStyleLoaded()) apply();
+    else map.once("load", apply);
+  }, [hovered]);
   const persona = usePersona();
   const selectRef = useRef(select);
   useEffect(() => {
@@ -380,7 +536,38 @@ export function MapContainer() {
         maxZoom: 17,
         attributionControl: { compact: true },
       });
-      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
+      // TRI-86 — one control stack, top-left, matching the reviewed prototype.
+      // (The ticket text said bottom-right; that corner is MapLibre's default
+      // attribution slot and also collides with the mobile sheet's peek strip,
+      // both of which the prototype sidesteps by consolidating here.)
+      map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-left");
+
+      // Transient view aid only: the position is used to move the camera and
+      // is never stored, never put in preferences, and never sent to the
+      // server. trackUserLocation stays off so there's no continuous watch.
+      const geolocate = new maplibregl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: false,
+        showUserLocation: true,
+      });
+      map.addControl(geolocate, "top-left");
+      geolocate.on("geolocate", (e) => {
+        const { longitude, latitude } = (e as GeolocationPosition).coords;
+        loadCoverageBounds().then((b) => {
+          if (!b || !mapRef.current) return;
+          const [[minX, minY], [maxX, maxY]] = b;
+          const inside =
+            longitude >= minX && longitude <= maxX && latitude >= minY && latitude <= maxY;
+          if (inside) return;
+          // Outside Auckland: say so and return to the covered extent rather
+          // than stranding the user on an empty basemap they can't read.
+          setGeoNotice("You're outside the Auckland coverage area — showing all covered suburbs instead.");
+          fitCoverage(mapRef.current, true);
+        });
+      });
+      geolocate.on("error", () =>
+        setGeoNotice("Couldn't get your location — check browser location permission."),
+      );
       popupRef.current = new maplibregl.Popup({
         closeButton: false,
         closeOnClick: false,
@@ -427,6 +614,11 @@ export function MapContainer() {
       });
 
       mapRef.current = map;
+      // Dev-only handle for the verification scripts in shots/ (map choreography
+      // can only be asserted from inside the map instance). Never in production.
+      if (process.env.NODE_ENV !== "production") {
+        (window as unknown as { __nzsiMap?: MapLibreMap }).__nzsiMap = map;
+      }
     })();
 
     return () => {
@@ -463,21 +655,90 @@ export function MapContainer() {
     if (map.isStyleLoaded()) apply();
     else map.once("load", apply);
 
-    if (!selected) return;
-    if (skipFlyRef.current) {
-      skipFlyRef.current = false;
-      return;
-    }
+    // TRI-88 — emphasise the compared polygons and link their representative
+    // points. Points come from commute_origin_points (ST_PointOnSurface, the
+    // same origins the routed commute matrix used), so a connector always
+    // starts inside its suburb — 11 stored ArcGIS centroids sit outside theirs.
+    const applyCompare = () => {
+      const m = mapRef.current;
+      if (!m) return;
+      const filter = ["in", ["get", "SA22023_V1_00"], ["literal", compare]] as const;
+      for (const layer of ["sa2-compare-fill", "sa2-compare-line"]) {
+        if (m.getLayer(layer)) m.setFilter(layer, filter as never);
+      }
+    };
+    if (map.isStyleLoaded()) applyCompare();
+    else map.once("load", applyCompare);
+
+    // One staleness flag for every async branch below — a rapid pin/unpin must
+    // never let a slower earlier fetch paint over a newer set.
     let stale = false;
-    loadGeo().then((fc) => {
-      if (stale || !mapRef.current) return;
-      const f = fc.features.find((x) => x.properties?.SA22023_V1_00 === selected);
-      if (f) mapRef.current.fitBounds(boundsOf(f), { padding: 90, maxZoom: 13.5, duration: 900 });
-    });
+    if (compare.length >= 2) {
+      loadOriginPoints(compare).then((pts) => {
+        const m = mapRef.current;
+        if (stale || !m) return;
+        // Two suburbs → one line; three → a closed triangle. Ordered by the
+        // compare array so the shape is stable as the user pins/unpins.
+        const ring = compare
+          .map((c) => pts[c])
+          .filter((p): p is [number, number] => !!p);
+        if (ring.length < 2) return;
+        const coords = ring.length === 3 ? [...ring, ring[0]] : ring;
+        const fc: GeoJSON.FeatureCollection = {
+          type: "FeatureCollection",
+          features: [
+            { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: coords } },
+          ],
+        };
+        const src = m.getSource("compare-links") as GeoJSONSource | undefined;
+        src?.setData(fc);
+      });
+    } else {
+      const src = map.getSource("compare-links") as GeoJSONSource | undefined;
+      src?.setData(EMPTY_FC);
+    }
+
+    // TRI-85: a comparison of 2-3 suburbs frames the whole set, not just the
+    // last-clicked one — otherwise pinning a second suburb flies away from the
+    // first and the comparison you just built is off-screen. The compare fit
+    // wins while a set is active; single selection resumes when it drops below
+    // two.
+    if (compare.length >= 2) {
+      loadGeo().then((fc) => {
+        if (stale || !mapRef.current) return;
+        const b = unionBounds(
+          compare
+            .map((c) => fc.features.find((x) => x.properties?.SA22023_V1_00 === c))
+            .filter((f): f is GeoJSON.Feature => !!f)
+            .map(boundsOf),
+        );
+        if (b)
+          mapRef.current.fitBounds(b, {
+            padding: fitPadding(mapRef.current),
+            maxZoom: 12.5,
+            duration: 900,
+          });
+      });
+    } else if (selected && !skipFlyRef.current) {
+      loadGeo().then((fc) => {
+        if (stale || !mapRef.current) return;
+        const f = fc.features.find((x) => x.properties?.SA22023_V1_00 === selected);
+        if (f)
+          mapRef.current.fitBounds(boundsOf(f), {
+            padding: fitPadding(mapRef.current),
+            maxZoom: 13.5,
+            duration: 900,
+          });
+      });
+    } else if (selected) {
+      // Selection came from a map click — the user is already looking at it.
+      skipFlyRef.current = false;
+    }
+
     return () => {
       stale = true;
     };
-  }, [selected]);
+  }, [selected, compare]);
 
   // Shade metric change → fetch values, compute quintiles, paint + legend.
   const changeShade = useCallback(
@@ -567,6 +828,25 @@ export function MapContainer() {
   return (
     <div className="relative h-full w-full">
       <div ref={ref} className="h-full w-full" aria-label="Auckland suburb map" />
+
+      {/* Geolocation feedback (TRI-86). Transient and dismissible — the
+          position itself is never stored or sent anywhere. */}
+      {geoNotice && (
+        <div
+          role="status"
+          className="absolute inset-x-2 bottom-10 z-20 mx-auto flex max-w-md items-start gap-2 rounded-lg border border-hairline bg-surface px-3 py-2 text-xs text-ink/80 shadow-lg"
+        >
+          <span className="flex-1">{geoNotice}</span>
+          <button
+            type="button"
+            onClick={() => setGeoNotice(null)}
+            aria-label="Dismiss message"
+            className="shrink-0 text-ink/40 hover:text-ink"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Shade picker + legend — stacked top-right so the position is identical
           on mobile and web; the legend only appears once a metric is chosen. */}

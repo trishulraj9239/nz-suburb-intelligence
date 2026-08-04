@@ -1,17 +1,13 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useWorkspace } from "@/lib/workspace";
+import { useIsLg } from "@/lib/use-is-lg";
 import { SuburbSearch } from "./suburb-search";
 import { ProfilePanel } from "./profile-panel";
 import { ComparePanel } from "./compare-panel";
-import { AnswerPanel } from "./answer-panel";
+import { AnswerThread } from "./answer-thread";
+import { ResultsPanel, rankedRows } from "./results-panel";
 
 const EXAMPLES: { sa2: string; name: string }[] = [
   { sa2: "130400", name: "Ponsonby West" },
@@ -19,20 +15,15 @@ const EXAMPLES: { sa2: string; name: string }[] = [
   { sa2: "166000", name: "Pukekohe Central" },
 ];
 
-const lgQuery = "(min-width: 1024px)";
-const subscribeLg = (cb: () => void) => {
-  const mq = window.matchMedia(lgQuery);
-  mq.addEventListener("change", cb);
-  return () => mq.removeEventListener("change", cb);
-};
-const useIsLg = () =>
-  useSyncExternalStore(subscribeLg, () => window.matchMedia(lgQuery).matches, () => false);
-
 const PANEL_MIN = 320;
 const panelMax = () => Math.round(window.innerWidth * 0.6); // keep ≥40% map
 
 // Mobile bottom-sheet snap points (heights). "peek" is a fixed strip showing the
 // grab handle + search; "half"/"full" are fractions of the available map area.
+/** Right-pane views. "answer" exists only below lg — on desktop the answer is
+ *  the full-width strip (TRI-83), so the tab set differs by frame. */
+type Tab = "answer" | "profile" | "compare" | "results";
+
 type Snap = "peek" | "half" | "full";
 const SNAP_ORDER: Snap[] = ["peek", "half", "full"];
 const PEEK_PX = 104;
@@ -51,8 +42,8 @@ const TAP_SLOP = 6; // px of travel below which a pointer gesture counts as a ta
  * sheet, so nothing gets shoved out of reach and the map is always a swipe away.
  */
 export function ContextPanel() {
-  const { selected, select, compare, question } = useWorkspace();
-  const [tab, setTab] = useState<"profile" | "compare">("profile");
+  const { selected, select, compare, question, currentTurn } = useWorkspace();
+  const [tab, setTab] = useState<Tab>("profile");
   const isLg = useIsLg();
 
   // --- Desktop resize state ------------------------------------------------
@@ -180,11 +171,47 @@ export function ContextPanel() {
 
   // --- Shared content ------------------------------------------------------
   const showCompareTab = compare.length >= 2;
-  const activeTab = tab === "compare" && showCompareTab ? "compare" : "profile";
+  const showAnswerTab = !isLg && !!question;
+  // TRI-104: Results is the home for a rank answer, so it exists once one has
+  // been given and persists while the user explores — it is not cleared by
+  // opening a profile.
+  const showResultsTab = rankedRows(currentTurn).length > 1;
 
-  const tabsEl = showCompareTab ? (
+  // TRI-84: an answer that pins suburbs used to leave the user staring at the
+  // Profile tab (the compare set changed with nothing on screen to show it).
+  // meta.intent — captured since TRI-82 — now steers the view. Adjusted during
+  // render via the "store previous value" pattern, never setState-in-effect.
+  const intentKey = currentTurn ? `${currentTurn.key}:${currentTurn.intent ?? ""}` : null;
+  const [prevIntentKey, setPrevIntentKey] = useState<string | null>(null);
+  if (intentKey !== prevIntentKey) {
+    setPrevIntentKey(intentKey);
+    if (currentTurn) {
+      if (currentTurn.intent === "compare" && compare.length >= 2) setTab("compare");
+      else if (currentTurn.intent === "rank") setTab("results");
+      else if (!isLg) setTab("answer");
+    }
+  }
+
+  const available: Tab[] = [
+    ...(showAnswerTab ? (["answer"] as const) : []),
+    "profile",
+    ...(showCompareTab ? (["compare"] as const) : []),
+    ...(showResultsTab ? (["results"] as const) : []),
+  ];
+  const activeTab: Tab = available.includes(tab) ? tab : "profile";
+
+  const tabLabel = (t: Tab) =>
+    t === "answer"
+      ? "Answer"
+      : t === "profile"
+        ? "Profile"
+        : t === "results"
+          ? "Results"
+          : `Compare (${compare.length})`;
+
+  const tabsEl = available.length > 1 ? (
     <div className="flex gap-1 rounded-lg border border-hairline bg-canvas p-0.5">
-      {(["profile", "compare"] as const).map((t) => (
+      {available.map((t) => (
         <button
           key={t}
           type="button"
@@ -193,14 +220,20 @@ export function ContextPanel() {
             activeTab === t ? "bg-surface text-ink shadow-sm" : "text-ink/55 hover:text-ink"
           }`}
         >
-          {t === "profile" ? "Profile" : `Compare (${compare.length})`}
+          {tabLabel(t)}
         </button>
       ))}
     </div>
   ) : null;
 
   const bodyEl =
-    activeTab === "compare" ? (
+    activeTab === "answer" ? (
+      // Same body as the desktop strip; only the cap number differs — it comes
+      // from the sheet's live snap height rather than a viewport fraction.
+      <AnswerThread maxHeight={`${Math.max(140, (dragH ?? snapHeight(snap)) - 210)}px`} />
+    ) : activeTab === "results" ? (
+      <ResultsPanel />
+    ) : activeTab === "compare" ? (
       <ComparePanel />
     ) : selected ? (
       <ProfilePanel sa2={selected} />
@@ -233,6 +266,10 @@ export function ContextPanel() {
     return (
       <aside
         ref={sheetRef}
+        // Marks this as covering the map: fitPadding() measures the real box
+        // (TRI-85) instead of guessing a viewport fraction, so map fits stay
+        // correct at every snap and mid-drag.
+        data-nzsi-occludes=""
         style={{ height }}
         className={`absolute inset-x-0 bottom-0 z-30 flex flex-col overflow-hidden rounded-t-2xl border-t border-hairline bg-surface shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.35)] ${
           dragH === null ? "transition-[height] duration-200 ease-out" : ""
@@ -253,7 +290,6 @@ export function ContextPanel() {
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 pb-4">
           <SuburbSearch />
-          <AnswerPanel />
           {tabsEl}
           {bodyEl}
         </div>
@@ -262,6 +298,12 @@ export function ContextPanel() {
   }
 
   // --- Desktop: resizable aside --------------------------------------------
+  // TRI-87: 52rem was a single number for both 2- and 3-way comparisons, so a
+  // third column squeezed. Auto-width now scales with the set (still clamped to
+  // 60vw, so the map keeps at least 40% and narrow laptops fall back to the
+  // panel's own horizontal scroll rather than crushing the map).
+  const compareWidthClass = compare.length >= 3 ? "lg:w-[60rem]" : "lg:w-[46rem]";
+
   const sizeStyle =
     userWidth !== null
       ? { width: userWidth, maxWidth: "60vw", flex: "none" as const }
@@ -271,10 +313,13 @@ export function ContextPanel() {
     <aside
       style={sizeStyle}
       className={`relative flex min-h-0 w-full flex-1 flex-col gap-4 bg-surface p-4 lg:flex-none lg:p-5 ${
-        activeTab === "compare" ? "lg:w-[52rem] lg:max-w-[60vw]" : "lg:w-full lg:max-w-md"
+        activeTab === "compare" ? `${compareWidthClass} lg:max-w-[60vw]` : "lg:w-full lg:max-w-md"
       }`}
     >
-      {/* Resize handle (desktop only) */}
+      {/* Resize handle (desktop only). TRI-87: the drag has always worked but
+          nothing advertised it — a persistent grip sits at the midpoint and
+          strengthens on hover, so the affordance is discoverable without
+          adding chrome. */}
       <div
         role="separator"
         aria-orientation="vertical"
@@ -284,10 +329,16 @@ export function ContextPanel() {
         onPointerMove={onHandlePointerMove}
         onPointerUp={onHandlePointerUp}
         onDoubleClick={() => setUserWidth(null)}
-        className="absolute inset-y-0 left-0 z-20 hidden w-1.5 cursor-col-resize touch-none bg-transparent transition-colors hover:bg-harbour/40 active:bg-harbour/60 lg:block"
-      />
+        className="group absolute inset-y-0 left-0 z-20 hidden w-1.5 cursor-col-resize touch-none bg-transparent transition-colors hover:bg-harbour/40 active:bg-harbour/60 lg:flex lg:items-center"
+      >
+        <span
+          aria-hidden="true"
+          className="pointer-events-none -ml-[3px] flex h-10 w-2 items-center justify-center rounded-full border border-hairline bg-surface shadow-sm transition-colors group-hover:border-harbour"
+        >
+          <span className="h-4 w-px bg-ink/25 transition-colors group-hover:bg-harbour" />
+        </span>
+      </div>
       <SuburbSearch />
-      <AnswerPanel />
       {tabsEl}
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">{bodyEl}</div>
     </aside>
