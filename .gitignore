@@ -65,3 +65,6 @@ data/hazards/*
 
 # TRI-71: embed checkpoint (rows land in tri30-embeddings.json when complete)
 data/embeddings/tri30-state.json
+
+# TRI-74: eval checkpoint (rows land in latest.json when complete)
+scripts/eval/results/partial.json

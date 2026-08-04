@@ -29,6 +29,19 @@ const schools = JSON.parse(readFileSync("data/census/tri18-schools.json", "utf8"
 const commute = JSON.parse(readFileSync("data/commute/tri46-staging.json", "utf8"));
 const rent = JSON.parse(readFileSync("data/rent/tri63-rent-metrics.json", "utf8"));
 const hazards = JSON.parse(readFileSync("data/hazards/tri68-hazard-metrics.json", "utf8"));
+const consents = JSON.parse(readFileSync("data/consents/tri73-consents.json", "utf8"));
+
+// TRI-73: building-consent activity, latest trailing-12-month window.
+let latestConsentM = "";
+for (const r of consents) if (r.m === "consents_new_dwellings_12m" && r.d > latestConsentM) latestConsentM = r.d;
+const consentsBySuburb = new Map();
+for (const r of consents) {
+  if (r.d !== latestConsentM) continue;
+  const m = consentsBySuburb.get(r.g) ?? {};
+  if (r.m === "consents_new_dwellings_12m") m.n = r.v;
+  else if (r.m === "consents_per_1000_dwellings") m.rate = r.v;
+  consentsBySuburb.set(r.g, m);
+}
 
 // TRI-71: hazard + planning facts, neutral framing — shares of modelled
 // layers with source + vintage, never good/bad language (retrieval and the
@@ -177,6 +190,12 @@ function profileText(sa2) {
       bits.push(
         `Intensification capacity: ${hz.intensification_capacity_indicator.v}% of residential-zoned land is Mixed Housing Urban or Terrace Housing & Apartments (capacity indicator, not a forecast).`,
       );
+  }
+  const cons = consentsBySuburb.get(sa2);
+  if (cons?.n != null) {
+    bits.push(
+      `${cons.n} new dwelling${cons.n === 1 ? "" : "s"} consented in the 12 months to ${latestConsentM.slice(0, 7)}${cons.rate != null ? ` (${cons.rate} per 1,000 existing dwellings)` : ""} (Stats NZ building consents; consents are intentions to build, not completions).`,
+    );
   }
   return bits.join(" ");
 }

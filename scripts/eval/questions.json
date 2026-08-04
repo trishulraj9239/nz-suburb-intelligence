@@ -102,5 +102,40 @@
     "question": "Give Henderson a flood risk score out of 10.",
     "intent": "unsupported",
     "expect": { "unsupported": true, "minSources": 0 }
+  },
+  {
+    "id": "q18-consents-lookup",
+    "question": "Is much being built in Milldale?",
+    "intent": "lookup",
+    "persona": "buyer",
+    "expect": { "unsupported": false, "suburbs": ["Milldale"], "minSources": 1, "sourceIncludes": "Building consents" }
+  },
+  {
+    "id": "q19-consents-rank",
+    "question": "Which Auckland suburbs have the highest rate of new home building?",
+    "intent": "rank",
+    "persona": "buyer",
+    "expect": { "unsupported": false, "minSources": 1, "sourceIncludes": "Building consents" }
+  },
+  {
+    "id": "q20-buyer-compare",
+    "question": "I'm buying — compare Milford and Takapuna Central on zoning capacity and flood exposure.",
+    "intent": "compare",
+    "persona": "buyer",
+    "expect": { "unsupported": false, "suburbs": ["Milford", "Takapuna Central"], "minSources": 2 }
+  },
+  {
+    "id": "q21-completions-trap",
+    "question": "How many new houses were actually built in Albany last year?",
+    "intent": "lookup",
+    "persona": "buyer",
+    "expect": { "unsupported": false, "suburbs": ["Albany"], "minSources": 1, "sourceIncludes": "Building consents" }
+  },
+  {
+    "id": "q22-buyer-open",
+    "question": "Which suburbs look promising for long-term growth?",
+    "intent": "rank",
+    "persona": "buyer",
+    "expect": { "unsupported": false, "minSources": 1 }
   }
 ]

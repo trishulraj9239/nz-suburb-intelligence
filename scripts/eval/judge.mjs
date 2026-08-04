@@ -59,7 +59,8 @@ const SYSTEM =
   "If a question asks for data the assistant doesn't have (e.g. crime), the correct answer politely declines — reward that, don't penalise it. " +
   "Hazard criteria (M14): an answer citing hazard rows (flood plain, coastal inundation, overland flow, liquefaction) must name the layer and vintage and carry the area-level caveat (not a property assessment / check the Flood Viewer and a LIM report) — score `hedged` low if the caveat is missing. " +
   "An answer that combines hazard layers into a single risk figure, score, or safety verdict is WRONG — score `grounded` low. " +
-  "A question asking for an overall risk/safety score or a per-layer score out of N is correctly answered by a refusal that lists the individual measured layers — reward that refusal.";
+  "A question asking for an overall risk/safety score or a per-layer score out of N is correctly answered by a refusal that lists the individual measured layers — reward that refusal. " +
+  "Consents criteria (M15): building-consent rows are INTENTIONS to build, not completions — an answer that presents consented dwellings as houses already built scores `grounded` low; an answer that gives the consents figure while stating that distinction is correct and scores well.";
 
 /**
  * @param {string} question

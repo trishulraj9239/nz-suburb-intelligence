@@ -102,16 +102,47 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
   2026-07-31; AUP layers = "AUP July 2026"; liquefaction static 2022;
   coastal model TR2020/24). `as_of` on metric rows = each service's
   `lastEditDate` at retrieval; retrieval is part of the vintage.
-- **ETL:** per-SA2 envelope-filtered REST fetches (three layers are
-  0.6–1.7 GB monolithically; overland flow alone is 1.18 M polylines) with a
-  gitignored `data/hazards/raw/` cache + per-layer checkpoint/resume —
-  `scripts/etl/tri-68-hazard-metrics.mjs`.
+- **ETL:** paged whole-layer streaming (refined from the sign-off's per-SA2
+  envelope plan — measured ~22 s/SA2; recorded in the spike doc) with
+  gitignored intermediates + per-layer checkpoint/resume —
+  `scripts/etl/tri-68-hazard-metrics.mjs`. Fetch `f=json` + terraformer
+  ONLY: this org's `f=geojson` flattens interior rings (fills every hole).
+  Map overlays are a separate simplified pipeline
+  (`tri-69-hazard-overlays.mjs` → `public/geo/hazards/`, ≤1 MB budget).
 - **HAIL / contaminated land: NOT openly published for Auckland** —
   LIM/property-file only (verified against the council's full ArcGIS
   catalogue, 2026-08-03). The app states this gap rather than substituting.
 - **Caveat (verbatim, on every hazard surface):** "Area-level model — not a
   property assessment. Check the council Flood Viewer and a LIM report for
   any specific property."
+
+## Stats NZ Building Consents — new dwellings by SA2 (M15)
+
+- **What:** monthly "Building consents issued" release, supplementary CSV
+  "New dwellings consented by 2023 statistical area 2 (Monthly)" — new
+  dwelling-unit counts per SA2 per month from 1990-04, with dwelling-type
+  splits. Feeds `consents_new_dwellings_12m` (rolling 12-month sums, 24
+  monthly as_of_dates, confidence `high`) and `consents_per_1000_dwellings`
+  (Census-2023 denominator, confidence `medium`). Spike + locked decisions:
+  `docs/spikes/tri-72-stats-consents.md`; deferred scope (type splits,
+  deeper history, 2026-SA2 vintage) tracked in TRI-77.
+- **Auth:** none — keyless zip under the release page's
+  `/assets/Uploads/Building-consents-issued/...` path. URLs are
+  **month-stamped**: bump `RELEASE` in `scripts/etl/tri-73-consents.mjs`.
+- **Cadence:** monthly, ≈2-month publication lag (May data published 1 July).
+  Refresh = bump `RELEASE` → re-run ETL → commit/push → `tri-73-consents.sql`.
+- **Caveats:**
+  - **Consents are intentions to build, not completions** — stated in metric
+    descriptions, the profile embedding sentence, and the answer prompt.
+  - Zeros are explicit rows (administrative counts — no suppression handling,
+    unlike census tables).
+  - The zip's compression defeats PowerShell `Expand-Archive`; use
+    `tar` (bsdtar) — the ETL does.
+  - Each zip also carries a "2026 statistical area 2" vintage file — ignored
+    (our geographies are SA2 2023).
+- **Licence / attribution:** **CC BY 4.0**, attribute "Stats NZ".
+  - UI source-chip string: **"Building consents issued (new dwellings by
+    SA2) · <year>"**
 
 ## Existing sources (for completeness)
 

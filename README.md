@@ -128,6 +128,41 @@ the refresh. If ORS is down or the daily quota runs low, the API degrades to a
 straight-line distance flagged `fallback: true` with its own labelling — the app
 never silently pretends a crow-flies number is a drive time.
 
+## Phase 3 — persona mode over free data (why it's built this way)
+
+Phase 3 (M12–M15) turned the generic explorer into a **renter/buyer persona
+product** without a single paid dataset. The buyer story that commercial sites
+tell with CV valuations and sale prices — both licence-blocked for a public
+portfolio (CoreLogic/REINZ are commercial; scraping is ToS-restricted) — is
+told here with what *is* open: **MBIE tenancy bonds** (live rents, quarterly),
+**Auckland Council hazard + Unitary Plan layers** (flood, coastal, liquefaction,
+heritage, zoning, intensification capacity), and **Stats NZ building consents**
+(development trajectory, monthly at SA2). The gap itself is stated in-product:
+Tier-2/3 price data is a parked provider slot (`sources.tier`), not a fake.
+
+Three process rules made that sustainable:
+
+- **Licence audit before any download** — each new source got a spike with a
+  hard human sign-off gate (`docs/spikes/`); one layer (HAIL contaminated land)
+  turned out to be LIM-only for Auckland and was dropped, and the app says so
+  rather than substituting.
+- **The schema absorbed all of it with zero migrations** — every Phase-3
+  dataset landed as ordinary `metric_values` rows under new
+  `metric_definitions` (dimensions `hazard`/`planning`, breakdowns for
+  zoning/liquefaction, monthly history for consents sparklines). Personas are
+  pure config (`lib/persona.ts`): section order, transparent metric weights,
+  and a default map metric — a third persona is one literal.
+- **Exposure is information, never a verdict** — hazard metrics are all
+  `higher_is_better = NULL`, every hazard surface carries the verbatim
+  area-level caveat, and "give me a risk score" gets a deterministic refusal
+  listing the individual measured layers instead.
+
+Deviations from the original Phase-3 brief, recorded honestly: map overlays are
+static files in `public/geo/` (the TRI-16 precedent — Supabase Storage stays
+unused), and the brief assumed Anthropic prompt caching in `/api/ask` which was
+never wired up (tracked as an optional follow-up; the plan+answer prompts are
+registry-driven and small enough that it hasn't mattered at portfolio scale).
+
 ## Map coverage outline
 
 The dark coverage border is precomputed offline by dissolving the SA2 polygons
