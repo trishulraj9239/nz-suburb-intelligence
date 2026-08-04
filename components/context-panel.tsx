@@ -251,6 +251,10 @@ export function ContextPanel() {
     return (
       <aside
         ref={sheetRef}
+        // Marks this as covering the map: fitPadding() measures the real box
+        // (TRI-85) instead of guessing a viewport fraction, so map fits stay
+        // correct at every snap and mid-drag.
+        data-nzsi-occludes=""
         style={{ height }}
         className={`absolute inset-x-0 bottom-0 z-30 flex flex-col overflow-hidden rounded-t-2xl border-t border-hairline bg-surface shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.35)] ${
           dragH === null ? "transition-[height] duration-200 ease-out" : ""
@@ -279,6 +283,12 @@ export function ContextPanel() {
   }
 
   // --- Desktop: resizable aside --------------------------------------------
+  // TRI-87: 52rem was a single number for both 2- and 3-way comparisons, so a
+  // third column squeezed. Auto-width now scales with the set (still clamped to
+  // 60vw, so the map keeps at least 40% and narrow laptops fall back to the
+  // panel's own horizontal scroll rather than crushing the map).
+  const compareWidthClass = compare.length >= 3 ? "lg:w-[60rem]" : "lg:w-[46rem]";
+
   const sizeStyle =
     userWidth !== null
       ? { width: userWidth, maxWidth: "60vw", flex: "none" as const }
@@ -288,10 +298,13 @@ export function ContextPanel() {
     <aside
       style={sizeStyle}
       className={`relative flex min-h-0 w-full flex-1 flex-col gap-4 bg-surface p-4 lg:flex-none lg:p-5 ${
-        activeTab === "compare" ? "lg:w-[52rem] lg:max-w-[60vw]" : "lg:w-full lg:max-w-md"
+        activeTab === "compare" ? `${compareWidthClass} lg:max-w-[60vw]` : "lg:w-full lg:max-w-md"
       }`}
     >
-      {/* Resize handle (desktop only) */}
+      {/* Resize handle (desktop only). TRI-87: the drag has always worked but
+          nothing advertised it — a persistent grip sits at the midpoint and
+          strengthens on hover, so the affordance is discoverable without
+          adding chrome. */}
       <div
         role="separator"
         aria-orientation="vertical"
@@ -301,8 +314,15 @@ export function ContextPanel() {
         onPointerMove={onHandlePointerMove}
         onPointerUp={onHandlePointerUp}
         onDoubleClick={() => setUserWidth(null)}
-        className="absolute inset-y-0 left-0 z-20 hidden w-1.5 cursor-col-resize touch-none bg-transparent transition-colors hover:bg-harbour/40 active:bg-harbour/60 lg:block"
-      />
+        className="group absolute inset-y-0 left-0 z-20 hidden w-1.5 cursor-col-resize touch-none bg-transparent transition-colors hover:bg-harbour/40 active:bg-harbour/60 lg:flex lg:items-center"
+      >
+        <span
+          aria-hidden="true"
+          className="pointer-events-none -ml-[3px] flex h-10 w-2 items-center justify-center rounded-full border border-hairline bg-surface shadow-sm transition-colors group-hover:border-harbour"
+        >
+          <span className="h-4 w-px bg-ink/25 transition-colors group-hover:bg-harbour" />
+        </span>
+      </div>
       <SuburbSearch />
       {tabsEl}
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">{bodyEl}</div>
