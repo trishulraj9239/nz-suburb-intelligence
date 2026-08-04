@@ -1,6 +1,7 @@
 import { TopBar } from "@/components/top-bar";
 import { MapContainer } from "@/components/map-container";
 import { ContextPanel } from "@/components/context-panel";
+import { AnswerStrip } from "@/components/answer-strip";
 import { WorkspaceProvider } from "@/lib/workspace";
 
 /**
@@ -15,6 +16,9 @@ export default function Home() {
     <WorkspaceProvider>
       <div className="flex h-screen flex-col">
         <TopBar />
+        {/* Desktop answer frame (TRI-83) — self-hides below lg, where the
+            answer is a tab inside the bottom sheet instead. */}
+        <AnswerStrip />
         <main className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
           <section className="relative min-h-0 flex-1 lg:border-r lg:border-hairline">
             <MapContainer />

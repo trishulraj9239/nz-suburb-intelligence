@@ -20,6 +20,8 @@ export interface AnswerSource {
   n: number;
   suburb: string;
   sa2_code: string;
+  /** metric_key — lets the UI map a planner metric back to its human label. */
+  metric: string;
   label: string;
   value: number;
   unit: string | null;
@@ -47,6 +49,24 @@ export interface AnswerTurn {
   intent: string | null;
   /** Persona the server actually answered as (TRI-61). */
   persona: string | null;
+  /** What the planner read the question as — powers "How this was matched"
+   *  (TRI-83). Descriptive only; never a score. */
+  match: AnswerMatch | null;
+}
+
+/** The planner's decisions, surfaced for transparency (TRI-83). */
+export interface AnswerMatch {
+  metrics: string[];
+  suburbs: string[];
+  rankDirection: "asc" | "desc";
+  limit: number;
+  note: string;
+  commute: {
+    origin: string | null;
+    destination: string | null;
+    mode: string;
+    max_minutes: number | null;
+  };
 }
 
 interface WorkspaceState {
@@ -117,6 +137,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         status: "pending",
         intent: null,
         persona: null,
+        match: null,
       },
     ]);
   }, []);
@@ -182,6 +203,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
               compare?: string[];
               intent?: string;
               persona?: string;
+              match?: AnswerMatch;
               message?: string;
             };
             if (msg.type === "meta") {
@@ -193,6 +215,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
                 status: "streaming",
                 intent: msg.intent ?? null,
                 persona: msg.persona ?? null,
+                match: msg.match ?? null,
               });
             } else if (msg.type === "delta") {
               text += msg.text ?? "";

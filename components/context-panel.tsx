@@ -1,17 +1,12 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useWorkspace } from "@/lib/workspace";
+import { useIsLg } from "@/lib/use-is-lg";
 import { SuburbSearch } from "./suburb-search";
 import { ProfilePanel } from "./profile-panel";
 import { ComparePanel } from "./compare-panel";
-import { AnswerPanel } from "./answer-panel";
+import { AnswerThread } from "./answer-thread";
 
 const EXAMPLES: { sa2: string; name: string }[] = [
   { sa2: "130400", name: "Ponsonby West" },
@@ -19,20 +14,15 @@ const EXAMPLES: { sa2: string; name: string }[] = [
   { sa2: "166000", name: "Pukekohe Central" },
 ];
 
-const lgQuery = "(min-width: 1024px)";
-const subscribeLg = (cb: () => void) => {
-  const mq = window.matchMedia(lgQuery);
-  mq.addEventListener("change", cb);
-  return () => mq.removeEventListener("change", cb);
-};
-const useIsLg = () =>
-  useSyncExternalStore(subscribeLg, () => window.matchMedia(lgQuery).matches, () => false);
-
 const PANEL_MIN = 320;
 const panelMax = () => Math.round(window.innerWidth * 0.6); // keep ≥40% map
 
 // Mobile bottom-sheet snap points (heights). "peek" is a fixed strip showing the
 // grab handle + search; "half"/"full" are fractions of the available map area.
+/** Right-pane views. "answer" exists only below lg — on desktop the answer is
+ *  the full-width strip (TRI-83), so the tab set differs by frame. */
+type Tab = "answer" | "profile" | "compare";
+
 type Snap = "peek" | "half" | "full";
 const SNAP_ORDER: Snap[] = ["peek", "half", "full"];
 const PEEK_PX = 104;
@@ -51,8 +41,8 @@ const TAP_SLOP = 6; // px of travel below which a pointer gesture counts as a ta
  * sheet, so nothing gets shoved out of reach and the map is always a swipe away.
  */
 export function ContextPanel() {
-  const { selected, select, compare, question } = useWorkspace();
-  const [tab, setTab] = useState<"profile" | "compare">("profile");
+  const { selected, select, compare, question, currentTurn } = useWorkspace();
+  const [tab, setTab] = useState<Tab>("profile");
   const isLg = useIsLg();
 
   // --- Desktop resize state ------------------------------------------------
@@ -180,11 +170,35 @@ export function ContextPanel() {
 
   // --- Shared content ------------------------------------------------------
   const showCompareTab = compare.length >= 2;
-  const activeTab = tab === "compare" && showCompareTab ? "compare" : "profile";
+  const showAnswerTab = !isLg && !!question;
 
-  const tabsEl = showCompareTab ? (
+  // TRI-84: an answer that pins suburbs used to leave the user staring at the
+  // Profile tab (the compare set changed with nothing on screen to show it).
+  // meta.intent — captured since TRI-82 — now steers the view. Adjusted during
+  // render via the "store previous value" pattern, never setState-in-effect.
+  const intentKey = currentTurn ? `${currentTurn.key}:${currentTurn.intent ?? ""}` : null;
+  const [prevIntentKey, setPrevIntentKey] = useState<string | null>(null);
+  if (intentKey !== prevIntentKey) {
+    setPrevIntentKey(intentKey);
+    if (currentTurn) {
+      if (currentTurn.intent === "compare" && compare.length >= 2) setTab("compare");
+      else if (!isLg) setTab("answer");
+    }
+  }
+
+  const available: Tab[] = [
+    ...(showAnswerTab ? (["answer"] as const) : []),
+    "profile",
+    ...(showCompareTab ? (["compare"] as const) : []),
+  ];
+  const activeTab: Tab = available.includes(tab) ? tab : "profile";
+
+  const tabLabel = (t: Tab) =>
+    t === "answer" ? "Answer" : t === "profile" ? "Profile" : `Compare (${compare.length})`;
+
+  const tabsEl = available.length > 1 ? (
     <div className="flex gap-1 rounded-lg border border-hairline bg-canvas p-0.5">
-      {(["profile", "compare"] as const).map((t) => (
+      {available.map((t) => (
         <button
           key={t}
           type="button"
@@ -193,14 +207,18 @@ export function ContextPanel() {
             activeTab === t ? "bg-surface text-ink shadow-sm" : "text-ink/55 hover:text-ink"
           }`}
         >
-          {t === "profile" ? "Profile" : `Compare (${compare.length})`}
+          {tabLabel(t)}
         </button>
       ))}
     </div>
   ) : null;
 
   const bodyEl =
-    activeTab === "compare" ? (
+    activeTab === "answer" ? (
+      // Same body as the desktop strip; only the cap number differs — it comes
+      // from the sheet's live snap height rather than a viewport fraction.
+      <AnswerThread maxHeight={`${Math.max(140, (dragH ?? snapHeight(snap)) - 210)}px`} />
+    ) : activeTab === "compare" ? (
       <ComparePanel />
     ) : selected ? (
       <ProfilePanel sa2={selected} />
@@ -253,7 +271,6 @@ export function ContextPanel() {
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 pb-4">
           <SuburbSearch />
-          <AnswerPanel />
           {tabsEl}
           {bodyEl}
         </div>
@@ -287,7 +304,6 @@ export function ContextPanel() {
         className="absolute inset-y-0 left-0 z-20 hidden w-1.5 cursor-col-resize touch-none bg-transparent transition-colors hover:bg-harbour/40 active:bg-harbour/60 lg:block"
       />
       <SuburbSearch />
-      <AnswerPanel />
       {tabsEl}
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">{bodyEl}</div>
     </aside>

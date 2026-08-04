@@ -532,6 +532,18 @@ export async function POST(req: NextRequest) {
           compare: compareCodes,
           sources: rows,
           persona: personaCfg.key,
+          // TRI-83 "How this was matched" — the planner's own decisions, shown
+          // verbatim so the user can see what the question was read as (and
+          // spot a misreading) rather than trusting the prose blindly. Purely
+          // descriptive: no scores, nothing the answer doesn't already act on.
+          match: {
+            metrics: plan.metric_keys,
+            suburbs: plan.suburbs,
+            rankDirection: plan.rank_direction,
+            limit: plan.limit,
+            note: plan.note,
+            commute: plan.commute,
+          },
           // Which backend/model actually served this request — recorded by the eval.
           provider: chat.name,
           models: { plan: chat.modelFor("reasoning"), answer: chat.modelFor("reasoning") },
