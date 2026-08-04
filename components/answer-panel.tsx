@@ -1,40 +1,24 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
-import { useWorkspace } from "@/lib/workspace";
-import { getPersona, getWorkplace } from "@/lib/preferences";
+import { Fragment } from "react";
+import { useWorkspace, type AnswerSource } from "@/lib/workspace";
 import { ConfidenceChip, shortSource } from "./provenance";
 
 /**
- * TRI-29 — the cited answer (TRI-32: provenance surfaced). Streams NDJSON from
- * /api/ask; renders prose with {{cN}} markers replaced by amber citation chips
- * (the live-wire — the ONLY place amber is used). Chips show source · year and
- * click through to the suburb. The sources footer is the server-known row list
- * — shown from the moment sources arrive (not just on done) and carrying each
- * source's confidence — so every citation is traceable by construction.
+ * TRI-29 — the cited answer (TRI-32: provenance surfaced). Renders prose with
+ * {{cN}} markers replaced by amber citation chips (the live-wire — the ONLY
+ * place amber is used). Chips show source · year and click through to the
+ * suburb. The sources footer is the server-known row list — shown from the
+ * moment sources arrive (not just on done) and carrying each source's
+ * confidence — so every citation is traceable by construction.
+ *
+ * TRI-82: this is now a PURE RENDERER. The /api/ask fetch, NDJSON parsing and
+ * staleness guard live in WorkspaceProvider so every answer surface reads one
+ * in-flight turn. Do not reintroduce fetching or answer state here — a second
+ * surface (TRI-83/TRI-84) would fork the stream.
  */
 
-interface Source {
-  n: number;
-  suburb: string;
-  sa2_code: string;
-  label: string;
-  value: number;
-  unit: string | null;
-  source: string;
-  as_of: string;
-  confidence: string;
-}
-
-interface AnswerState {
-  key: number;
-  text: string;
-  sources: Source[];
-  status: "streaming" | "done" | "error";
-  error?: string;
-}
-
-function CitationChip({ s, onSelect }: { s: Source; onSelect: () => void }) {
+function CitationChip({ s, onSelect }: { s: AnswerSource; onSelect: () => void }) {
   return (
     <button
       type="button"
@@ -50,7 +34,7 @@ function CitationChip({ s, onSelect }: { s: Source; onSelect: () => void }) {
 
 function CitedText({ text, sources, onSelect }: {
   text: string;
-  sources: Source[];
+  sources: AnswerSource[];
   onSelect: (sa2: string) => void;
 }) {
   const parts = text.split(/\{\{c(\d+)\}\}/g);
@@ -68,95 +52,11 @@ function CitedText({ text, sources, onSelect }: {
 }
 
 export function AnswerPanel() {
-  const { question, askSeq, clearAsk, select, setCompareSet } = useWorkspace();
-  const [answer, setAnswer] = useState<AnswerState | null>(null);
-
-  useEffect(() => {
-    if (!question) return;
-    const controller = new AbortController();
-    let stale = false;
-
-    (async () => {
-      try {
-        const res = await fetch("/api/ask", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          // The saved workplace rides along so "commute to work" resolves
-          // server-side (TRI-54), and the active persona steers metric
-          // emphasis (TRI-61); both snapshotted here, not reactive.
-          body: JSON.stringify({
-            question,
-            workplace: getWorkplace() ?? undefined,
-            persona: getPersona(),
-          }),
-          signal: controller.signal,
-        });
-        if (!res.ok || !res.body) throw new Error(`ask failed (${res.status})`);
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        let text = "";
-        let sources: Source[] = [];
-
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-          for (const line of lines) {
-            if (!line.trim() || stale) continue;
-            const msg = JSON.parse(line) as {
-              type: string;
-              text?: string;
-              sources?: Source[];
-              compare?: string[];
-              message?: string;
-            };
-            if (msg.type === "meta") {
-              sources = msg.sources ?? [];
-              if (msg.compare && msg.compare.length >= 2) setCompareSet(msg.compare);
-              setAnswer({ key: askSeq, text: "", sources, status: "streaming" });
-            } else if (msg.type === "delta") {
-              text += msg.text ?? "";
-              const t = text;
-              setAnswer({ key: askSeq, text: t, sources, status: "streaming" });
-            } else if (msg.type === "done") {
-              const t = text;
-              setAnswer({ key: askSeq, text: t, sources, status: "done" });
-            } else if (msg.type === "error") {
-              setAnswer({
-                key: askSeq,
-                text,
-                sources,
-                status: "error",
-                error: msg.message,
-              });
-            }
-          }
-        }
-      } catch (err) {
-        if (!stale && !controller.signal.aborted) {
-          setAnswer({
-            key: askSeq,
-            text: "",
-            sources: [],
-            status: "error",
-            error: err instanceof Error ? err.message : "request failed",
-          });
-        }
-      }
-    })();
-
-    return () => {
-      stale = true;
-      controller.abort();
-    };
-  }, [question, askSeq, setCompareSet]);
+  const { question, currentTurn, clearAsk, select } = useWorkspace();
 
   if (!question) return null;
-  const current = answer?.key === askSeq ? answer : null;
+  // "pending" = submitted, nothing back yet → the Thinking… state.
+  const current = currentTurn && currentTurn.status !== "pending" ? currentTurn : null;
 
   return (
     <section className="rounded-xl border border-hairline bg-canvas p-4">
