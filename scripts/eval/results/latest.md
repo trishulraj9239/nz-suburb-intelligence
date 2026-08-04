@@ -4,5 +4,5 @@ Claude vs open-weight on 22 fixed suburb questions, scored against the live `/ap
 
 | Model | Plan valid | Citations OK | Refusal OK | Avg quality | Avg latency | Est. cost/run |
 |---|---|---|---|---|---|---|
-| Claude Sonnet 4.6 | 22/22 | 22/22 | 22/22 | 4.1/5 | 7419ms | $0.00229 |
-| Qwen 3.6 27B (Groq) | 22/22 | 22/22 | 22/22 | 4.2/5 | 8811ms | $0.00002 |
+| Claude Sonnet 4.6 | 22/22 | 22/22 | 22/22 | 4.5/5 | 7771ms | $0.00231 |
+| Qwen 3.6 27B (Groq) | 22/22 | 22/22 | 22/22 | 3.9/5 | 7477ms | $0.00002 |
