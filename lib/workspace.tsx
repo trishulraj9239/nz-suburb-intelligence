@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { getPersona, getWorkplace } from "./preferences";
+import { getAnchors, getPersona, getRentBudget, getWorkplace } from "./preferences";
 
 export const COMPARE_LIMIT = 3;
 
@@ -52,6 +52,16 @@ export interface AnswerTurn {
   /** What the planner read the question as — powers "How this was matched"
    *  (TRI-83). Descriptive only; never a score. */
   match: AnswerMatch | null;
+  /** Constraints that actually shaped this answer (TRI-105), each removable. */
+  constraints: AnswerConstraint[];
+  /** Constraint keys the user dropped for this turn. */
+  relax: string[];
+}
+
+/** A filter the answer applied, shown so it can be seen and removed (TRI-105). */
+export interface AnswerConstraint {
+  key: string;
+  label: string;
 }
 
 /** The planner's decisions, surfaced for transparency (TRI-83). */
@@ -81,7 +91,7 @@ interface WorkspaceState {
   /** Active natural-language question (M5 ask flow). askSeq bumps per submit. */
   question: string | null;
   askSeq: number;
-  ask: (q: string) => void;
+  ask: (q: string, relax?: string[]) => void;
   clearAsk: () => void;
   /** Transient row-hover from the Results table (TRI-104) — the map paints an
    *  emphasis for it. Not selection: hovering never opens a profile. */
@@ -128,8 +138,13 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   // back out of the setState updater — the effect below and the appended turn
   // must agree on the number in the same tick.
   const seqRef = useRef(0);
-  const ask = useCallback((q: string) => {
+  // `relax` carries constraint keys the user dismissed on the previous
+  // answer (TRI-105). Held on the turn so a re-run is a new turn, not a mutation
+  // of the old one — the original answer stays in the thread, as asked.
+  const relaxRef = useRef<string[]>([]);
+  const ask = useCallback((q: string, relax: string[] = []) => {
     const key = ++seqRef.current;
+    relaxRef.current = relax;
     setQuestion(q);
     setAskSeq(key);
     setTurns((prev) => [
@@ -143,6 +158,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         intent: null,
         persona: null,
         match: null,
+        constraints: [],
+        relax,
       },
     ]);
   }, []);
@@ -176,13 +193,18 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         const res = await fetch("/api/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          // The saved workplace rides along so "commute to work" resolves
-          // server-side (TRI-54), and the active persona steers metric
-          // emphasis (TRI-61); both snapshotted here, not reactive.
+          // Preferences ride along so the server can resolve "to work" and
+          // state what it weighted (TRI-54 → TRI-92). All snapshotted at submit
+          // time, not reactive: an answer should reflect the settings the
+          // question was asked under, even if the user changes them mid-stream.
+          // `workplace` stays for compatibility; anchors supersede it.
           body: JSON.stringify({
             question,
             workplace: getWorkplace() ?? undefined,
+            anchors: getAnchors(),
+            budget: getRentBudget() ?? undefined,
             persona: getPersona(),
+            relax: relaxRef.current,
           }),
           signal: controller.signal,
         });
@@ -210,6 +232,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
               intent?: string;
               persona?: string;
               match?: AnswerMatch;
+              constraints?: AnswerConstraint[];
               message?: string;
             };
             if (msg.type === "meta") {
@@ -232,6 +255,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
                 intent: msg.intent ?? null,
                 persona: msg.persona ?? null,
                 match: msg.match ?? null,
+                constraints: msg.constraints ?? [],
               });
             } else if (msg.type === "delta") {
               text += msg.text ?? "";

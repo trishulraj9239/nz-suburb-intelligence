@@ -10,7 +10,9 @@ They need a dev server on `:3000` and Playwright's msedge channel:
 npm run dev                                  # in another shell
 node scripts/test/tri83-verify.mjs           # answer strip + mobile tab, one body two frames
 node scripts/test/tri85-verify.mjs           # geometry-derived map fit, controls, panel affordance
-node scripts/test/tri104-verify.mjs          # Results tab + intent-driven choreography
+node scripts/test/tri104-verify.mjs     # Results tab + intent-driven choreography
+node scripts/test/tri93-verify.mjs      # question chips: starters, follow-ups, persona
+node scripts/test/tri106-verify.mjs     # persona KPI tiles + Auckland-median reference
 ```
 
 Screenshots are written to `shots/`, which is git-ignored — the assertions are

@@ -5,7 +5,7 @@ import { useWorkspace } from "@/lib/workspace";
 import { ThemeToggle } from "./theme-toggle";
 import { AuthButton } from "./auth-button";
 import { BudgetControl } from "./budget-control";
-import { WorkplaceControl } from "./workplace-control";
+import { AnchorsControl } from "./anchors-control";
 import { PersonaToggle } from "./persona-toggle";
 
 /** Seeds the query bar so the box is never blank — also the state Home returns to. */
@@ -80,7 +80,7 @@ export function TopBar() {
 
       <div className="ml-auto flex shrink-0 items-center gap-x-3">
         <PersonaToggle />
-        <WorkplaceControl />
+        <AnchorsControl />
         <BudgetControl />
         <AuthButton />
         <ThemeToggle />

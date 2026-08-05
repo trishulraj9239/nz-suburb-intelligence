@@ -14,13 +14,14 @@ import {
   type SuburbProfile,
 } from "@/lib/suburb-data";
 import { COMPARE_LIMIT, useWorkspace } from "@/lib/workspace";
-import { usePersona, useWorkplace } from "@/lib/preferences";
+import { useAnchors, usePersona, type Anchor } from "@/lib/preferences";
 import { personaConfig, SECTION_EXPLAINERS, SECTION_LABELS } from "@/lib/persona";
-import { HAZARD_CAVEAT } from "@/lib/hazard";
+import { HAZARD_CAVEAT, HAZARD_METRIC_KEYS } from "@/lib/hazard";
 import { BudgetChip } from "./budget-chip";
 import { InfoTip } from "./info-tip";
 import { ConfidenceChip, Provenance, SourceChip } from "./provenance";
 import { StackedBar } from "./stacked-bar";
+import { KpiTiles } from "./kpi-tiles";
 
 /**
  * Percentile-vs-region bar. For metrics with higher_is_better NULL
@@ -96,24 +97,24 @@ interface CommuteResponse {
 }
 
 /**
- * TRI-54 — commute to the saved workplace, shown under "Getting around" when
- * the preference is set. User-specific, so it's a live /api/commute call
- * (server-cached indefinitely) rather than a registry metric.
+ * TRI-54, generalised to anchors in TRI-91 — drive time from this suburb to one
+ * saved anchor, shown under "Getting around". User-specific, so it's a live
+ * /api/commute call (server-cached indefinitely) rather than a registry metric.
+ * Drive mode only: it's the mode people ask about for a daily trip, and every
+ * extra mode is another ORS call against a 2000/day budget.
  */
-function WorkplaceCommuteRow({ sa2 }: { sa2: string }) {
-  const workplace = useWorkplace();
-  const key = workplace ? `${sa2}|${workplace.lng},${workplace.lat}` : null;
+function AnchorCommuteRow({ sa2, anchor }: { sa2: string; anchor: Anchor }) {
+  const key = `${sa2}|${anchor.lng},${anchor.lat}`;
   const [state, setState] = useState<{ key: string; r: CommuteResponse | null } | null>(null);
 
   useEffect(() => {
-    if (!workplace || !key) return;
     let stale = false;
     fetch("/api/commute", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         origin: { sa2_code: sa2 },
-        destination: { lng: workplace.lng, lat: workplace.lat },
+        destination: { lng: anchor.lng, lat: anchor.lat },
         mode: "driving-car",
       }),
     })
@@ -127,18 +128,17 @@ function WorkplaceCommuteRow({ sa2 }: { sa2: string }) {
     return () => {
       stale = true;
     };
-  }, [sa2, key, workplace]);
+  }, [sa2, key, anchor.lng, anchor.lat]);
 
-  if (!workplace) return null;
   const loaded = state?.key === key ? state.r : undefined;
 
   return (
     <div className="py-2">
       <div className="flex items-baseline justify-between gap-2">
         <span className="min-w-0 text-sm text-ink/80">
-          Drive to work{" "}
-          <span className="block truncate font-mono text-[10px] text-ink/45" title={workplace.address}>
-            → {workplace.address}
+          Drive to {anchor.label.toLowerCase()}{" "}
+          <span className="block truncate font-mono text-[10px] text-ink/45" title={anchor.address}>
+            → {anchor.address}
           </span>
         </span>
         <span className="shrink-0 font-mono text-sm font-medium text-ink">
@@ -161,6 +161,89 @@ function WorkplaceCommuteRow({ sa2 }: { sa2: string }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** Quota guard: each anchor row is one ORS directions call on first view (the
+ *  result is then cached indefinitely server-side). Auto-routing every saved
+ *  anchor would burn up to 7 calls each time a profile is opened, so only the
+ *  first few go automatically and the rest are opt-in per suburb. */
+const AUTO_ROUTED_ANCHORS = 3;
+
+function AnchorCommuteRows({ sa2 }: { sa2: string }) {
+  const anchors = useAnchors();
+  const [showAll, setShowAll] = useState(false);
+  // Reset the opt-in when the user moves to a different suburb — "show the
+  // rest" is a per-suburb decision, not a sticky preference.
+  const [prevSa2, setPrevSa2] = useState(sa2);
+  if (sa2 !== prevSa2) {
+    setPrevSa2(sa2);
+    setShowAll(false);
+  }
+
+  if (!anchors.length) return null;
+  const shown = showAll ? anchors : anchors.slice(0, AUTO_ROUTED_ANCHORS);
+  const hidden = anchors.length - shown.length;
+
+  return (
+    <>
+      {shown.map((a) => (
+        <AnchorCommuteRow key={a.id} sa2={sa2} anchor={a} />
+      ))}
+      {hidden > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowAll(true)}
+          className="py-1 text-left text-xs text-ink/55 underline decoration-dotted underline-offset-2 hover:text-ink"
+        >
+          Show drive {hidden === 1 ? "time" : "times"} for {hidden} more{" "}
+          {hidden === 1 ? "anchor" : "anchors"}
+        </button>
+      )}
+    </>
+  );
+}
+
+/**
+ * TRI-112 — the ONLY permitted hazard summary: a countable fact.
+ *
+ * The prototype proposed a "Low / Moderate" band, which was rejected — its own
+ * tooltip admitted it was synthesised from separate models, which is exactly
+ * the composite the answer layer refuses to produce. Counting how many measured
+ * layers sit above the Auckland median invents nothing: each comparison is one
+ * layer against its own regional median, and the sentence says so.
+ *
+ * No verdict, no ordering of suburbs, no colour coding by severity — being
+ * above the median on two layers is a fact, not a grade.
+ */
+function HazardFactCount({
+  rows,
+  statFor,
+}: {
+  rows: ScalarValue[];
+  statFor: (key: string, asOf: string) => RegionalStat | undefined;
+}) {
+  const comparable = rows
+    .map((s) => ({ s, stat: statFor(s.def.metric_key, s.asOf) }))
+    .filter((x): x is { s: ScalarValue; stat: RegionalStat } => !!x.stat);
+  if (comparable.length < 2) return null;
+
+  const above = comparable.filter((x) => x.s.value > x.stat.median).length;
+  return (
+    <p className="mt-1.5">
+      <span
+        className="inline-flex items-center rounded-full border border-hairline bg-canvas px-2 py-0.5 font-mono text-[11px] text-ink/75"
+        title={comparable
+          .map(
+            (x) =>
+              `${x.s.def.label}: ${formatValue(x.s.def, x.s.value)} vs Auckland median ${formatValue(x.s.def, x.stat.median)}`,
+          )
+          .join("\n")}
+      >
+        {above} of {comparable.length}{" "}
+        {comparable.length === 1 ? "layer" : "layers"} above the Auckland median
+      </span>
+    </p>
   );
 }
 
@@ -190,6 +273,15 @@ function ScalarRow({ s, stat }: { s: ScalarValue; stat?: RegionalStat }) {
             pct={percentileOf(s.value, stat)}
             judged={s.def.higher_is_better !== null}
           />
+          {/* TRI-112 — hazard rows state the Auckland median outright. The
+              percentile bar shows position, but "2.1% of land in the flood
+              plain" is unreadable without knowing what's normal, and hazard is
+              where a reader is least likely to have a prior. */}
+          {HAZARD_METRIC_KEYS.has(s.def.metric_key) && (
+            <p className="mt-0.5 text-right font-mono text-[10px] text-ink/45">
+              Auckland median {formatValue(s.def, stat.median)}
+            </p>
+          )}
         </div>
       )}
       <div className="mt-1 flex justify-end">
@@ -300,6 +392,10 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
         )}
       </div>
 
+      {/* Headline numbers for the active persona (TRI-106). Which five appear
+          is persona config, not logic here. */}
+      <KpiTiles keys={personaConfig(persona).kpiTiles} scalars={scalars} statFor={statFor} />
+
       {/* Metric sections — persona-ordered; each dimension's breakdowns render
           inside its section (composition, no better/worse framing). */}
       {dims.map((dim) => {
@@ -321,14 +417,17 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
               )}
             </h3>
             {dim === "hazard" && (
-              <p className="mt-1 text-[10px] leading-snug text-ink/50">{HAZARD_CAVEAT}</p>
+              <>
+                <HazardFactCount rows={rows} statFor={statFor} />
+                <p className="mt-1 text-[10px] leading-snug text-ink/50">{HAZARD_CAVEAT}</p>
+              </>
             )}
             {(rows.length > 0 || dim === "commute") && (
               <div className="divide-y divide-hairline/60">
                 {rows.map((s) => (
                   <ScalarRow key={s.def.metric_key} s={s} stat={statFor(s.def.metric_key, s.asOf)} />
                 ))}
-                {dim === "commute" && <WorkplaceCommuteRow sa2={sa2} />}
+                {dim === "commute" && <AnchorCommuteRows sa2={sa2} />}
               </div>
             )}
             {comps.map((b) => (
