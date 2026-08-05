@@ -157,6 +157,7 @@ function CompareColumn({
 
 export function ComparePanel() {
   const { compare, toggleCompare, select } = useWorkspace();
+  const [onlyDiff, setOnlyDiff] = useState(false);
   const persona = usePersona();
   const sectionOrder = personaConfig(persona).sectionOrder;
   const key = compare.join("|");
@@ -212,8 +213,36 @@ export function ComparePanel() {
     profiles.flatMap((p) => p.scalars).find((s) => s.def.metric_key === k)!.def;
   const orderedKeys = orderBySection(metricKeys, (k) => defFor(k).dimension, sectionOrder);
 
+  // TRI-106 — "only differences". A three-way comparison runs to dozens of rows,
+  // most of which agree; hiding those makes the real contrasts findable. Rows
+  // where a suburb is MISSING a value are always kept: an absent figure is a
+  // difference, and dropping it would hide a gap in coverage as if it were a
+  // similarity.
+  const differing = (k: string) => {
+    const vals = profiles.map((pr) => pr.scalars.find((x) => x.def.metric_key === k)?.value);
+    if (vals.some((v) => v === undefined)) return true;
+    return new Set(vals).size > 1;
+  };
+  const shownKeys = onlyDiff ? orderedKeys.filter(differing) : orderedKeys;
+  const hiddenCount = orderedKeys.length - shownKeys.length;
+
   return (
     <div className="flex flex-col gap-3">
+      <label className="flex items-center gap-2 text-xs text-ink/70">
+        <input
+          type="checkbox"
+          checked={onlyDiff}
+          onChange={(e) => setOnlyDiff(e.target.checked)}
+          className="h-3.5 w-3.5 accent-[var(--harbour)]"
+        />
+        Only differences
+        {onlyDiff && hiddenCount > 0 && (
+          <span className="font-mono text-[10px] text-ink/45">
+            {hiddenCount} identical {hiddenCount === 1 ? "row" : "rows"} hidden
+          </span>
+        )}
+      </label>
+
       {/* Desktop: full profiles side by side */}
       <div
         className="hidden gap-3 lg:grid"
@@ -257,7 +286,7 @@ export function ComparePanel() {
           </tr>
         </thead>
         <tbody className="divide-y divide-hairline/60">
-          {orderedKeys.map((k) => {
+          {shownKeys.map((k) => {
             const def = defFor(k);
             // Source + vintage are shared per metric; confidence differs per suburb.
             const any = profiles

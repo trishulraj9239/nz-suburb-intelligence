@@ -39,6 +39,14 @@ export interface PersonaConfig {
   metricWeights: Record<string, number>;
   /** One sentence interpolated into the plan + answer system prompts. */
   promptDescriptor: string;
+  /**
+   * TRI-106 — metric_keys shown as headline tiles above the profile, in order.
+   * Pure config like everything else here: a third persona picks its own five
+   * without touching a component. Scalar metrics only. A key missing from the
+   * live registry, or with no value for this suburb, is skipped — the grid
+   * shrinks rather than rendering an empty tile.
+   */
+  kpiTiles: string[];
 }
 
 export const SECTION_LABELS: Record<string, string> = {
@@ -70,6 +78,13 @@ export const PERSONAS: Record<string, PersonaConfig> = {
     label: "Renting",
     sectionOrder: ["housing", "commute", "people", "deprivation", "hazard", "planning"],
     defaultMapMetric: "rent_median_weekly", // MBIE bond series (M13) — fresher than the census rent
+    kpiTiles: [
+      "rent_median_weekly",
+      "commute_cbd_drive_min",
+      "nzdep_decile",
+      "population",
+      "median_household_income",
+    ],
     metricWeights: {
       median_rent_weekly: 2,
       commute_cbd_drive_min: 1.5,
@@ -85,6 +100,13 @@ export const PERSONAS: Record<string, PersonaConfig> = {
     label: "Buying",
     sectionOrder: ["housing", "planning", "hazard", "people", "deprivation", "commute"],
     defaultMapMetric: "consents_per_1000_dwellings", // M15 — live since TRI-73
+    kpiTiles: [
+      "intensification_capacity_indicator",
+      "consents_per_1000_dwellings",
+      "consents_new_dwellings_12m",
+      "median_household_income",
+      "rent_median_weekly",
+    ],
     // TRI-74 re-tune: every weighted metric now exists in the live registry.
     // The rate (per-1000) carries the comparison weight; the raw 12m count
     // stays lightly emphasised (big suburbs would otherwise dominate).

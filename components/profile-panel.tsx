@@ -21,6 +21,7 @@ import { BudgetChip } from "./budget-chip";
 import { InfoTip } from "./info-tip";
 import { ConfidenceChip, Provenance, SourceChip } from "./provenance";
 import { StackedBar } from "./stacked-bar";
+import { KpiTiles } from "./kpi-tiles";
 
 /**
  * Percentile-vs-region bar. For metrics with higher_is_better NULL
@@ -338,6 +339,10 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
           </p>
         )}
       </div>
+
+      {/* Headline numbers for the active persona (TRI-106). Which five appear
+          is persona config, not logic here. */}
+      <KpiTiles keys={personaConfig(persona).kpiTiles} scalars={scalars} statFor={statFor} />
 
       {/* Metric sections — persona-ordered; each dimension's breakdowns render
           inside its section (composition, no better/worse framing). */}
