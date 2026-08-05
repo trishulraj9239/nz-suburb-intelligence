@@ -130,6 +130,45 @@ function ResultPills({ turn }: { turn: AnswerTurn }) {
   );
 }
 
+/**
+ * TRI-105 — the filters this answer actually applied, each removable. Removing
+ * one re-asks the SAME question with that constraint dropped, as a new turn, so
+ * the original answer isn't rewritten under the user.
+ *
+ * Only constraints that were applied appear. A constraint the user already
+ * dropped is absent rather than shown struck through — the chips describe this
+ * answer, not the history of how it was reached.
+ */
+function ConstraintChips({ turn }: { turn: AnswerTurn }) {
+  const { ask } = useWorkspace();
+  if (!turn.constraints.length) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="font-display text-[10px] font-semibold uppercase tracking-wider text-ink/45">
+        Filters
+      </span>
+      {turn.constraints.map((c) => (
+        <span
+          key={c.key}
+          className="inline-flex items-center gap-1 rounded-full border border-hairline bg-canvas py-0.5 pl-2.5 pr-1 text-[11px] text-ink/80"
+        >
+          {c.label}
+          <button
+            type="button"
+            onClick={() => ask(turn.question, [...turn.relax, c.key])}
+            aria-label={`Remove filter: ${c.label}, and ask again`}
+            title="Remove this filter and ask again"
+            className="rounded-full px-1 text-ink/40 transition-colors hover:bg-harbour/10 hover:text-ink"
+          >
+            ✕
+          </button>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 /** Transparency disclosure — what the planner read the question as. Descriptive
  *  only. Metric keys are shown with the human label from the rows when we have
  *  one, so this never displays a name the rest of the UI doesn't use. */
@@ -237,6 +276,7 @@ export function AnswerThread({ maxHeight }: { maxHeight?: string }) {
             </p>
           )}
 
+          <ConstraintChips turn={current} />
           <ResultPills turn={current} />
           <HowMatched turn={current} />
           <QuestionChips variant="follow-up" />

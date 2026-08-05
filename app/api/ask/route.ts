@@ -202,13 +202,15 @@ const PLAN_SCHEMA = {
 } as const;
 
 export async function POST(req: NextRequest) {
-  const { question, provider, workplace, persona, anchors, budget } = (await req.json()) as {
+  const { question, provider, workplace, persona, anchors, budget, relax } = (await req.json()) as {
     question?: string;
     provider?: string;
     workplace?: { address?: string; lng?: number; lat?: number };
     persona?: string;
     anchors?: { kind?: string; label?: string; address?: string; lng?: number; lat?: number }[];
     budget?: number;
+    /** TRI-105 — constraints the user removed from the answer; re-run without them. */
+    relax?: string[];
   };
   if (!question?.trim() || question.length > 500) {
     return Response.json({ error: "question required (max 500 chars)" }, { status: 400 });
@@ -260,10 +262,15 @@ export async function POST(req: NextRequest) {
     savedPlaces.push({ kind: "work", label: "Work", ...work });
   }
 
+  // TRI-105 — a chip the user dismissed on the last answer. Only known keys
+  // are honoured, so the body can't suppress arbitrary behaviour.
+  const relaxed = new Set((Array.isArray(relax) ? relax : []).filter((r) => r === "budget" || r === "commute"));
+
   // Weekly rent budget (TRI-37). Emphasis only: it tells the answer what to
   // point out, and must NEVER filter rows — a suburb over budget still appears,
   // labelled, because hiding it would silently narrow the user's options.
   const rentBudget =
+    !relaxed.has("budget") &&
     typeof budget === "number" && Number.isFinite(budget) && budget > 0 && budget < 5000
       ? Math.round(budget)
       : null;
@@ -528,6 +535,7 @@ export async function POST(req: NextRequest) {
 
   // Commute-constrained ranking ("under $650 within 30 min of Penrose"):
   // rank rows already hold the metric shortlist; one matrix call filters it.
+  if (relaxed.has("commute")) plan.commute.max_minutes = null;
   if (plan.intent === "rank" && plan.commute.destination && plan.commute.max_minutes) {
     const dest = await resolvePlace(supabase, plan.commute.destination, savedPlaces);
     if (dest && rows.length) {
@@ -720,6 +728,20 @@ export async function POST(req: NextRequest) {
           // verbatim so the user can see what the question was read as (and
           // spot a misreading) rather than trusting the prose blindly. Purely
           // descriptive: no scores, nothing the answer doesn't already act on.
+          // TRI-105 — the constraints that actually shaped this answer, so the
+          // UI can show them and offer to drop one. Only what was APPLIED is
+          // listed; a relaxed constraint is absent, not marked.
+          constraints: [
+            ...(rentBudget ? [{ key: "budget", label: `rent vs $${rentBudget}/wk` }] : []),
+            ...(plan.commute.destination && plan.commute.max_minutes
+              ? [
+                  {
+                    key: "commute",
+                    label: `within ${plan.commute.max_minutes} min ${MODE_LABEL[plan.commute.mode]} of ${plan.commute.destination}`,
+                  },
+                ]
+              : []),
+          ],
           match: {
             metrics: plan.metric_keys,
             suburbs: plan.suburbs,
