@@ -18,6 +18,7 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { scoreGrounding } from "./grounding.mjs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { judge, JUDGE_MODEL } from "./judge.mjs";
@@ -86,6 +87,10 @@ function score(q, run) {
     ? sources.some((s) => (s.source ?? "").includes(q.expect.sourceIncludes))
     : true;
 
+  // TRI-110 — does each cited FIGURE match the row it cites? citations_ok only
+  // proves the marker resolves. Report-only for now: it does not gate.
+  const grounding = scoreGrounding(run.text, sources);
+
   const tokensEst = Math.ceil((q.question.length + run.text.length) / 4);
   const p = PRICING[run.provider];
   // Split estimate: question ~ input, answer ~ output.
@@ -104,6 +109,7 @@ function score(q, run) {
     cost_est_usd: costEst,
     n_sources: sources.length,
     n_citations: markers.length,
+    ...grounding,
     model: run.meta?.models?.answer ?? p.label,
   };
 }
@@ -177,7 +183,18 @@ async function main() {
       intent: q.intent,
       question: q.question,
       results: Object.fromEntries(
-        PROVIDERS.map((p) => [p, { ...runs[p].score, answer: runs[p].run.text, quality: quality?.[p] ?? null }]),
+        // TRI-110 — persist the ROWS too. Without them a disputed judgement
+        // can't be re-examined after the fact, which is exactly what happened
+        // when the judge cried fabrication on q22 and the evidence was gone.
+        PROVIDERS.map((p) => [
+          p,
+          {
+            ...runs[p].score,
+            answer: runs[p].run.text,
+            sources: runs[p].run.meta?.sources ?? [],
+            quality: quality?.[p] ?? null,
+          },
+        ]),
       ),
     });
     writeFileSync(PARTIAL, JSON.stringify(detail));
@@ -192,13 +209,13 @@ async function main() {
     "# Model tradeoff eval (TRI-31)\n\n" +
     `Claude vs open-weight on ${questions.length} fixed suburb questions, scored against the live \`/api/ask\` pipeline. ` +
     `Quality is Claude Opus 4.8 as a blind judge (1-5). Tokens/cost are **estimated** (chars/4 × published rates; Groq free tier ≈ $0).\n\n` +
-    "| Model | Plan valid | Citations OK | Refusal OK | Avg quality | Avg latency | Est. cost/run |\n" +
-    "|---|---|---|---|---|---|---|\n";
+    "| Model | Plan valid | Citations OK | Figures grounded | Refusal OK | Avg quality | Avg latency | Est. cost/run |\n" +
+    "|---|---|---|---|---|---|---|---|\n";
   const body = PROVIDERS.map((p) => {
     const rows = perProvider[p];
     const q = rows.filter((r) => r.quality != null);
     const qAvg = q.length ? avg(q, "quality").toFixed(1) : "—";
-    return `| ${PRICING[p].label} | ${pct(rows, "plan_valid")} | ${pct(rows, "citations_ok")} | ${pct(rows, "refusal_ok")} | ${qAvg}/5 | ${Math.round(avg(rows, "latency_ms"))}ms | $${avg(rows, "cost_est_usd").toFixed(5)} |`;
+    return `| ${PRICING[p].label} | ${pct(rows, "plan_valid")} | ${pct(rows, "citations_ok")} | ${pct(rows, "values_grounded")} | ${pct(rows, "refusal_ok")} | ${qAvg}/5 | ${Math.round(avg(rows, "latency_ms"))}ms | $${avg(rows, "cost_est_usd").toFixed(5)} |`;
   }).join("\n");
   const md = header + body + "\n";
   writeFileSync(join(HERE, "results", "latest.md"), md);
