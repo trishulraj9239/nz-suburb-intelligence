@@ -1,0 +1,21 @@
+import { chromium } from "playwright-core";
+const fail=(m)=>{throw new Error("FAIL: "+m)};
+const b=await chromium.launch({channel:"msedge",headless:true});
+const p=await b.newPage({viewport:{width:1440,height:900}});
+await p.goto("http://localhost:3000",{waitUntil:"networkidle"});
+await p.waitForTimeout(2500);
+await p.getByRole("button",{name:"Ponsonby West",exact:true}).first().click();
+const panel=p.locator("aside").last();
+for(let i=0;i<40;i++){ if(/above the Auckland median/i.test(await panel.innerText())) break; await p.waitForTimeout(500);}
+const t=await panel.innerText();
+const m=t.match(/(\d+) of (\d+) layers? above the Auckland median/i);
+if(!m) fail("no hazard fact-count pill");
+console.log("hazard fact count:", m[0], "✓");
+if(/\b(Low|Moderate|High)\b\s*(risk|band)/i.test(t)) fail("a synthesised risk band appeared");
+console.log("no synthesised band ✓");
+const medRows=(t.match(/Auckland median/g)||[]).length;
+console.log("Auckland-median references on the profile:", medRows);
+if(medRows < 4) fail("expected median references on tiles and hazard rows");
+await p.screenshot({path:"shots/tri112-hazard.png"});
+console.log("\nPASS — hazard countable fact + median references");
+await b.close();

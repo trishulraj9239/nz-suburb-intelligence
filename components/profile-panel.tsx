@@ -16,7 +16,7 @@ import {
 import { COMPARE_LIMIT, useWorkspace } from "@/lib/workspace";
 import { useAnchors, usePersona, type Anchor } from "@/lib/preferences";
 import { personaConfig, SECTION_EXPLAINERS, SECTION_LABELS } from "@/lib/persona";
-import { HAZARD_CAVEAT } from "@/lib/hazard";
+import { HAZARD_CAVEAT, HAZARD_METRIC_KEYS } from "@/lib/hazard";
 import { BudgetChip } from "./budget-chip";
 import { InfoTip } from "./info-tip";
 import { ConfidenceChip, Provenance, SourceChip } from "./provenance";
@@ -204,6 +204,49 @@ function AnchorCommuteRows({ sa2 }: { sa2: string }) {
   );
 }
 
+/**
+ * TRI-112 — the ONLY permitted hazard summary: a countable fact.
+ *
+ * The prototype proposed a "Low / Moderate" band, which was rejected — its own
+ * tooltip admitted it was synthesised from separate models, which is exactly
+ * the composite the answer layer refuses to produce. Counting how many measured
+ * layers sit above the Auckland median invents nothing: each comparison is one
+ * layer against its own regional median, and the sentence says so.
+ *
+ * No verdict, no ordering of suburbs, no colour coding by severity — being
+ * above the median on two layers is a fact, not a grade.
+ */
+function HazardFactCount({
+  rows,
+  statFor,
+}: {
+  rows: ScalarValue[];
+  statFor: (key: string, asOf: string) => RegionalStat | undefined;
+}) {
+  const comparable = rows
+    .map((s) => ({ s, stat: statFor(s.def.metric_key, s.asOf) }))
+    .filter((x): x is { s: ScalarValue; stat: RegionalStat } => !!x.stat);
+  if (comparable.length < 2) return null;
+
+  const above = comparable.filter((x) => x.s.value > x.stat.median).length;
+  return (
+    <p className="mt-1.5">
+      <span
+        className="inline-flex items-center rounded-full border border-hairline bg-canvas px-2 py-0.5 font-mono text-[11px] text-ink/75"
+        title={comparable
+          .map(
+            (x) =>
+              `${x.s.def.label}: ${formatValue(x.s.def, x.s.value)} vs Auckland median ${formatValue(x.s.def, x.stat.median)}`,
+          )
+          .join("\n")}
+      >
+        {above} of {comparable.length}{" "}
+        {comparable.length === 1 ? "layer" : "layers"} above the Auckland median
+      </span>
+    </p>
+  );
+}
+
 function ScalarRow({ s, stat }: { s: ScalarValue; stat?: RegionalStat }) {
   // Secondary rows (census rent, bond quartiles) render compact under the
   // headline: smaller, indented, no percentile bar — provenance stays.
@@ -230,6 +273,15 @@ function ScalarRow({ s, stat }: { s: ScalarValue; stat?: RegionalStat }) {
             pct={percentileOf(s.value, stat)}
             judged={s.def.higher_is_better !== null}
           />
+          {/* TRI-112 — hazard rows state the Auckland median outright. The
+              percentile bar shows position, but "2.1% of land in the flood
+              plain" is unreadable without knowing what's normal, and hazard is
+              where a reader is least likely to have a prior. */}
+          {HAZARD_METRIC_KEYS.has(s.def.metric_key) && (
+            <p className="mt-0.5 text-right font-mono text-[10px] text-ink/45">
+              Auckland median {formatValue(s.def, stat.median)}
+            </p>
+          )}
         </div>
       )}
       <div className="mt-1 flex justify-end">
@@ -365,7 +417,10 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
               )}
             </h3>
             {dim === "hazard" && (
-              <p className="mt-1 text-[10px] leading-snug text-ink/50">{HAZARD_CAVEAT}</p>
+              <>
+                <HazardFactCount rows={rows} statFor={statFor} />
+                <p className="mt-1 text-[10px] leading-snug text-ink/50">{HAZARD_CAVEAT}</p>
+              </>
             )}
             {(rows.length > 0 || dim === "commute") && (
               <div className="divide-y divide-hairline/60">
