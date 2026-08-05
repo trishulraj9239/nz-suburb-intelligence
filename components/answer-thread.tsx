@@ -8,6 +8,7 @@ import {
   type AnswerTurn,
 } from "@/lib/workspace";
 import { ConfidenceChip, shortSource } from "./provenance";
+import { QuestionChips } from "./question-chips";
 
 /**
  * TRI-83/84 — the ONE answer body. Both frames (desktop strip, mobile sheet
@@ -238,6 +239,7 @@ export function AnswerThread({ maxHeight }: { maxHeight?: string }) {
 
           <ResultPills turn={current} />
           <HowMatched turn={current} />
+          <QuestionChips variant="follow-up" />
 
           {current.sources.length > 0 && (
             <p className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-hairline pt-2 font-mono text-[10px] text-ink/45">

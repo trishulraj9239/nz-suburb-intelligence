@@ -2,6 +2,7 @@ import { TopBar } from "@/components/top-bar";
 import { MapContainer } from "@/components/map-container";
 import { ContextPanel } from "@/components/context-panel";
 import { AnswerStrip } from "@/components/answer-strip";
+import { QuestionChips } from "@/components/question-chips";
 import { WorkspaceProvider } from "@/lib/workspace";
 
 /**
@@ -22,6 +23,8 @@ export default function Home() {
         <main className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
           <section className="relative min-h-0 flex-1 lg:border-r lg:border-hairline">
             <MapContainer />
+            {/* Browse-mode empty state (TRI-93) — self-hides once a question exists. */}
+            <QuestionChips variant="starter" />
           </section>
           <ContextPanel />
         </main>
