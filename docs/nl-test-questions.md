@@ -5,11 +5,31 @@ answer layer by hand — plus five folded into the automated suite
 (`scripts/eval/questions.json`) so the highest-value ones can't regress silently.
 
 **Every suburb named here was checked against `geographies` before being
-written.** This matters: two earlier question sets were authored against names
-that aren't SA2s — "Flat Bush" (TRI-74) and "Titirangi North" (TRI-89) — and in
-both cases the honest no-match looked like a bug until the question was
-inspected. `Sunnynook`, `Avondale South` and `Massey East` are also **not** SA2
-names, despite two of them appearing in the design prototype.
+written** — and check with a **partial** match, not an exact one.
+
+Two earlier question sets were authored against names that don't exist in any
+form — "Flat Bush" (TRI-74) and "Titirangi North" (TRI-89), both 0 rows on
+`ilike '%…%'` — and in both cases the honest no-match looked like a bug until
+the question was inspected.
+
+But an exact-match check gives false negatives, which caught me out while
+writing this file. SA2 names are finer-grained than the suburb names people
+use, and they carry disambiguating suffixes:
+
+| You'd type | The SA2s actually called |
+|---|---|
+| Avondale South | `Avondale South (Auckland)` — the suffix matters |
+| Sunnynook | `Sunnynook North`, `Sunnynook South` — no plain "Sunnynook" |
+| Massey | nine `Massey *` areas, but no "Massey East" |
+| Takapuna | `Takapuna Central`, `Takapuna South`, `Takapuna West` |
+
+The planner resolves suburbs with a partial match, so a question about
+"Avondale" or "Takapuna" works and lands on one of these. Verify the same way:
+
+```sql
+select name from geographies
+where geo_type = 'SA2' and is_active and name ilike '%avondale%';
+```
 
 Answers are judged on four things, in this order:
 
