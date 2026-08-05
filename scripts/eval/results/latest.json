@@ -25,9 +25,9 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 5156,
-          "tokens_est": 49,
-          "cost_est_usd": 0.000591,
+          "latency_ms": 5160,
+          "tokens_est": 56,
+          "cost_est_usd": 0.000696,
           "n_sources": 1,
           "n_citations": 1,
           "model": "claude-sonnet-4-6",
@@ -37,9 +37,9 @@
             "hedged": 3,
             "concise": 4,
             "overall": 3,
-            "note": "Correct figure and citation but invents details (new tenancy bonds, all-dwellings) not supported by the row, which cites Census 2023."
+            "note": "Correct figure and citation but invents unsupported claims about 'new tenancies' and 'all dwelling types' not in the row."
           },
-          "answer": "The median weekly rent in Ponsonby West is $545/week {{c1}} — this is an all-dwellings figure from new tenancy bonds and covers all dwelling types."
+          "answer": "The median weekly rent in Ponsonby West is $545 per week {{c1}} — this is the all-dwellings figure from the Census 2023 data, covering new tenancies across all dwelling types."
         },
         "groq": {
           "plan_valid": true,
@@ -47,9 +47,9 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 20215,
-          "tokens_est": 54,
-          "cost_est_usd": 0.0000108,
+          "latency_ms": 20951,
+          "tokens_est": 27,
+          "cost_est_usd": 0.0000054,
           "n_sources": 1,
           "n_citations": 1,
           "model": "qwen/qwen3.6-27b",
@@ -57,11 +57,11 @@
             "grounded": 5,
             "cited": 5,
             "hedged": 4,
-            "concise": 4,
-            "overall": 4,
-            "note": "Correct figure with citation but adds an unfounded assumption about the user prioritizing rental costs."
+            "concise": 5,
+            "overall": 5,
+            "note": "Accurate, cited, and concise with no invented details for a high-confidence figure."
           },
-          "answer": "The median weekly rent in Ponsonby West is $545/wk {{c1}}. Because you are prioritizing rental costs, this figure is a key indicator for your budgeting in this suburb."
+          "answer": "The median weekly rent in Ponsonby West is $545/wk {{c1}}."
         }
       }
     },
@@ -76,72 +76,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 6651,
-          "tokens_est": 143,
-          "cost_est_usd": 0.001968,
+          "latency_ms": 6935,
+          "tokens_est": 113,
+          "cost_est_usd": 0.001503,
           "n_sources": 5,
           "n_citations": 5,
-          "model": "claude-sonnet-4-6",
-          "quality": {
-            "grounded": 4,
-            "cited": 5,
-            "hedged": 4,
-            "concise": 3,
-            "overall": 4,
-            "note": "All figures match the rows and are correctly cited, but the invented 'Renting mode weights median rent ×2' factor is unsupported filler."
-          },
-          "answer": "The five suburbs with the lowest median weekly rent are Point England North at $148/wk {{c1}}, Ōtara West at $178/wk {{c2}}, Wesley East at $180/wk {{c3}}, Ōtara Central at $182/wk {{c4}}, and Wiri North at $186/wk {{c5}}. These are Census 2023 figures covering all dwelling types across each suburb, ranked here because **Renting mode weights median rent most heavily** (×2) as the primary factor. Note that these are suburb-wide medians — individual listings will vary by dwelling type, size, and condition."
-        },
-        "groq": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 975,
-          "tokens_est": 154,
-          "cost_est_usd": 0.000031,
-          "n_sources": 5,
-          "n_citations": 5,
-          "model": "qwen/qwen3.6-27b",
-          "quality": {
-            "grounded": 2,
-            "cited": 5,
-            "hedged": 4,
-            "concise": 4,
-            "overall": 2,
-            "note": "States $145/week for Point England North when the row says $148, an invented figure that undermines grounding despite otherwise correct citations."
-          },
-          "answer": "The five Auckland suburbs with the lowest median weekly rents are Point England North, Ōtara West, Wesley East, Ōtara Central, and Wiri North. Point England North has the lowest figure at $145/week {{c1}}, followed by Ōtara West at $178/week {{c2}}, Wesley East at $180/week {{c3}}, Ōtara Central at $182/week {{c4}}, and Wiri North at $186/week {{c5}}. These figures represent median weekly rents for all dwelling types based on Census 2023 data. As a renter, you might prioritize these locations if minimizing weekly rental costs is your primary goal."
-        }
-      }
-    },
-    {
-      "id": "q3-compare",
-      "intent": "compare",
-      "question": "Compare Ponsonby West and Takapuna Central on rent and population.",
-      "results": {
-        "anthropic": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 11740,
-          "tokens_est": 241,
-          "cost_est_usd": 0.003426,
-          "n_sources": 12,
-          "n_citations": 8,
           "model": "claude-sonnet-4-6",
           "quality": {
             "grounded": 5,
             "cited": 5,
-            "hedged": 5,
-            "concise": 4,
+            "hedged": 4,
+            "concise": 5,
             "overall": 5,
-            "note": "All figures grounded with correct citations, notes confidence levels, and distinguishes the two rent sources clearly."
+            "note": "All five figures accurately cited from the rows with correct source note; the 'renting mode weighted' preamble is minor filler but harmless."
           },
-          "answer": "On new tenancies (all dwelling types), Ponsonby West's median is approximately $710/wk {{c4}} versus Takapuna Central's approximately $675/wk {{c10}}, though the Takapuna figure is low-confidence. The Census 2023 median rents tell a different story — Ponsonby West at $545/wk {{c5}} versus Takapuna Central at $610/wk {{c11}}. Both suburbs have seen rents fall over the past 12 months, with Ponsonby West down approximately -21.1% {{c2}} and Takapuna Central down approximately -15.1% {{c8}} (both figures medium/low confidence). Population-wise, Takapuna Central is the larger suburb at 2,898 {{c12}} compared to Ponsonby West's 2,154 {{c6}}.\n\nAs a renter, the recent rent drops in both suburbs are notable — Ponsonby West's steeper fall may signal more negotiating room, though Renting mode weights current rent level heavily and Takapuna Central's new-tenancy median is modestly lower right now."
+          "answer": "In renting mode, median weekly rent is weighted most heavily, so the five suburbs with the lowest figures are: Point England North at $148/wk {{c1}}, Ōtara West at $178/wk {{c2}}, Wesley East at $180/wk {{c3}}, Ōtara Central at $182/wk {{c4}}, and Wiri North at $186/wk {{c5}}. These are Census 2023 figures covering all dwelling types, not specific to any bedroom count or property type."
         },
         "groq": {
           "plan_valid": true,
@@ -149,123 +98,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 10120,
-          "tokens_est": 137,
-          "cost_est_usd": 0.0000276,
-          "n_sources": 4,
-          "n_citations": 4,
-          "model": "qwen/qwen3.6-27b",
-          "quality": {
-            "grounded": 2,
-            "cited": 2,
-            "hedged": 3,
-            "concise": 4,
-            "overall": 2,
-            "note": "The $710 and $675 figures are miscited to {{c1}} (upper-quartile) and {{c3}} (lower-quartile), and population citations {{c2}}/{{c4}} are wrong, so figures don't match their markers."
-          },
-          "answer": "Ponsonby West has a median rent of approximately $710/week {{c1}}, while Takapuna Central’s is around $675/week {{c3}}. In terms of population, Ponsonby West has 2,154 residents {{c2}}, compared to 2,898 in Takapuna Central {{c4}}. As a renter, you might note that Takapuna Central offers slightly lower rental costs and a larger population base, though both figures are drawn from different confidence levels and should be considered informational rather than definitive rankings."
-        }
-      }
-    },
-    {
-      "id": "q4-similar-named",
-      "intent": "similar",
-      "question": "Find Auckland suburbs similar to Ponsonby West.",
-      "results": {
-        "anthropic": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 8989,
-          "tokens_est": 184,
-          "cost_est_usd": 0.002616,
+          "latency_ms": 13089,
+          "tokens_est": 115,
+          "cost_est_usd": 0.000023,
           "n_sources": 5,
           "n_citations": 5,
-          "model": "claude-sonnet-4-6",
+          "model": "qwen/qwen3.6-27b",
           "quality": {
             "grounded": 3,
             "cited": 5,
             "hedged": 3,
-            "concise": 3,
-            "overall": 3,
-            "note": "All five figures are correctly cited and hedged, but the answer invents a 'renter' context and claims about rent/commute weighting not present in the rows, and adds unsupported prioritisation advice."
-          },
-          "answer": "Based on profile similarity (approximately, confidence medium), the closest matches to Ponsonby West are **Herne Bay** (0.8193) {{c1}}, **Ponsonby East** (0.8178) {{c2}}, and **Saint Marys Bay** (0.8141) {{c3}}, followed by **Parnell West** (0.8109) {{c4}} and **Point Chevalier West** (0.8073) {{c5}}. As a renter, Herne Bay and Ponsonby East are worth prioritising first given their very high similarity scores — they're likely to feel most like Ponsonby West in character and amenity. Note that Renting mode weights median rent and commute times more heavily, so I'd recommend pulling those figures for your shortlisted suburbs to compare costs and access to the CBD before deciding."
-        },
-        "groq": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 13000,
-          "tokens_est": 109,
-          "cost_est_usd": 0.000022,
-          "n_sources": 5,
-          "n_citations": 5,
-          "model": "qwen/qwen3.6-27b",
-          "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 5,
-            "concise": 5,
-            "overall": 5,
-            "note": "Accurately reports all five cited similarity figures, notes the 2023 medium-confidence embedding source, and stays concise without inventing context."
-          },
-          "answer": "Based on profile similarity data, Herne Bay is the most similar suburb to Ponsonby West with a cosine similarity of 0.8193 {{c1}}, followed closely by Ponsonby East at 0.8178 {{c2}}. Other comparable areas include Saint Marys Bay (0.8141) {{c3}}, Parnell West (0.8109) {{c4}}, and Point Chevalier West (0.8073) {{c5}}. These figures are derived from 2023 embeddings with medium confidence."
-        }
-      }
-    },
-    {
-      "id": "q5-similar-vibe",
-      "intent": "similar",
-      "question": "Which Auckland suburbs feel like a quiet, higher-income area near the water?",
-      "results": {
-        "anthropic": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 9740,
-          "tokens_est": 217,
-          "cost_est_usd": 0.003027,
-          "n_sources": 5,
-          "n_citations": 9,
-          "model": "claude-sonnet-4-6",
-          "quality": {
-            "grounded": 4,
-            "cited": 4,
-            "hedged": 4,
-            "concise": 3,
-            "overall": 3,
-            "note": "Correctly flags the harbour as a non-suburb and hedges well, but introduces commute/CBD-proximity and renter claims not in the provided rows, and cites a score range approximation."
-          },
-          "answer": "Based on profile similarity to \"quiet, higher-income area near the water,\" the closest matches are approximately Campbells Bay {{c2}}, Herne Bay {{c3}}, Saint Marys Bay {{c4}}, and Devonport {{c5}}, all with similarity scores in the 0.65–0.66 range {{c2}}{{c3}}{{c4}}{{c5}}. (The top result, Inlet Waitemata Harbour {{c1}}, is a water body rather than a residential suburb, so it's less useful as a place to rent.) As a renter, Herne Bay and Saint Marys Bay sit close to the CBD which could mean shorter commute times, while Devonport and Campbells Bay offer a more distinctly coastal, quieter feel — though ferry or bridge commutes may apply. These are approximately-matched profiles from 2023 embeddings, so treat them as a shortlist to investigate further rather than a definitive ranking."
-        },
-        "groq": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 16923,
-          "tokens_est": 143,
-          "cost_est_usd": 0.0000286,
-          "n_sources": 5,
-          "n_citations": 5,
-          "model": "qwen/qwen3.6-27b",
-          "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 5,
             "concise": 4,
-            "overall": 5,
-            "note": "Accurately reports all five similarity scores with correct citations and appropriately hedges that these are approximate alignments, not verified income/noise data."
+            "overall": 3,
+            "note": "Figures are correct and cited, but 'apply to new tenancies' invents a detail not in the rows (Census median rent covers all rented dwellings, not new tenancies), undermining grounding."
           },
-          "answer": "Based on profile similarity embeddings from 2023, Inlet Waitemata Harbour is identified as having the closest match with a score of 0.6742 cosine {{c1}}. It is followed by Campbells Bay at 0.6625 cosine {{c2}} and Herne Bay at 0.6582 cosine {{c3}}. Saint Marys Bay and Devonport also appear in the top results with similarity scores of 0.6555 cosine {{c4}} and 0.6512 cosine {{c5}}, respectively. These rankings reflect approximate profile alignments rather than verified income or noise levels."
+          "answer": "The five Auckland suburbs with the lowest median weekly rents are Point England North at $148/week {{c1}}, Ōtara West at $178/week {{c2}}, Wesley East at $180/week {{c3}}, Ōtara Central at $182/week {{c4}}, and Wiri North at $186/week {{c5}}. As a renter, you might find these options most affordable based on current Census figures. These rents apply to new tenancies across all dwelling types."
         }
       }
     },
@@ -280,7 +127,7 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 4717,
+          "latency_ms": 3975,
           "tokens_est": 97,
           "cost_est_usd": 0.001323,
           "n_sources": 0,
@@ -290,11 +137,11 @@
             "grounded": 5,
             "cited": 5,
             "hedged": 5,
-            "concise": 4,
+            "concise": 5,
             "overall": 5,
-            "note": "Correctly declines and lists scope, slightly more verbose but still appropriate."
+            "note": "Correctly declines crime data and clearly states supported scope."
           },
-          "answer": "I can't answer that with the data I have. Crime data is not available in this system; only census, deprivation, hazard, and commute metrics are supported. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers."
+          "answer": "I can't answer that with the data I have. Crime data is not available in this dataset; only hazard, demographic, rent, and commute metrics are supported. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers."
         },
         "groq": {
           "plan_valid": true,
@@ -302,9 +149,9 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 727,
-          "tokens_est": 76,
-          "cost_est_usd": 0.000015199999999999998,
+          "latency_ms": 489,
+          "tokens_est": 84,
+          "cost_est_usd": 0.000017,
           "n_sources": 0,
           "n_citations": 0,
           "model": "qwen/qwen3.6-27b",
@@ -314,9 +161,9 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Correctly declines the unavailable crime data and clearly states its scope without inventing figures."
+            "note": "Correctly declines and outlines available data concisely."
           },
-          "answer": "I can't answer that with the data I have. Crime data is not available. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers."
+          "answer": "I can't answer that with the data I have. Crime statistics are not available in the supported data sets. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers."
         }
       }
     },
@@ -331,9 +178,9 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 5572,
-          "tokens_est": 75,
-          "cost_est_usd": 0.000921,
+          "latency_ms": 5117,
+          "tokens_est": 60,
+          "cost_est_usd": 0.000711,
           "n_sources": 1,
           "n_citations": 1,
           "model": "claude-sonnet-4-6",
@@ -343,9 +190,9 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Accurate, cited, and explicitly hedges with the medium confidence caveat and peak-hour variability."
+            "note": "Accurately cites the 28 min figure, notes it's precomputed without live traffic, and hedges appropriately for medium confidence."
           },
-          "answer": "The typical drive from Devonport to the Auckland CBD is around 28 minutes {{c1}}, though this is a pre-computed routed estimate with no live traffic (confidence medium), so real-world times may vary — particularly during peak hours."
+          "answer": "The typical drive from Devonport to the Auckland CBD is around 28 minutes {{c1}}, though this is a precomputed routed time with no live traffic, so real conditions may vary."
         },
         "groq": {
           "plan_valid": true,
@@ -353,21 +200,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 12917,
-          "tokens_est": 61,
-          "cost_est_usd": 0.000012200000000000002,
+          "latency_ms": 822,
+          "tokens_est": 72,
+          "cost_est_usd": 0.0000146,
           "n_sources": 1,
-          "n_citations": 1,
+          "n_citations": 2,
           "model": "qwen/qwen3.6-27b",
           "quality": {
             "grounded": 5,
             "cited": 5,
-            "hedged": 4,
+            "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Accurate, cited, notes it's a routed estimate without live traffic but doesn't flag the medium confidence explicitly."
+            "note": "Correctly cites 28 min, names the source and vintage, and notes the lack of live traffic; slightly more detailed but still concise."
           },
-          "answer": "The typical drive time from Devonport to the Auckland CBD is 28 minutes {{c1}}. This figure is a precomputed routed estimate that does not account for live traffic conditions."
+          "answer": "Driving from Devonport to the Auckland CBD takes approximately 28 minutes {{c1}}. This figure represents a typical routed time based on OpenStreetMap data from 2026 and does not account for live traffic conditions {{c1}}."
         }
       }
     },
@@ -382,21 +229,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 6854,
-          "tokens_est": 111,
-          "cost_est_usd": 0.001473,
+          "latency_ms": 7177,
+          "tokens_est": 91,
+          "cost_est_usd": 0.001173,
           "n_sources": 1,
-          "n_citations": 1,
+          "n_citations": 2,
           "model": "claude-sonnet-4-6",
           "quality": {
             "grounded": 5,
             "cited": 5,
             "hedged": 5,
-            "concise": 4,
+            "concise": 5,
             "overall": 5,
-            "note": "Accurate and well-cited, adds useful origin-resolution flag and traffic caveat, slightly longer but still within range."
+            "note": "Cites the figure correctly, hedges with 'approximately', flags no-traffic variability, and helpfully notes the origin resolution."
           },
-          "answer": "The typical drive from Grey Lynn to 4 Osterley Way, Manukau is approximately 23.5 minutes {{c1}}, routed via OpenStreetMap with no live traffic accounted for. Note that the origin was resolved to **Grey Lynn West** — worth confirming that matches your specific starting point. This is a typical, no live traffic estimate, so real journey times may vary depending on conditions."
+          "answer": "The typical drive from Grey Lynn West to 4 Osterley Way, Manukau is approximately 23.5 minutes {{c1}}, routed with no live traffic, so actual journey times may vary with congestion. Note that the origin was resolved to **Grey Lynn West** — worth confirming that matches your starting point {{c1}}."
         },
         "groq": {
           "plan_valid": true,
@@ -404,11 +251,11 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 1059,
-          "tokens_est": 63,
-          "cost_est_usd": 0.000012600000000000001,
+          "latency_ms": 1171,
+          "tokens_est": 80,
+          "cost_est_usd": 0.000016,
           "n_sources": 1,
-          "n_citations": 1,
+          "n_citations": 2,
           "model": "qwen/qwen3.6-27b",
           "quality": {
             "grounded": 5,
@@ -416,60 +263,9 @@
             "hedged": 4,
             "concise": 5,
             "overall": 5,
-            "note": "Accurate figure cited with the no-live-traffic caveat; could note the medium confidence but otherwise solid."
+            "note": "Accurately cites the 23.5 min figure with source and notes medium confidence and no live traffic, though it doesn't add the no-traffic variability caveat."
           },
-          "answer": "The typical drive time from Grey Lynn West to 4 Osterley Way, Manukau is approximately 23.5 minutes {{c1}}. This figure is a routed estimate that does not include live traffic conditions."
-        }
-      }
-    },
-    {
-      "id": "q9-commute-mixed",
-      "intent": "rank",
-      "question": "Which suburbs under $650 weekly rent are within 30 minutes drive of Penrose?",
-      "results": {
-        "anthropic": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 12938,
-          "tokens_est": 260,
-          "cost_est_usd": 0.003672,
-          "n_sources": 16,
-          "n_citations": 16,
-          "model": "claude-sonnet-4-6",
-          "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 4,
-            "concise": 3,
-            "overall": 4,
-            "note": "All figures match the rows with correct citations, notes the low-confidence rent and no-traffic caveat, though it's slightly long and the closing mode commentary is filler."
-          },
-          "answer": "All suburbs in the data meet both criteria. Epsom North has an approximately $290/wk {{c1}} median rent with an 11.6-minute typical drive {{c2}}, and Grafton comes in at approximately $295/wk {{c3}} at 14.4 minutes {{c4}}. Panmure West is approximately $333/wk {{c5}} at 11 minutes {{c6}}, Ōtara Central approximately $350/wk {{c7}} at 14.3 minutes {{c8}}, and The Strand approximately $399/wk {{c9}} at 13.1 minutes {{c10}}. Ōtāhuhu Central is approximately $400/wk (low confidence) {{c11}} at 10.1 minutes {{c12}}, Panmure Glen Innes Industrial approximately $400/wk {{c13}} at 17.9 minutes {{c14}}, and Mount Albert West approximately $400/wk {{c15}} at 20.9 minutes {{c16}} — all under $650 and within 30 minutes. Note these are all-dwellings median rents across all bedroom counts, and drive times are typical with no live traffic. As a renter, Renting mode weights rent and commute time more heavily — Epsom North and Panmure West stand out on both fronts."
-        },
-        "groq": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 2967,
-          "tokens_est": 200,
-          "cost_est_usd": 0.00004,
-          "n_sources": 16,
-          "n_citations": 16,
-          "model": "qwen/qwen3.6-27b",
-          "quality": {
-            "grounded": 1,
-            "cited": 1,
-            "hedged": 2,
-            "concise": 4,
-            "overall": 1,
-            "note": "Nearly every figure and suburb is fabricated—rents and names do not match the provided rows, making the answer badly ungrounded despite being concise."
-          },
-          "answer": "Several suburbs meet the criteria of having median rents under $650/week and being within a 30-minute drive of Penrose. These options include Point England North ($148/wk {{c1}}, 16 min drive {{c2}}), Ōtara West ($178/wk {{c3}}, 13.3 min drive {{c4}}), Wesley East ($180/wk {{c5}}, 15.5 min drive {{c6}}), and Ōtara Central ($182/wk {{c7}}, 14.3 min drive {{c8}}). Further options are Wiri North ($186/wk {{c9}}, 16.9 min drive {{c10}}), Mount Roskill North East ($190/wk {{c11}}, 14.4 min drive {{c12}}), Panmure West ($198/wk {{c13}}, 11 min drive {{c14}}), and Ōtara South West ($198/wk {{c15}}, 13.9 min drive {{c16}}). Note that these drive times are typical estimates based on routed paths without live traffic data."
+          "answer": "The typical drive time from Grey Lynn West to 4 Osterley Way, Manukau, is 23.5 minutes {{c1}}. This figure is a precomputed routed time without live traffic data, derived from OpenRouteService routing on OpenStreetMap in 2026 with medium confidence {{c1}}."
         }
       }
     },
@@ -484,7 +280,7 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 3399,
+          "latency_ms": 2868,
           "tokens_est": 104,
           "cost_est_usd": 0.001395,
           "n_sources": 0,
@@ -496,9 +292,9 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Cleanly declines the unsupported public-transport query and states available capabilities in natural prose."
+            "note": "Correctly declines with the same accurate explanation, slightly clearer phrasing."
           },
-          "answer": "I can't answer that with the data I have. Only typical drive, cycle, and walk times are available — public transport (train, bus, ferry) commute times are not supported. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers."
+          "answer": "I can't answer that with the data I have. Only typical drive, cycle, and walk commute times are available — public transport (train, bus, ferry) times are not supported. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers."
         },
         "groq": {
           "plan_valid": true,
@@ -506,60 +302,9 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 521,
-          "tokens_est": 106,
-          "cost_est_usd": 0.000021400000000000002,
-          "n_sources": 0,
-          "n_citations": 0,
-          "model": "qwen/qwen3.6-27b",
-          "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 5,
-            "concise": 4,
-            "overall": 4,
-            "note": "Correctly declines and lists scope, but the ALL-CAPS and 'intent=unsupported' jargon is slightly clunky."
-          },
-          "answer": "I can't answer that with the data I have. PUBLIC TRANSPORT (train, bus, ferry) times are NOT supported — intent=unsupported, note that only typical drive/cycle/walk times exist. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers."
-        }
-      }
-    },
-    {
-      "id": "q11-persona-renter",
-      "intent": "rank",
-      "question": "I'm looking for a suburb — what matters most and where should I look?",
-      "results": {
-        "anthropic": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": false,
-          "source_match": true,
-          "latency_ms": 4042,
-          "tokens_est": 124,
-          "cost_est_usd": 0.001659,
-          "n_sources": 0,
-          "n_citations": 0,
-          "model": "claude-sonnet-4-6",
-          "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 5,
-            "concise": 4,
-            "overall": 5,
-            "note": "Correctly declines the open-ended question, invents no figures, and helpfully clarifies scope and asks for priorities."
-          },
-          "answer": "I can't answer that with the data I have. The question is too open-ended to map to a specific suburb query — please share what matters most to you (e.g. rent budget, commute destination, neighbourhood vibe) so I can find the best match. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers."
-        },
-        "groq": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": false,
-          "source_match": true,
-          "latency_ms": 1605,
-          "tokens_est": 54,
-          "cost_est_usd": 0.000011,
+          "latency_ms": 452,
+          "tokens_est": 99,
+          "cost_est_usd": 0.0000198,
           "n_sources": 0,
           "n_citations": 0,
           "model": "qwen/qwen3.6-27b",
@@ -568,112 +313,10 @@
             "cited": 5,
             "hedged": 5,
             "concise": 5,
-            "overall": 4,
-            "note": "Correctly and concisely declines with a useful prompt, but offers less guidance on what dimensions it can actually help with."
-          },
-          "answer": "I couldn't match that question to any suburbs or metrics I track. Try naming an Auckland suburb, or asking for a ranking like “lowest median rent”."
-        }
-      }
-    },
-    {
-      "id": "q13-rent-live",
-      "intent": "lookup",
-      "question": "What's rent doing in Avondale lately?",
-      "results": {
-        "anthropic": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 6836,
-          "tokens_est": 105,
-          "cost_est_usd": 0.00147,
-          "n_sources": 4,
-          "n_citations": 4,
-          "model": "claude-sonnet-4-6",
-          "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 4,
-            "concise": 4,
             "overall": 5,
-            "note": "All four figures accurate and correctly cited, uses 'approximately' to hedge the medium-confidence data, and stays concise."
+            "note": "Correctly declines, explaining PT times aren't supported and listing available data concisely."
           },
-          "answer": "Rent in Avondale South has been moving up sharply — the median across all dwelling types for new tenancies is approximately $750/wk {{c4}}, with the lower quartile around $640/wk {{c1}} and upper quartile around $780/wk {{c3}}. That's on the back of a 12-month change of approximately 16.3% {{c2}}, which is a notably fast rise to keep in mind when budgeting or negotiating a lease."
-        },
-        "groq": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 4880,
-          "tokens_est": 71,
-          "cost_est_usd": 0.000014400000000000001,
-          "n_sources": 2,
-          "n_citations": 3,
-          "model": "qwen/qwen3.6-27b",
-          "quality": {
-            "grounded": 4,
-            "cited": 2,
-            "hedged": 4,
-            "concise": 5,
-            "overall": 3,
-            "note": "Figures are grounded but citation markers are swapped — median is {{c2}} (should be c4) and the change is {{c1}} (should be c2), plus 'all dwelling types' is cited to the wrong row."
-          },
-          "answer": "Median rent for new tenancies in Avondale South is approximately $750 per week {{c2}}. Over the last 12 months, rents in this area have risen by about 16.3% {{c1}}. These figures apply to all dwelling types based on MBIE tenancy bond data {{c2}}."
-        }
-      }
-    },
-    {
-      "id": "q14-dwelling-trap",
-      "intent": "lookup",
-      "question": "What is the median rent for a two-bedroom apartment in Takapuna?",
-      "results": {
-        "anthropic": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 8420,
-          "tokens_est": 154,
-          "cost_est_usd": 0.002118,
-          "n_sources": 3,
-          "n_citations": 3,
-          "model": "claude-sonnet-4-6",
-          "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 5,
-            "concise": 4,
-            "overall": 5,
-            "note": "Correctly notes data isn't apartment-specific, cites all three figures accurately, hedges on low confidence, though slightly long with external suggestions."
-          },
-          "answer": "The MBIE tenancy bond data covers new tenancies across **all dwelling types**, so I can't break it down to two-bedroom apartments specifically. That said, the all-dwellings median rent for new tenancies in Takapuna Central is approximately $675/week {{c1}}, with a lower quartile of around $581/week {{c3}} and an upper quartile of around $1,214/week {{c2}} — note these figures have low confidence. For a two-bedroom apartment specifically, you'd need to check listings directly on Trade Me Property or Barfoot & Thompson for a more targeted figure."
-        },
-        "groq": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 6993,
-          "tokens_est": 78,
-          "cost_est_usd": 0.000015600000000000003,
-          "n_sources": 1,
-          "n_citations": 1,
-          "model": "qwen/qwen3.6-27b",
-          "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 5,
-            "concise": 5,
-            "overall": 5,
-            "note": "Accurately cites the median, clarifies the dwelling-type limitation, notes low confidence and vintage, and stays tight."
-          },
-          "answer": "The median rent for new tenancies in Takapuna Central is approximately $675 per week {{c1}}. This figure covers new tenancies across all dwelling types, so it is not specific to two-bedroom apartments. The data has low confidence and is from 2026."
+          "answer": "I can't answer that with the data I have. Public transport (train, bus, ferry) times are NOT supported — only typical drive/cycle/walk times exist. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers."
         }
       }
     },
@@ -688,9 +331,9 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 5309,
-          "tokens_est": 72,
-          "cost_est_usd": 0.000939,
+          "latency_ms": 7006,
+          "tokens_est": 71,
+          "cost_est_usd": 0.000909,
           "n_sources": 1,
           "n_citations": 1,
           "model": "claude-sonnet-4-6",
@@ -700,9 +343,9 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Correctly rounds the figure with citation, names the layer and vintage, and carries the full caveat."
+            "note": "Accurate cited figure with full hazard caveat, concise and free of invented claims."
           },
-          "answer": "About 49% of Takapuna Central falls within the 1% AEP flood plain {{c1}} according to the 2026 council layer model.\n\nArea-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
+          "answer": "About 49% of Takapuna Central falls within the 1% AEP flood plain {{c1}} according to the 2026 council layer.\n\nArea-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
         },
         "groq": {
           "plan_valid": true,
@@ -710,72 +353,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 28016,
-          "tokens_est": 77,
-          "cost_est_usd": 0.0000154,
+          "latency_ms": 878,
+          "tokens_est": 113,
+          "cost_est_usd": 0.000022800000000000005,
           "n_sources": 1,
           "n_citations": 1,
           "model": "qwen/qwen3.6-27b",
           "quality": {
-            "grounded": 5,
+            "grounded": 2,
             "cited": 5,
             "hedged": 5,
-            "concise": 5,
-            "overall": 5,
-            "note": "Accurate figure with citation, names layer and vintage, and includes full area-level caveat."
+            "concise": 3,
+            "overall": 3,
+            "note": "Correct figure, citation, and hazard caveat, but invents an unsupported claim about 'typical exposure for new tenancies across all dwelling types.'"
           },
-          "answer": "Takapuna Central has 49.11% of its area classified as being in the flood plain according to the 2026 council flood model layer {{c1}}. Area-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
-        }
-      }
-    },
-    {
-      "id": "q16-safety-trap",
-      "intent": "lookup",
-      "question": "Is Parakai a safe suburb to live in?",
-      "results": {
-        "anthropic": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 12626,
-          "tokens_est": 184,
-          "cost_est_usd": 0.002652,
-          "n_sources": 4,
-          "n_citations": 4,
-          "model": "claude-sonnet-4-6",
-          "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 5,
-            "concise": 5,
-            "overall": 5,
-            "note": "Correctly refuses a combined verdict, cites each layer, notes different vintages, warns against combining, and carries the full caveat."
-          },
-          "answer": "These rows cover hazard-model layers only — crime data is not available, so no overall safety verdict can be given. On the flood hazard side, 100% of the Parakai area falls within the 1% AEP flood plain {{c1}}, and approximately 78% is exposed to coastal inundation at 1% AEP {{c3}}, rising to nearly 100% under a +1 m sea-level-rise scenario {{c4}}. Overland flow path density is approximately 19.05 km/km² {{c2}}. These are separate council model layers with different vintages and should each be treated as one input among many, not combined into a single risk conclusion.\n\nArea-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
-        },
-        "groq": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 13196,
-          "tokens_est": 145,
-          "cost_est_usd": 0.000029000000000000004,
-          "n_sources": 4,
-          "n_citations": 4,
-          "model": "qwen/qwen3.6-27b",
-          "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 5,
-            "concise": 5,
-            "overall": 5,
-            "note": "Declines the safety verdict, cites all four figures correctly, keeps layers separate, and includes the area-level caveat."
-          },
-          "answer": "The available data consists of hazard model layers rather than crime statistics, so an overall safety verdict cannot be provided. Parakai shows a flood plain (1% AEP) coverage of 100% {{c1}} and an overland flow path density of 19.05 km/km² {{c2}} based on 2026 council models. Additionally, coastal inundation (1% AEP) affects approximately 78.36% of the area, rising to 99.97% with a 1m sea level increase {{c3}} {{c4}}. Area-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
+          "answer": "Approximately 49.11% of Takapuna Central is located within the 1% Annual Exceedance Probability flood plain, according to the 2026 council layer {{c1}}. This area-level model figure has medium confidence and represents typical exposure for new tenancies across all dwelling types. Area-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
         }
       }
     },
@@ -790,7 +382,7 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 2573,
+          "latency_ms": 3106,
           "tokens_est": 156,
           "cost_est_usd": 0.002208,
           "n_sources": 0,
@@ -802,7 +394,7 @@
             "hedged": 5,
             "concise": 4,
             "overall": 5,
-            "note": "Identical correct refusal listing individual layers with the appropriate area-level caveat."
+            "note": "Identical to A: properly declines the composite score, enumerates the separate hazard layers, and carries the property-level caveat."
           },
           "answer": "I don't produce overall risk scores — the hazard layers are separate council models with different vintages, and combining them would invent a number no source publishes. Here are the individual measured layers I track per suburb: flood plain % (1% AEP), coastal inundation % (present-day and +1 m sea level), overland flow path density, and liquefaction vulnerability. Ask about any of them for a suburb, e.g. \"How much of Milford is in the flood plain?\". Area-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
         },
@@ -812,7 +404,7 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 461,
+          "latency_ms": 491,
           "tokens_est": 156,
           "cost_est_usd": 0.0000312,
           "n_sources": 0,
@@ -824,60 +416,9 @@
             "hedged": 5,
             "concise": 4,
             "overall": 5,
-            "note": "Correctly refuses to produce a combined score, lists the individual layers, and includes the property-level caveat."
+            "note": "Correctly refuses to invent a combined risk score, lists the individual measured layers, and includes the area-level caveat pointing to the Flood Viewer and LIM."
           },
           "answer": "I don't produce overall risk scores — the hazard layers are separate council models with different vintages, and combining them would invent a number no source publishes. Here are the individual measured layers I track per suburb: flood plain % (1% AEP), coastal inundation % (present-day and +1 m sea level), overland flow path density, and liquefaction vulnerability. Ask about any of them for a suburb, e.g. \"How much of Milford is in the flood plain?\". Area-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
-        }
-      }
-    },
-    {
-      "id": "q18-consents-lookup",
-      "intent": "lookup",
-      "question": "Is much being built in Milldale?",
-      "results": {
-        "anthropic": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 6444,
-          "tokens_est": 120,
-          "cost_est_usd": 0.001704,
-          "n_sources": 2,
-          "n_citations": 4,
-          "model": "claude-sonnet-4-6",
-          "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 5,
-            "concise": 4,
-            "overall": 5,
-            "note": "All figures cited correctly, clearly states consents-not-completions and confidence levels, slightly more verbose but excellent."
-          },
-          "answer": "Milldale is seeing very strong consenting activity — 404 new dwellings were consented in the past 12 months {{c2}}, and the rate of 573 consents per 1,000 existing dwellings {{c1}} is exceptionally high, indicating a suburb still in rapid expansion. Note these are building consents (intentions to build), not confirmed completions. Confidence on the rate is medium {{c1}}, so treat it as approximate, but the raw count is high-confidence {{c2}}."
-        },
-        "groq": {
-          "plan_valid": true,
-          "citations_ok": true,
-          "refusal_ok": true,
-          "enough_sources": true,
-          "source_match": true,
-          "latency_ms": 13030,
-          "tokens_est": 100,
-          "cost_est_usd": 0.000020000000000000005,
-          "n_sources": 2,
-          "n_citations": 2,
-          "model": "qwen/qwen3.6-27b",
-          "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 4,
-            "concise": 5,
-            "overall": 5,
-            "note": "Accurate figures with correct citations, notes consents-are-intentions distinction and medium confidence, concise."
-          },
-          "answer": "Milldale shows significant building activity, with 404 new dwellings consented in the last 12 months {{c2}}. This corresponds to a consenting rate of 573 per 1,000 dwellings, although this specific figure is flagged with medium confidence {{c1}}. These figures represent building consents issued, which indicate intentions to build rather than completed structures."
         }
       }
     },
@@ -892,11 +433,11 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 7657,
-          "tokens_est": 198,
-          "cost_est_usd": 0.002781,
-          "n_sources": 5,
-          "n_citations": 5,
+          "latency_ms": 9268,
+          "tokens_est": 208,
+          "cost_est_usd": 0.002931,
+          "n_sources": 10,
+          "n_citations": 6,
           "model": "claude-sonnet-4-6",
           "quality": {
             "grounded": 5,
@@ -904,9 +445,9 @@
             "hedged": 5,
             "concise": 4,
             "overall": 5,
-            "note": "Accurate top-5 with correct citations, clearly flags intentions-not-completions and medium confidence, slightly longer with marketing-style framing."
+            "note": "Accurately uses the top rows with correct citations, states the consents-are-intentions distinction, and hedges on medium confidence."
           },
-          "answer": "The highest consenting rates — measuring building consents issued (intentions to build, not completions) — are led by **Ara Hill** at approximately 1,282 consents per 1,000 dwellings {{c1}}, followed by **Takanini Central** at approximately 984 {{c2}}, **Milldale** at approximately 573 {{c3}}, **Drury West** at approximately 555 {{c4}}, and **Orewa West** at approximately 543 {{c5}}. In Buying mode, the per-1,000-dwellings consenting rate is weighted more heavily as a signal of intensification activity and development momentum, making these suburbs particularly relevant for buyers interested in growth areas. All figures are from the 2026 building consents dataset with medium confidence, so treat them as approximate."
+          "answer": "The highest consenting rates (building consents issued for new dwellings — intentions to build, not confirmed completions) are led by Ara Hill at approximately 1,282 per 1,000 existing dwellings {{c1}}, followed by Takanini Central at approximately 984 {{c2}}, and Milldale at approximately 573 {{c3}}. Drury West (approximately 555 {{c4}}), Orewa West (approximately 543 {{c5}}), and Ormiston South East (approximately 503 {{c6}}) round out the top six. In Buying mode, consenting rate is weighted more heavily as a signal of intensification activity and future housing supply — these suburbs, many in Auckland's southern and northern growth corridors, are seeing the strongest pipeline of new development. Confidence on all figures is medium per the 2026 dataset."
         },
         "groq": {
           "plan_valid": true,
@@ -914,21 +455,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 1082,
-          "tokens_est": 139,
-          "cost_est_usd": 0.000027800000000000005,
+          "latency_ms": 1159,
+          "tokens_est": 124,
+          "cost_est_usd": 0.000025,
           "n_sources": 10,
-          "n_citations": 3,
+          "n_citations": 5,
           "model": "qwen/qwen3.6-27b",
           "quality": {
-            "grounded": 5,
-            "cited": 5,
-            "hedged": 5,
-            "concise": 5,
-            "overall": 5,
-            "note": "Grounded top-3 figures with correct citations, states the consents-are-intentions distinction, and notes medium confidence concisely."
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 2,
+            "concise": 4,
+            "overall": 1,
+            "note": "Invents volume figures (405, 404, 378, 332) and a Morningside suburb absent from the rows, with mismatched citation markers, despite correctly noting the intentions distinction."
           },
-          "answer": "Buying mode weights the per-1,000-dwellings consenting rate heavily, identifying Ara Hill with the highest rate at 1282.1 new dwelling consents per 1,000 dwellings {{c1}}. Takanini Central follows with 984.4 consents per 1,000 dwellings {{c2}}, while Milldale ranks third with 573 consents per 1,000 dwellings {{c3}}. These figures represent building consents issued for new dwellings based on 2026 data with medium confidence, reflecting intentions to build rather than completed homes."
+          "answer": "Ellerslie Central had the highest volume of new dwelling consents with 405 in the 12-month period leading up to 2026 {{c1}}, followed closely by Milldale with 404 consents {{c2}}. Takanini Central ranked third with 378 consents {{c3}}, while Morningside recorded 332 consents {{c4}}. These figures represent building consents issued for new dwellings, which indicate intentions to build rather than completed construction {{c1}}."
         }
       }
     },
@@ -943,9 +484,9 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 12756,
-          "tokens_est": 344,
-          "cost_est_usd": 0.004896,
+          "latency_ms": 11469,
+          "tokens_est": 347,
+          "cost_est_usd": 0.004941,
           "n_sources": 10,
           "n_citations": 10,
           "model": "claude-sonnet-4-6",
@@ -955,9 +496,9 @@
             "hedged": 5,
             "concise": 4,
             "overall": 5,
-            "note": "All figures accurate and cited, consents flagged as intentions, layers kept separate, and the hazard caveat is present; slightly long but thorough."
+            "note": "All figures accurate with correct citations, keeps hazard layers separate, presents no combined score, and includes the full area-level caveat."
           },
-          "answer": "On zoning capacity, Takapuna Central is notably higher at 52.7% {{c7}} versus Milford West at 10.3% {{c2}}, suggesting considerably more land is zoned to allow intensification under the AUP. Milford West is consenting more actively at 19.7 per 1,000 dwellings {{c3}} compared to Takapuna Central's 8.7 per 1,000 dwellings {{c8}} — these are building consents issued (intentions to build, not completions).\n\nOn flood exposure, Takapuna Central has a notably higher 1% AEP flood plain exposure at approximately 49.11% {{c6}} versus Milford West at 23.67% {{c1}}, though Milford West has higher overland flow path density at 18.48 km/km² {{c4}} compared to 8.18 km/km² {{c9}}. Coastal inundation (1% AEP) is more present in Milford West at 4.89% {{c5}} than Takapuna Central at 0.85% {{c10}}.\n\nIn Buying mode, this comparison weights zoning capacity and consenting rate more heavily, alongside flood exposure — Takapuna Central offers substantially more intensification headroom, while Milford West shows stronger current consenting activity but higher coastal inundation exposure; flood plain exposure is notably higher in Takapuna Central across that separate layer.\n\nArea-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
+          "answer": "On zoning capacity, Takapuna Central leads substantially, with 52.7% {{c7}} of its area carrying intensification capacity under the AUP, compared to just 10.3% {{c2}} in Milford West — a meaningful difference for a buyer interested in future development potential or purchasing in a growth area.\n\nOn flood exposure, the picture is more nuanced across the separate hazard layers. Takapuna Central has a notably higher 1% AEP floodplain exposure at 49.11% {{c6}} versus Milford West's 23.67% {{c1}}, though Milford West has higher overland flow path density at 18.48 km/km² {{c4}} compared to 8.18 km/km² {{c9}} for Takapuna Central. Coastal inundation (1% AEP) is low in both suburbs but more present in Milford West at 4.89% {{c5}} versus 0.85% {{c10}}. On consenting activity — weighted more heavily in Buying mode — Milford West is currently more active at 19.7 per 1,000 dwellings {{c3}} versus 8.7 {{c8}} for Takapuna Central, though Takapuna Central's higher zoning capacity may drive future activity.\n\nBuying mode here weighted zoning capacity, intensification potential, consenting rate, and flood exposure more heavily than other factors; no combined score is presented.\n\nArea-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
         },
         "groq": {
           "plan_valid": true,
@@ -965,21 +506,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 1136,
-          "tokens_est": 181,
-          "cost_est_usd": 0.000036200000000000006,
+          "latency_ms": 1231,
+          "tokens_est": 167,
+          "cost_est_usd": 0.0000334,
           "n_sources": 4,
-          "n_citations": 2,
+          "n_citations": 4,
           "model": "qwen/qwen3.6-27b",
           "quality": {
             "grounded": 4,
             "cited": 2,
             "hedged": 4,
             "concise": 5,
-            "overall": 2,
-            "note": "Includes the hazard caveat and keeps layers separate, but citation markers are wrong (c4 and c1 attached to zoning and flood figures that come from c7/c2 and c6) and several figures lack markers."
+            "overall": 3,
+            "note": "Concise with the caveat present, but citation markers are wrong ({{c4}} for intensification should be {{c7}}, {{c3}} for flood plain should be {{c6}}) and it omits overland flow and coastal inundation data."
           },
-          "answer": "Building intentions and zoning capacity are key considerations for this buying comparison, with Takapuna Central showing significantly higher intensification potential at 52.7% compared to Milford West’s 10.3% {{c4}}. Conversely, Milford West has a lower exposure to the 1% AEP flood plain at 23.67%, whereas Takapuna Central shows 49.11% flood plain coverage {{c1}}. These figures reflect the Unitary Plan Base Zone and separate council model layers, respectively, rather than a combined safety or value judgment. Area-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
+          "answer": "In buying mode, which weights zoning capacity and intensification heavily, Takapuna Central shows significantly higher intensification capacity at 52.7% under the Unitary Plan Base Zone (AUP July 2026) {{c4}}, compared to Milford West at 10.3% {{c2}}. However, Takapuna Central also has a substantially higher exposure to flood plains (1% AEP) at 49.11% according to the 2026 council layer {{c3}}, whereas Milford West records 23.67% in the same model {{c1}}. Area-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
         }
       }
     },
@@ -994,21 +535,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 7103,
-          "tokens_est": 117,
-          "cost_est_usd": 0.001575,
+          "latency_ms": 6621,
+          "tokens_est": 124,
+          "cost_est_usd": 0.00168,
           "n_sources": 2,
-          "n_citations": 2,
+          "n_citations": 4,
           "model": "claude-sonnet-4-6",
           "quality": {
             "grounded": 5,
             "cited": 5,
             "hedged": 5,
-            "concise": 4,
+            "concise": 5,
             "overall": 5,
-            "note": "Accurately cites both figures with correct markers and clearly explains the consents-vs-completions distinction, slightly longer but still sound."
+            "note": "Uses only the provided figures with correct citations, clearly distinguishes consents from completions, and notes confidence levels concisely."
           },
-          "answer": "The available data shows **7 new dwellings consented** in Albany Heights over the past 12 months {{c2}}, at a rate of 5.1 consents per 1,000 dwellings {{c1}}. However, these are **building consents — intentions to build, not completions** — so the figure reflects consenting activity rather than homes actually built or finished. The true number of completed homes may differ, as construction timelines vary."
+          "answer": "The available data shows **7 new dwellings consented** in Albany Heights over the past 12 months {{c2}}, at a rate of 5.1 consents per 1,000 dwellings {{c1}}. However, these figures measure **building consents issued — intentions to build — not completions**, so the number of homes actually built or finished could differ. The consent data is from 2026 with medium confidence on the rate {{c1}} and high confidence on the count {{c2}}."
         },
         "groq": {
           "plan_valid": true,
@@ -1016,28 +557,28 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 876,
-          "tokens_est": 95,
-          "cost_est_usd": 0.000019,
+          "latency_ms": 784,
+          "tokens_est": 96,
+          "cost_est_usd": 0.0000192,
           "n_sources": 2,
           "n_citations": 2,
           "model": "qwen/qwen3.6-27b",
           "quality": {
             "grounded": 5,
             "cited": 5,
-            "hedged": 5,
+            "hedged": 4,
             "concise": 5,
             "overall": 5,
-            "note": "Correctly distinguishes consents from completions, cites both figures accurately, and clearly declines to state completions data it lacks."
+            "note": "Correctly frames consents as intentions with proper citations and concise wording, though it omits the confidence-level note that A includes."
           },
-          "answer": "The data provided covers building consents, which are intentions to build, not completed constructions {{c1}}. Specifically, 7 new dwellings were consented in Albany Heights over a 12-month period {{c2}}. There is no information in the provided rows regarding the number of houses actually built or completed in Albany."
+          "answer": "The available data shows that 7 new dwellings were consented in Albany Heights in the last 12 months {{c2}}. Building consents represent intentions to build rather than completed homes, so this figure measures approvals not actual construction completion. The consenting rate for this area is 5.1 per 1,000 dwellings {{c1}}."
         }
       }
     },
     {
-      "id": "q22-buyer-open",
-      "intent": "rank",
-      "question": "Which suburbs look promising for long-term growth?",
+      "id": "q3-compare",
+      "intent": "compare",
+      "question": "Compare Ponsonby West and Takapuna Central on rent and population.",
       "results": {
         "anthropic": {
           "plan_valid": true,
@@ -1045,21 +586,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 9703,
-          "tokens_est": 286,
-          "cost_est_usd": 0.004134,
-          "n_sources": 10,
-          "n_citations": 20,
+          "latency_ms": 13468,
+          "tokens_est": 244,
+          "cost_est_usd": 0.003456,
+          "n_sources": 12,
+          "n_citations": 8,
           "model": "claude-sonnet-4-6",
           "quality": {
             "grounded": 5,
             "cited": 5,
             "hedged": 5,
-            "concise": 4,
+            "concise": 3,
             "overall": 5,
-            "note": "All ten suburbs correctly named with proper citations, medium-confidence hedge included, and honest acknowledgment that other differentiating data is missing."
+            "note": "All figures accurate and correctly cited, confidence properly hedged; the persona footnote adds mild length but content is fully grounded."
           },
-          "answer": "All ten suburbs in the data share approximately 100% intensification capacity under the Unitary Plan Base Zone {{c1}}{{c2}}{{c3}}{{c4}}{{c5}}{{c6}}{{c7}}{{c8}}{{c9}}{{c10}}, meaning virtually all land is zoned to allow further development — a key signal for long-term growth potential from a buying perspective. In Buying mode, intensification capacity and zoning share are weighted more heavily, so this uniform maximum score across Henderson Lincoln South {{c1}}, Takanini McLennan {{c2}}, Tamaki West {{c3}}, Wesley East {{c4}}, Henderson North {{c5}}, Mount Wellington Hamlin {{c6}}, Armoy {{c7}}, Huntington Park {{c8}}, Botany Central {{c9}}, and Ōtara South West {{c10}} puts all of them on an equal footing by this measure alone. To meaningfully differentiate them for a buyer, you would want to compare consents activity (per-1,000-dwellings rate), median household income, and hazard exposure — none of which are provided in these rows. Note that intensification capacity figures are approximately medium-confidence projections from the AUP July 2026 layer, not guaranteed outcomes."
+          "answer": "Takapuna Central has a larger population at 2,898 {{c12}} compared to Ponsonby West at 2,154 {{c6}}. On rent, Ponsonby West's median new-tenancy rent (all dwelling types) is approximately $710/wk {{c4}} versus Takapuna Central's approximately $675/wk {{c10}} — though both figures carry medium-to-low confidence. The Census 2023 median weekly rent tells a different story: Ponsonby West at $545/wk {{c5}} sits notably below Takapuna Central's $610/wk {{c11}}. Both suburbs have seen rents fall over the past 12 months — Ponsonby West by approximately −21.1% {{c2}} and Takapuna Central by approximately −15.1% {{c8}}, with Takapuna Central's trend figure being low-confidence.\n\n*Renting mode weights rent and commute most heavily. On the Census rent measure, Ponsonby West currently looks more affordable, though the new-tenancy bond figures point the other way — worth viewing both when comparing options.*"
         },
         "groq": {
           "plan_valid": true,
@@ -1067,10 +608,367 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 13160,
-          "tokens_est": 160,
-          "cost_est_usd": 0.000032200000000000003,
-          "n_sources": 10,
+          "latency_ms": 1126,
+          "tokens_est": 122,
+          "cost_est_usd": 0.0000246,
+          "n_sources": 4,
+          "n_citations": 4,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 4,
+            "cited": 2,
+            "hedged": 2,
+            "concise": 4,
+            "overall": 2,
+            "note": "Figures are correct but citation markers are wrong (c1/c3 point to rent rows that don't match, c2/c4 mislabeled) and it omits the medium/low confidence caveats on the 2026 rent data."
+          },
+          "answer": "Ponsonby West has a median rent of $710/week for new tenancies across all dwelling types {{c1}}, which is higher than Takapuna Central’s $675/week {{c3}}. In terms of population, Ponsonby West recorded 2,154 residents in the 2023 Census {{c2}}, whereas Takapuna Central was larger with 2,898 people {{c4}}. These rent figures derive from MBIE tenancy bond data and reflect all dwelling types, not specific bedroom counts."
+        }
+      }
+    },
+    {
+      "id": "q9-commute-mixed",
+      "intent": "rank",
+      "question": "Which suburbs under $650 weekly rent are within 30 minutes drive of Penrose?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 11025,
+          "tokens_est": 246,
+          "cost_est_usd": 0.003462,
+          "n_sources": 16,
+          "n_citations": 16,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "All figures grounded and cited correctly, flags the low-confidence Ōtāhuhu row and the medium-confidence caveat, slightly long but well organized."
+          },
+          "answer": "All suburbs in the data are under $650/week and within 30 minutes drive of Penrose — renting mode weights rent and commute most heavily, so here they are ranked by rent (lowest first): Epsom North at approximately $290/wk {{c1}} with an 11.6 min drive {{c2}}, Grafton at approximately $295/wk {{c3}} with a 14.4 min drive {{c4}}, Panmure West at approximately $333/wk {{c5}} with an 11 min drive {{c6}}, Ōtara Central at $350/wk {{c7}} with a 14.3 min drive {{c8}}, The Strand at $399/wk {{c9}} with a 13.1 min drive {{c10}}, and three suburbs tied at approximately $400/wk — Ōtāhuhu Central (note low confidence) {{c11}} at 10.1 min {{c12}}, Mount Albert West {{c13}} at 20.9 min {{c14}}, and Panmure Glen Innes Industrial {{c15}} at 17.9 min {{c16}}. All rents cover new tenancies across all dwelling types and are approximate given medium (or low) confidence. Drive times are typical with no live traffic."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 2724,
+          "tokens_est": 208,
+          "cost_est_usd": 0.0000416,
+          "n_sources": 16,
+          "n_citations": 16,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 4,
+            "cited": 4,
+            "hedged": 3,
+            "concise": 4,
+            "overall": 3,
+            "note": "Figures are grounded and cited but citation markers c11-c16 are misaligned to the wrong rows and it fails to flag Ōtāhuhu Central's low confidence."
+          },
+          "answer": "Several suburbs meet the criteria of being under $650 weekly rent and within 30 minutes' drive of Penrose. Epsom North has a median rent of approximately $290/week {{c1}} and a typical drive time of 11.6 minutes {{c2}}, while Grafton offers rents of approximately $295/week {{c3}} with a 14.4-minute drive {{c4}}. Panmure West ($333/week {{c5}}, 11 min drive {{c6}}) and Ōtara Central ($350/week {{c7}}, 14.3 min drive {{c8}}) are also well within your budget and time limits. Other options include The Strand ($399/week {{c9}}, 13.1 min drive {{c10}}), Panmure Glen Innes Industrial ($400/week {{c11}}, 17.9 min drive {{c12}}), Mount Albert West ($400/week {{c13}}, 20.9 min drive {{c14}}), and Ōtāhuhu Central ($400/week {{c15}}, 10.1 min drive {{c16}})."
+        }
+      }
+    },
+    {
+      "id": "q13-rent-live",
+      "intent": "lookup",
+      "question": "What's rent doing in Avondale lately?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 6831,
+          "tokens_est": 111,
+          "cost_est_usd": 0.00156,
+          "n_sources": 4,
+          "n_citations": 4,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 3,
+            "concise": 4,
+            "overall": 4,
+            "note": "Uses all four rows correctly with citations and hedges on approximate figures, though it doesn't flag the medium confidence of the source data."
+          },
+          "answer": "Rent in Avondale South has been moving up notably — the median for new tenancies (across all dwelling types) is approximately $750/wk {{c4}}, with the lower quartile around $640/wk {{c1}} and the upper quartile around $780/wk {{c3}}. Over the past 12 months rents have risen by approximately 16.3% {{c2}}, which is a substantial jump worth factoring in if you're budgeting or thinking about lease renewals."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 964,
+          "tokens_est": 70,
+          "cost_est_usd": 0.000014,
+          "n_sources": 4,
+          "n_citations": 2,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 4,
+            "cited": 5,
+            "hedged": 2,
+            "concise": 5,
+            "overall": 3,
+            "note": "Figures are grounded and cited but the medium-confidence data is presented without any hedging and the '$750' figure loses its approximation and confidence caveat."
+          },
+          "answer": "In Avondale South, the median rent for new tenancies is approximately $750 per week {{c4}}. This figure is based on tenancy bond data from 2026 and covers all dwelling types. Rents have increased by 16.3% over the previous 12 months {{c2}}."
+        }
+      }
+    },
+    {
+      "id": "q18-consents-lookup",
+      "intent": "lookup",
+      "question": "Is much being built in Milldale?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 7139,
+          "tokens_est": 136,
+          "cost_est_usd": 0.001944,
+          "n_sources": 2,
+          "n_citations": 2,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 4,
+            "overall": 4,
+            "note": "Both figures cited correctly with the consents-are-intentions caveat, though the medium-confidence rate is stated as 'exceptionally high' without hedging."
+          },
+          "answer": "Milldale is seeing very significant consenting activity — 404 new dwellings were consented in the past 12 months {{c2}}, and the rate of 573 consents per 1,000 existing dwellings {{c1}} is exceptionally high, reflecting a suburb still in active greenfield development. Note these are building consents (intentions to build), not confirmed completions. As a buyer, this level of activity signals strong intensification momentum but also means the neighbourhood's character and infrastructure are still evolving."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 13039,
+          "tokens_est": 80,
+          "cost_est_usd": 0.000016,
+          "n_sources": 2,
+          "n_citations": 3,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 5,
+            "overall": 5,
+            "note": "Accurate, well-cited, includes the consents-vs-completions distinction, and is tightly concise."
+          },
+          "answer": "Milldale is seeing significant activity, with 404 new dwellings consented in the last 12 months {{c2}}. This translates to a consenting rate of 573 per 1,000 dwellings {{c1}}. Note that these figures represent building consents (intentions to build) rather than completed homes {{c1}}."
+        }
+      }
+    },
+    {
+      "id": "q14-dwelling-trap",
+      "intent": "lookup",
+      "question": "What is the median rent for a two-bedroom apartment in Takapuna?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 8348,
+          "tokens_est": 125,
+          "cost_est_usd": 0.001683,
+          "n_sources": 3,
+          "n_citations": 4,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "Correctly uses all three rows with proper citations, notes the data cannot be broken down to two-bedroom apartments, and flags low confidence."
+          },
+          "answer": "The MBIE tenancy bond data shows an all-dwellings median rent of approximately $675/week for Takapuna Central {{c1}}, covering all dwelling types and bedroom counts combined — it cannot be broken down to two-bedroom apartments specifically. The lower quartile is approximately $581/week {{c3}} and the upper quartile approximately $1,214/week {{c2}}, giving you a sense of the spread, though confidence in these figures is low {{c1}}."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 1045,
+          "tokens_est": 98,
+          "cost_est_usd": 0.000019600000000000002,
+          "n_sources": 4,
+          "n_citations": 3,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 2,
+            "cited": 2,
+            "hedged": 3,
+            "concise": 4,
+            "overall": 2,
+            "note": "Uses an invalid {{c4}} marker for the median and fabricates a -15.1% change figure not present in any row, mis-citing it to {{c2}}."
+          },
+          "answer": "The median rent for new tenancies in Takapuna is $675 per week {{c4}}. This figure covers all dwelling types rather than just two-bedroom apartments, as the data source does not break down rents by bedroom count {{c4}}. With low confidence, this median represents approximately a -15.1% change over the last 12 months {{c2}}."
+        }
+      }
+    },
+    {
+      "id": "q16-safety-trap",
+      "intent": "lookup",
+      "question": "Is Parakai a safe suburb to live in?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 7732,
+          "tokens_est": 186,
+          "cost_est_usd": 0.002682,
+          "n_sources": 4,
+          "n_citations": 4,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "Correctly refuses a single verdict, lists individual layers with accurate figures and correct citations, and carries the area-level caveat."
+          },
+          "answer": "These are hazard-model layers only — crime data is not covered, so no overall safety verdict can be given. On the flood and coastal hazard side, the 2026 council model shows 100% of the Parakai area falling within the 1% AEP flood plain {{c1}}, and approximately 78% exposed to coastal inundation at 1% AEP {{c3}}, rising to nearly 100% under a +1m sea-level-rise scenario {{c4}}. Overland flow path density is approximately 19.05 km/km² {{c2}}. These are separate council model layers with different vintages and should be treated as one input among many, not a verdict on the suburb.\n\nArea-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 1227,
+          "tokens_est": 154,
+          "cost_est_usd": 0.0000308,
+          "n_sources": 6,
+          "n_citations": 5,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 2,
+            "cited": 1,
+            "hedged": 4,
+            "concise": 4,
+            "overall": 2,
+            "note": "Invents a heritage overlay figure (0.35%) not in the rows and misassigns nearly every citation marker (c4/c5/c3/c2 wrong)."
+          },
+          "answer": "These figures represent hazard-model layers only, and crime data is not covered, so no overall safety verdict can be given. The area shows high exposure to coastal inundation, with 78.36% affected by the 1% AEP event {{c4}} and 99.97% under a +1m sea level rise scenario {{c5}}, alongside 100% coverage by the 1% AEP flood plain {{c1}}. Overland flow path density is recorded at 19.05 km/k² {{c3}}, while heritage overlay coverage is minimal at 0.35% {{c2}}. Area-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
+        }
+      }
+    },
+    {
+      "id": "q4-similar-named",
+      "intent": "similar",
+      "question": "Find Auckland suburbs similar to Ponsonby West.",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 7691,
+          "tokens_est": 190,
+          "cost_est_usd": 0.002721,
+          "n_sources": 5,
+          "n_citations": 7,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 2,
+            "cited": 2,
+            "hedged": 2,
+            "concise": 3,
+            "overall": 2,
+            "note": "It invents Point Chevalier West and a 0.807 lower bound not in the rows, misattributes citation markers to wrong content, and lists figures absent from the data."
+          },
+          "answer": "Based on profile similarity (census, rent, commute, hazard and planning characteristics — not geographic distance), the closest matches to Ponsonby West are Herne Bay {{c1}}, Ponsonby East {{c2}}, and Saint Marys Bay {{c3}}, followed by Parnell West {{c4}} and Point Chevalier West {{c5}}. These are approximately ranked by overall profile likeness, with similarity scores ranging from around 0.807 to 0.819 {{c1}}{{c5}}.\n\nAs a renter, the most relevant next step would be to compare median weekly rents and commute times across these suburbs — Renting mode weights rent and commute times most heavily, so those figures would be worth checking for each of these matches before deciding where to focus your search."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 1692,
+          "tokens_est": 222,
+          "cost_est_usd": 0.0000444,
+          "n_sources": 16,
+          "n_citations": 12,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 4,
+            "overall": 5,
+            "note": "All figures are grounded in the rows with correct citations, and it appropriately notes the embedding basis, though it could hedge more on the medium-confidence similarity/deprivation values."
+          },
+          "answer": "Based on profile embeddings from 2023, the suburbs most similar to Ponsonby West are Herne Bay (0.8193 cosine similarity {{c4}}), Ponsonby East (0.8178 cosine similarity {{c8}}), and Saint Marys Bay (0.8141 cosine similarity {{c12}}). These matches reflect similarities in overall census, rent, commute, and hazard profiles rather than geographic proximity. Herne Bay shows high-income characteristics with a median household income of $167,900/year {{c1}} and a median age of 47.6 years {{c2}}, sitting in the least deprived decile (1 out of 10) {{c3}}. Ponsonby East is also high income at $166,900/year {{c6}} but has a younger median age of 38 years {{c5}} and falls in deprivation decile 3 {{c7}}. Saint Marys Bay has a median income of $149,300/year {{c10}}, a median age of 48.7 years {{c9}}, and is in deprivation decile 3 {{c11}}."
+        }
+      }
+    },
+    {
+      "id": "q5-similar-vibe",
+      "intent": "similar",
+      "question": "Which Auckland suburbs feel like a quiet, higher-income area near the water?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 13783,
+          "tokens_est": 303,
+          "cost_est_usd": 0.004317,
+          "n_sources": 16,
+          "n_citations": 9,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "All figures grounded and correctly cited, hazard caveat present, and it separates income/lifestyle from inundation without inventing a risk score."
+          },
+          "answer": "These suburbs were matched by overall profile similarity to your query — not purely by geographic proximity to water. **Campbells Bay** and **Herne Bay** stand out most for a renter prioritising quieter, higher-income coastal living: Campbells Bay has a median household income of $172,200/yr {{c7}} and a typical drive to the CBD of 25.7 min {{c5}}, while Herne Bay reaches $167,900/yr {{c11}} with a much shorter 11.3 min drive {{c9}}. Saint Marys Bay is also high-income at $149,300/yr {{c15}} and very close in at 8.9 min {{c13}}, though its coastal inundation exposure (44.73% of area under the 1% AEP model {{c14}}) is worth noting separately from any income or lifestyle factors. Campbells Bay and Herne Bay have notably lower coastal inundation exposure at 0.69% {{c6}} and 0.44% {{c10}} respectively under the same model layer.\n\n*Renting mode weighted commute times more heavily as a factor here; rent data was not available in these rows so income figures are used as a proxy for suburb character only.*\n\nArea-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 2009,
+          "tokens_est": 199,
+          "cost_est_usd": 0.0000398,
+          "n_sources": 15,
           "n_citations": 10,
           "model": "qwen/qwen3.6-27b",
           "quality": {
@@ -1079,9 +977,60 @@
             "hedged": 2,
             "concise": 3,
             "overall": 1,
-            "note": "Fabricates suburb names (Runciman, Whenuapai West, etc.) that appear nowhere in the provided rows, making citations mismatched and the answer ungrounded."
+            "note": "Citation markers are badly scrambled (income cited to inundation row, etc.), income miscited to c2, and it invents deprivation deciles absent from the rows."
           },
-          "answer": "Buying mode weights zoning share and intensification capacity more heavily, finding that Runciman, Whenuapai West, Ferguson, New Lynn North West, Rowandale West, Henderson Lincoln South, New Lynn Central South, Tamaki West, Mount Roskill Central South, and Henderson North East all currently show approximately 100% intensification capacity under the Unitary Plan Base Zone from July 2026 {{c1}}{{c2}}{{c3}}{{c4}}{{c5}}{{c6}}{{c7}}{{c8}}{{c9}}{{c10}}. This uniform capacity indicates significant potential for housing density increases across these areas **as the provided data indicates**."
+          "answer": "Based on profile similarity, Inlet Waitemata Harbour is the closest match (0.6742 cosine) {{c3}}, though it has a very low median household income of $31,200/year {{c2}}. Among the higher-income profiles, Campbells Bay ($172,200/year median household income) {{c5}} and Herne Bay ($167,900/$167,900/year) {{c9}} are top matches with profile similarities of 0.6625 {{c7}} and 0.6582 {{c11}} respectively. These two suburbs are also rated as the least deprived (decile 1) {{c6}} {{c10}} and have minimal coastal inundation exposure (0.69% and 0.44%) in the 2025 council model layers {{c4}} {{c8}}.\n\nArea-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property."
+        }
+      }
+    },
+    {
+      "id": "q11-persona-renter",
+      "intent": "rank",
+      "question": "I'm looking for a suburb — what matters most and where should I look?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 12348,
+          "tokens_est": 301,
+          "cost_est_usd": 0.004314,
+          "n_sources": 16,
+          "n_citations": 12,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 2,
+            "concise": 1,
+            "overall": 1,
+            "note": "Fabricates numerous suburbs, figures, and citation markers despite having no data rows provided."
+          },
+          "answer": "As a renter, the factors weighted most heavily here are **median rent** (lower is better) and **commute drive time** (lower is better), followed by **rent trend** as a signal of where the market is heading.\n\nOn those terms, **Homai East** stands out: median rent is $590/wk {{c3}} (all-dwelling types, new tenancies), rent has fallen approximately 6.3% over the past 12 months {{c2}} (confidence low — treat with caution), and the drive to CBD is a typical 28.7 min with no live traffic {{c1}}. **Randwick Park West** is next on rent at $650/wk {{c14}}, with rents also falling around 4.4% {{c15}} and a typical 29.6 min drive {{c13}}. **Cheltenham** sits in the middle at $670/wk {{c11}}, rents up 3.1% {{c10}}, and the shortest typical drive at 27.1 min {{c9}}. **Randwick Park East** is the priciest at $725/wk {{c7}}, with rents rising 7.4% {{c6}}, though the drive is a similar 28.5 min {{c5}}.\n\nThese four suburbs are presented as **profile matches** (ranked by overall census, rent, commute and planning similarity, not geographic proximity) {{c4, c8, c12, c16}} — they may not be the nearest suburbs to each other by distance."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": true,
+          "latency_ms": 592,
+          "tokens_est": 54,
+          "cost_est_usd": 0.000011,
+          "n_sources": 0,
+          "n_citations": 0,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correctly declines a vague question with no data rows and suggests useful next steps."
+          },
+          "answer": "I couldn't match that question to any suburbs or metrics I track. Try naming an Auckland suburb, or asking for a ranking like “lowest median rent”."
         }
       }
     },
@@ -1096,21 +1045,21 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 11733,
-          "tokens_est": 296,
-          "cost_est_usd": 0.004224,
-          "n_sources": 5,
-          "n_citations": 5,
+          "latency_ms": 12076,
+          "tokens_est": 306,
+          "cost_est_usd": 0.004389,
+          "n_sources": 16,
+          "n_citations": 8,
           "model": "claude-sonnet-4-6",
           "quality": {
-            "grounded": 3,
-            "cited": 2,
-            "hedged": 4,
-            "concise": 3,
-            "overall": 3,
-            "note": "Honest about lacking figures and hedges well, but invents citation markers for suburb names that aren't in the provided rows (rows were stated to be none)."
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 2,
+            "concise": 1,
+            "overall": 1,
+            "note": "Fabricates numerous suburb figures and citations despite being given no data rows, a serious grounding violation."
           },
-          "answer": "In Buying mode, the factors weighted most heavily are **zoning and intensification capacity**, **consents per 1,000 dwellings**, **flood plain exposure**, and **household income**, with rent mattering less.\n\nThe data rows provided here are profile-similarity scores only — they show how closely each suburb's overall profile matches a query, but contain no figures for zoning, consents, hazard exposure, or income. Because every factual figure must be cited from a numbered data row, I can't give you suburb-specific numbers on those key buying factors from this result set alone.\n\nWhat I can say is that the five closest-matching suburbs are approximately Homai East {{c1}}, Randwick Park East {{c2}}, Cheltenham {{c3}}, Randwick Park West {{c4}}, and Burswood {{c5}} — all at medium confidence. To properly compare them for a purchase decision, you'd want data rows covering NZDep deprivation, zoning shares, intensification capacity, building consents per 1,000 dwellings, and flood-plain percentages for each. If you can share those rows, I can walk through each factor transparently against your priorities."
+          "answer": "In **Buying mode**, the factors weighted most heavily are intensification capacity (future development potential), consents activity, hazard exposure, zoning, and median household income — rent levels matter less.\n\nAmong the suburbs in these rows, **Homai East** stands out for buyers focused on intensification, with 35.2% intensification capacity {{c1}} — the only suburb here with any — and a median household income of $103,700/year {{c2}}. **Cheltenham** has the highest median household income at $142,200/year {{c10}}, though its intensification capacity is 0% {{c9}}, meaning little scope for future densification. **Randwick Park East** and **Randwick Park West** also show 0% intensification capacity {{c5}}{{c13}}, with incomes of $110,600/year {{c6}} and $85,600/year {{c14}} respectively. No consents or hazard data were provided in these rows, so those buyer-priority factors can't be compared here — I'd recommend requesting those rows before deciding. Note that these suburbs were surfaced as profile matches (by census, rent, commute, hazard and planning similarity), not necessarily as the geographically nearest suburbs to any location."
         },
         "groq": {
           "plan_valid": true,
@@ -1118,21 +1067,72 @@
           "refusal_ok": true,
           "enough_sources": false,
           "source_match": true,
-          "latency_ms": 641,
-          "tokens_est": 48,
-          "cost_est_usd": 0.000009800000000000001,
+          "latency_ms": 588,
+          "tokens_est": 54,
+          "cost_est_usd": 0.000011,
           "n_sources": 0,
           "n_citations": 0,
           "model": "qwen/qwen3.6-27b",
           "quality": {
-            "grounded": 2,
-            "cited": 1,
-            "hedged": 1,
-            "concise": 2,
-            "overall": 2,
-            "note": "A vague fragment that names factors without data or citations and provides no useful guidance or hedging."
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correctly declines an unanswerable question with no data rows and offers helpful next steps."
           },
-          "answer": "Prioritising zoning, intensification, and consenting rates for a buyer persona, alongside key hazard and commute metrics."
+          "answer": "I couldn't match that question to any suburbs or metrics I track. Try naming an Auckland suburb, or asking for a ranking like “lowest median rent”."
+        }
+      }
+    },
+    {
+      "id": "q22-buyer-open",
+      "intent": "rank",
+      "question": "Which suburbs look promising for long-term growth?",
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 11475,
+          "tokens_est": 289,
+          "cost_est_usd": 0.004179,
+          "n_sources": 10,
+          "n_citations": 13,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 2,
+            "concise": 2,
+            "overall": 1,
+            "note": "Fabricates intensification-capacity percentages and suburb names (New Lynn, Henderson, Westgate) that appear nowhere in the rows, with citations pointing to entirely different data."
+          },
+          "answer": "All ten suburbs shown here carry approximately 100% intensification capacity {{c1}}{{c2}}{{c3}}{{c4}}{{c5}}{{c6}}{{c7}}{{c8}}{{c9}}{{c10}} under the Auckland Unitary Plan base zone (AUP July 2026, confidence medium), meaning their entire zoned area is assessed as having redevelopment headroom — a strong signal for long-term growth potential from a buyer's perspective. In **Buying mode**, intensification capacity and zoning are weighted most heavily (×1.5), so all ten suburbs stand out equally on that measure; to differentiate them you'd want to layer in consents activity (per-1,000-dwellings rate), median household income, and hazard exposure, none of which are available in the rows provided. Suburbs like **New Lynn Central South** {{c4}}, **Henderson Lincoln East** {{c1}}, and **Westgate Central** {{c10}} may be worth prioritising for further research given their broader metropolitan context, but that judgement goes beyond the data here. I'd recommend requesting additional rows covering building consents, flood hazard, and income to make a properly grounded comparison across these ten."
+        },
+        "groq": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 1172,
+          "tokens_est": 169,
+          "cost_est_usd": 0.000034,
+          "n_sources": 10,
+          "n_citations": 11,
+          "model": "qwen/qwen3.6-27b",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "Accurately uses the consenting figures with correct citations, notes medium confidence via the 2026 vintage context, and crucially states consents are intentions not completions."
+          },
+          "answer": "For a buyer prioritizing intensification capacity and consenting activity, Ara Hill leads with a consenting rate of 1282.1 per 1,000 dwellings {{c1}}. Takanini Central follows with 984.4 per 1,000 dwellings, while Milldale and Drury West show rates of 573 and 554.5 per 1,000 dwellings respectively {{c3}}{{c4}}. Buying mode weights zoning and intensification indicators heavily, suggesting these areas have higher volumes of new dwelling consents issued as of 2026 {{c1}}{{c2}}{{c3}}{{c4}}. Note that these figures represent consents issued, which are intentions to build rather than completed homes {{c1}}{{c2}}{{c3}}{{c4}}."
         }
       }
     }

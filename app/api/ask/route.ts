@@ -503,7 +503,90 @@ export async function POST(req: NextRequest) {
       });
       similar = (data ?? []) as typeof similar;
     }
+    // TRI-107 — a `similar` answer used to return ONLY cosine scores, so the
+    // model had nothing citable and honestly refused ("no figures for any of
+    // these suburbs"). Retrieval picked the right suburbs and then starved the
+    // answer. Now every retrieved suburb also carries its metric rows, so the
+    // answer can actually talk about rent/commute/zoning for them.
+    //
+    // ONLY the metrics the planner explicitly named. Deliberately no fallback:
+    // an earlier cut filled in the persona's top-weighted metrics whenever the
+    // planner named none, which pushed open-ended questions ("what matters most
+    // and where should I look?") to 16-24 numbered rows. The model then
+    // scrambled markers and invented figures — q5/q11/q12 all fell to 1/5 on
+    // the judge, worse than the honest refusal they used to give.
+    //
+    // So the attachment is scoped to what this bug was actually about: a
+    // question that names a metric ("cheapest RENT near Takapuna") now gets
+    // that metric for the retrieved suburbs. A vibe question still gets
+    // similarity rows only, and still says plainly that it has no figures.
+    const similarMetrics = plan.metric_keys
+      .filter((k) => scalarKeys.includes(k))
+      .slice(0, 3);
+
+    // Fewer, fully-described suburbs beat more, thinner ones — every extra row
+    // is another chance to mis-cite.
+    if (similarMetrics.length && similar.length > 4) similar = similar.slice(0, 4);
+
+    const metricsByCode = new Map<string, SourceRow[]>();
+    if (similar.length && similarMetrics.length) {
+      const codes = similar.map((s) => s.sa2_code);
+      const { data: geoRows } = await supabase
+        .from("geographies")
+        .select("id, sa2_code, name")
+        .eq("geo_type", "SA2")
+        .in("sa2_code", codes);
+      const codeById = new Map((geoRows ?? []).map((g) => [g.id as number, g]));
+      if (codeById.size) {
+        const { data: vals } = await supabase
+          .from("metric_values")
+          .select(
+            "geo_id, value_num, category, as_of_date, confidence, metric_definitions!inner(metric_key,label,unit), sources(name)",
+          )
+          .in("geo_id", [...codeById.keys()])
+          .is("category", null)
+          .in("metric_definitions.metric_key", similarMetrics)
+          .order("as_of_date", { ascending: false });
+        const seen = new Set<string>(); // geo_id|metric_key — latest vintage wins
+        for (const v of vals ?? []) {
+          const md = v.metric_definitions as unknown as {
+            metric_key: string;
+            label: string;
+            unit: string | null;
+          };
+          const geo = codeById.get(v.geo_id as number);
+          if (!geo || v.value_num === null) continue;
+          const key = `${v.geo_id}|${md.metric_key}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          const list = metricsByCode.get(geo.sa2_code as string) ?? [];
+          list.push({
+            n: 0, // numbered below, once the final row order is known
+            suburb: geo.name as string,
+            sa2_code: geo.sa2_code as string,
+            metric: md.metric_key,
+            label: HAZARD_METRIC_KEYS.has(md.metric_key)
+              ? hazardRowLabel(md.label, v.as_of_date)
+              : md.label,
+            value: Number(v.value_num),
+            unit: md.unit,
+            source: (v.sources as unknown as { name: string } | null)?.name ?? "—",
+            as_of: v.as_of_date,
+            confidence: v.confidence,
+          });
+          metricsByCode.set(geo.sa2_code as string, list);
+        }
+      }
+    }
+
+    // Metric rows first per suburb, similarity last: the result pills and the
+    // Results table take the FIRST row per suburb, and a rent figure is more
+    // use there than a cosine score. The similarity row stays — it is the
+    // honest record of why these suburbs were retrieved at all.
     for (const s of similar) {
+      for (const r of metricsByCode.get(s.sa2_code) ?? []) {
+        rows.push({ ...r, n: rows.length + 1 });
+      }
       rows.push({
         n: rows.length + 1,
         suburb: s.name,
@@ -569,7 +652,7 @@ export async function POST(req: NextRequest) {
             )
             .join("\n");
           for await (const delta of chat.stream("reasoning", {
-            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts; NZDep2018 decile semantics: 1 = least deprived, 10 = most deprived. Rent rows from MBIE tenancy bonds cover new tenancies across ALL dwelling types — if the question asks about a specific dwelling type or bedroom count, give the all-dwellings figure and say that's what it is; never present it as type-specific. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation. Hazard rules: hazard rows are separate council model layers with different vintages — cite each with its layer and year as given in the row label, treat hazard exposure as one input among many (never a verdict on a suburb), NEVER combine hazard layers into a single risk figure or score, and when any hazard row is cited end the answer with: "${HAZARD_CAVEAT}". If the question asked whether somewhere is "safe", state that these are hazard-model layers only (crime data is not covered) and give no overall safety verdict. Building-consent rows are consents — intentions to build, not completions; if the question asks how many homes were "built" or "completed", give the consents figure and say that's what it measures.\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics. ${plan.note ? `Context note: ${plan.note}` : ""}`,
+            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts; NZDep2018 decile semantics: 1 = least deprived, 10 = most deprived. Rent rows from MBIE tenancy bonds cover new tenancies across ALL dwelling types — if the question asks about a specific dwelling type or bedroom count, give the all-dwellings figure and say that's what it is; never present it as type-specific. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation. Hazard rules: hazard rows are separate council model layers with different vintages — cite each with its layer and year as given in the row label, treat hazard exposure as one input among many (never a verdict on a suburb), NEVER combine hazard layers into a single risk figure or score, and when any hazard row is cited end the answer with: "${HAZARD_CAVEAT}". If the question asked whether somewhere is "safe", state that these are hazard-model layers only (crime data is not covered) and give no overall safety verdict. Building-consent rows are consents — intentions to build, not completions; if the question asks how many homes were "built" or "completed", give the consents figure and say that's what it measures. Profile-similarity rows rank suburbs by how alike their overall profiles are (census, rent, commute, hazard and planning facts) — NOT by geographic distance. When similarity rows are present, name that basis, and if the question asked for somewhere "near" or "close to" a place, say plainly that these are profile matches rather than the nearest suburbs by distance. Use the accompanying metric rows to answer what was actually asked about those suburbs.\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics. ${plan.note ? `Context note: ${plan.note}` : ""}`,
             messages: [
               {
                 role: "user",
