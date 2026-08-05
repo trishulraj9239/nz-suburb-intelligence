@@ -10,13 +10,26 @@ be added without code changes.
 
 ## What it does
 
-- **Ask in plain English** — a query bar turns a question ("cheapest rent near
-  Takapuna?", "compare Takapuna and Albany") into a structured query and a
-  **streaming, cited answer**. Every factual claim shows an inline citation chip
-  (source · year); comparison questions pre-load the Compare set.
+- **Ask in plain English** — a query bar turns a question ("which suburbs have
+  the lowest median weekly rent?", "compare Takapuna and Albany") into a
+  structured query and a **streaming, cited answer** in a full-width answer
+  strip. Every factual claim shows an inline citation chip (source · year).
+  Ranked results appear as **pills you can pin straight into Compare**, and
+  **"How this was matched"** opens the planner's own reading of the question —
+  intent, metrics, places, ordering — so a misread is visible rather than
+  buried.
+- **The answer drives the view** — a comparison question opens the Compare tab
+  and links the suburbs on the map; a ranking opens a **Results tab** (rank,
+  suburb, value, budget chip) and leaves the map at full coverage; a question
+  about one suburb opens that suburb. The map and the answer never disagree
+  about what's being discussed.
 - **Map** — MapLibre GL with a LINZ topolite basemap, the SA2 overlay, **choropleth
   shading** by any scalar metric (quantile ramp + legend), hover tooltips, and
-  fly-to on selection. Light/dark tuned.
+  fly-to on selection. A compare set is highlighted and framed by its **union
+  bounding box**, with dashed connectors between the suburbs — labelled
+  *straight-line*, carrying no duration, so they can't be mistaken for routes.
+  Zoom, compass and **geolocate** controls; locating outside the covered area
+  says so and returns to the Auckland extent. Light/dark tuned.
 - **Suburb profile** — scorecard with percentile-vs-region bars, source chips and
   as-of dates: people, housing, deprivation, **2013→2018→2023 census trends**,
   **nearby schools by distance** (PostGIS, not just schools inside the SA2), and
@@ -33,8 +46,10 @@ be added without code changes.
 - **Rent budget** — set a weekly budget; profile/compare/answers show under / on /
   over-budget chips against median rent.
 - **Mobile** — the map fills the screen and the context panel is a draggable bottom
-  sheet (peek / half / full); a Home button resets the map view, selection,
-  comparison, answer, and query.
+  sheet (peek / half / full), where the answer is its own **Answer tab** beside
+  Profile / Compare / Results. Map fits measure the sheet's real height, so a
+  suburb is never framed underneath it. A Home button resets the map view,
+  selection, comparison, answer, and query.
 
 ## Stack
 
@@ -57,6 +72,12 @@ profiles and the choropleth straight from Supabase over PostgREST/RPC. The **ask
 path** sends a question to `/api/ask`, which plans a structured query with **Claude
 Sonnet**, embeds it with **Gemini** for pgvector RAG, executes the queries against
 **Supabase**, and streams a cited answer back as NDJSON.
+
+On the client, that stream has exactly one consumer — see
+[The answer surface](#the-answer-surface--one-brain-one-body-two-frames). The
+answer's `meta` frame also carries the planner's intent and its reading of the
+question, which is what drives the view switching and map choreography without
+any extra server round-trip.
 
 ## Getting started
 
@@ -163,6 +184,53 @@ unused), and the brief assumed Anthropic prompt caching in `/api/ask` which was
 never wired up (tracked as an optional follow-up; the plan+answer prompts are
 registry-driven and small enough that it hasn't mattered at portfolio scale).
 
+## The answer surface — one brain, one body, two frames
+
+The answer is the product, so it gets one implementation. Desktop shows it as a
+full-width strip under the top bar; mobile shows it as a tab in the bottom
+sheet. Those are two *frames* — placement and a max-height number — around one
+shared renderer, and the state and the `/api/ask` stream live above both in
+`WorkspaceProvider`:
+
+- **One brain** (`lib/workspace.tsx`) — the only place that calls `/api/ask`.
+  Fetch, NDJSON parsing, the abort/staleness guard, and the answer state. No
+  surface fetches anything.
+- **One body** (`components/answer-thread.tsx`) — cited text, citation chips,
+  result pills, the disclosure, sources footer, and the scroll behaviour
+  (auto-follow that stops the moment you scroll up). Written and debugged once.
+- **Two frames** (`answer-strip.tsx`, the sheet's Answer tab) — zero answer
+  logic. Exactly one is mounted at a time via a `matchMedia` store, never both
+  behind `hidden lg:block`, which would duplicate effects and ARIA live regions.
+
+The rule that keeps it honest is testable, and tested: **resize across the `lg`
+breakpoint mid-stream and the same answer keeps painting on the newly mounted
+frame — one `/api/ask` request, nothing aborted, nothing refetched.** The moment
+either surface owned answer state, that would break; a regression script asserts
+it (`scripts/test/tri83-verify.mjs`).
+
+State is stored as an array of turns even though the UI shows one, so
+conversational follow-ups don't need the shape retrofitted later.
+
+Two things deliberately *not* built here: the map fit padding is measured from
+the elements actually covering the map (`data-nzsi-occludes`) rather than a
+guessed viewport fraction, because the old hard-coded `0.42` disagreed with the
+sheet's real snap heights and could centre a suburb underneath it; and the
+prototype's synthesised "hazard band" (*Low / Moderate*) was **rejected** — its
+own tooltip admitted it was combined from separate models, which is exactly the
+composite the answer layer refuses. The permitted summary is a countable fact.
+
+## Verification scripts
+
+Browser checks for the shell's acceptance criteria — not unit tests; each drives
+the real app and throws on the first failed assertion. Needs a dev server:
+
+```bash
+npm run dev                             # in another shell
+node scripts/test/tri83-verify.mjs      # one stream survives a breakpoint crossing
+node scripts/test/tri85-verify.mjs      # geometry-derived map fit, controls, panel
+node scripts/test/tri104-verify.mjs     # Results tab + intent-driven choreography
+```
+
 ## Map coverage outline
 
 The dark coverage border is precomputed offline by dissolving the SA2 polygons
@@ -206,4 +274,12 @@ map page pays nothing until a layer is switched on.
 Work is tracked in Linear (`TRI-XX`); commits reference those tickets. The build
 shipped through M1–M5: deployable shell → schema → backend → frontend + map (the
 live non-AI suburb-comparison app, "Piece 2") → the intelligence layer ("Piece 3").
+Since then: **M11** commute & proximity, **M12–M15** persona mode over free data
+(rents, hazards, consents), and **M16** the answer-led shell described above.
+
+Known gaps are tickets, not silence. The largest open one: questions the planner
+routes to its `similar` intent can only cite similarity scores, never the metric
+actually asked about — so "cheapest rent near Takapuna?" reaches a polite dead
+end instead of an answer. It's honest (no invented number) but not useful, and
+it's the fix queued next.
 </content>

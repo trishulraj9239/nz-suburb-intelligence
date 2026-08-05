@@ -23,6 +23,13 @@ client → `{ "ok": true, "geographies": N }`.fixed
 - **Supabase** (Postgres + PostGIS) via `@supabase/ssr` — separate **browser** and **server** clients.
 - **MapLibre GL** — SA2 choropleth map, LINZ topolite vector basemap, hover tooltips, fly-to.
 - **Intelligence layer** — `@anthropic-ai/sdk`: text-to-query, cited answers, RAG over suburb embeddings.
+- **Answer surface (M16) — one brain, one body, two frames.** `lib/workspace.tsx` is the
+  ONLY caller of `/api/ask` (fetch, NDJSON parse, abort/staleness guard, `AnswerTurn[]`);
+  `components/answer-thread.tsx` is the only renderer; `answer-strip.tsx` (desktop) and the
+  sheet's Answer tab are thin frames with zero answer logic, and exactly ONE is mounted at a
+  time via `lib/use-is-lg.ts` — never `hidden lg:block` co-mounting. **Do not add fetching or
+  answer state to a surface**: the invariant is that crossing the `lg` breakpoint mid-stream
+  keeps painting the same answer on one `/api/ask` call (`scripts/test/tri83-verify.mjs`).
 - **Tailwind v4, CSS-first** — tokens in `app/globals.css` (`@theme inline`); no `tailwind.config.js`.
   `next-themes` for light/dark (`[data-theme]`). Fonts: Space Grotesk / IBM Plex Sans / IBM Plex Mono.
 - Key dirs: `app/` (routes), `components/`, `lib/`, `data/`, `scripts/`, `supabase/migrations/`, `docs/`.
