@@ -41,6 +41,17 @@ export function useRentBudget(): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+/** Non-reactive read — for snapshotting the preference at ask time (TRI-92). */
+export function getRentBudget(): number | null {
+  try {
+    const raw = localStorage.getItem(KEY);
+    const n = raw === null ? NaN : Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+
 export function setRentBudget(value: number | null): void {
   if (value === null || !Number.isFinite(value) || value <= 0) {
     localStorage.removeItem(KEY);

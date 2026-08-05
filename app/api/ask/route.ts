@@ -20,22 +20,59 @@ interface ResolvedPlace {
   sa2_code: string | null;
 }
 
+/** A saved place the user can refer to by name (TRI-91/92). */
+export interface AskAnchor {
+  kind: string;
+  label: string;
+  address: string;
+  lng: number;
+  lat: number;
+}
+
+/** Words that mean "one of my saved places". Matched before any suburb lookup,
+ *  so "home" resolves to the user's home rather than a suburb called Home. */
+const ANCHOR_PATTERNS: [RegExp, string][] = [
+  [/^\s*(my\s+)?work(place)?\s*$/i, "work"],
+  [/^\s*(my\s+)?home\s*$/i, "home"],
+  [/^\s*(the\s+|my\s+)?(kids?'?\s*)?school( drop[- ]?off)?\s*$/i, "school"],
+  [/^\s*(the\s+|my\s+)?(daycare|day care|creche|childcare)\s*$/i, "daycare"],
+];
+
+function matchAnchor(text: string, anchors: AskAnchor[]): AskAnchor | null {
+  for (const [re, kind] of ANCHOR_PATTERNS) {
+    if (re.test(text)) return anchors.find((a) => a.kind === kind) ?? null;
+  }
+  // Points of interest are referred to by their own label ("gym", "Nana's").
+  const t = text.trim().toLowerCase();
+  return anchors.find((a) => a.kind === "poi" && a.label.toLowerCase() === t) ?? null;
+}
+
 /**
- * TRI-53 — resolve free text to a routable point: the saved workplace, a
- * suburb (ST_PointOnSurface origin), or a geocoded LINZ address. Ambiguous
- * geocodes use the top candidate only above 0.5 — and the answer always
- * states the resolved address, so an interpretation is visible, never silent.
+ * TRI-53 — resolve free text to a routable point: one of the user's saved
+ * places, a suburb (ST_PointOnSurface origin), or a geocoded LINZ address.
+ * Ambiguous geocodes use the top candidate only above 0.5 — and the answer
+ * always states the resolved address, so an interpretation is visible, never
+ * silent.
  */
 async function resolvePlace(
   supabase: Awaited<ReturnType<typeof createClient>>,
   text: string,
-  work: { address: string; lng: number; lat: number } | null,
+  anchors: AskAnchor[],
 ): Promise<ResolvedPlace | null> {
-  if (/^\s*(my\s+)?work(place)?\s*$/i.test(text)) {
-    return work
-      ? { label: work.address, lng: work.lng, lat: work.lat, originKey: ptKey(work.lng, work.lat), sa2_code: null }
-      : null;
+  const anchor = matchAnchor(text, anchors);
+  if (anchor) {
+    return {
+      label: anchor.address,
+      lng: anchor.lng,
+      lat: anchor.lat,
+      originKey: ptKey(anchor.lng, anchor.lat),
+      sa2_code: null,
+    };
   }
+  // A saved-place word with nothing saved for it must NOT fall through to a
+  // suburb name match — "home" would silently resolve to some suburb and the
+  // answer would confidently route to the wrong origin.
+  if (ANCHOR_PATTERNS.some(([re]) => re.test(text))) return null;
   const { data: geos } = await supabase
     .from("geographies")
     .select("sa2_code, name")
@@ -150,7 +187,11 @@ const PLAN_SCHEMA = {
         "Routed-commute details. For intent=commute: origin + destination as the user wrote them ('work' = the saved workplace). For intent=rank with a commute constraint ('within 30 min drive of X'): destination + max_minutes. Otherwise nulls.",
       properties: {
         origin: { type: ["string", "null"], description: "Suburb name or address, as written. Null if not a commute question." },
-        destination: { type: ["string", "null"], description: "Address/place as written, or 'work' for the saved workplace. Null if none." },
+        destination: {
+          type: ["string", "null"],
+          description:
+            "Address/place as written, or one of the user's saved places by name — exactly 'work', 'home', 'school' or 'daycare' (or a saved point-of-interest's own label). Null if none.",
+        },
         mode: { type: "string", enum: ["driving-car", "cycling-regular", "foot-walking"] },
         max_minutes: { type: ["integer", "null"], description: "For commute-constrained ranking: the minutes cap. Else null." },
       },
@@ -161,11 +202,13 @@ const PLAN_SCHEMA = {
 } as const;
 
 export async function POST(req: NextRequest) {
-  const { question, provider, workplace, persona } = (await req.json()) as {
+  const { question, provider, workplace, persona, anchors, budget } = (await req.json()) as {
     question?: string;
     provider?: string;
     workplace?: { address?: string; lng?: number; lat?: number };
     persona?: string;
+    anchors?: { kind?: string; label?: string; address?: string; lng?: number; lat?: number }[];
+    budget?: number;
   };
   if (!question?.trim() || question.length > 500) {
     return Response.json({ error: "question required (max 500 chars)" }, { status: 400 });
@@ -184,6 +227,45 @@ export async function POST(req: NextRequest) {
     workplace.lng > 173 && workplace.lng < 176 &&
     workplace.lat > -38 && workplace.lat < -35
       ? { address: workplace.address, lng: workplace.lng, lat: workplace.lat }
+      : null;
+
+  // Saved places (TRI-91/92). Validated exactly like the legacy workplace —
+  // same Auckland bbox, same length caps — and capped in count so the prompt
+  // can't be stuffed from the body. The legacy `workplace` field still works
+  // and is folded in as a work anchor when the client hasn't sent one.
+  const ANCHOR_KIND_SET = new Set(["home", "work", "school", "daycare", "poi"]);
+  const savedPlaces: AskAnchor[] = (Array.isArray(anchors) ? anchors : [])
+    .filter(
+      (a) =>
+        typeof a?.address === "string" &&
+        a.address.length <= 200 &&
+        typeof a.label === "string" &&
+        a.label.length <= 60 &&
+        typeof a.kind === "string" &&
+        ANCHOR_KIND_SET.has(a.kind) &&
+        typeof a.lng === "number" &&
+        typeof a.lat === "number" &&
+        a.lng > 173 && a.lng < 176 &&
+        a.lat > -38 && a.lat < -35,
+    )
+    .slice(0, 7)
+    .map((a) => ({
+      kind: a.kind as string,
+      label: a.label as string,
+      address: a.address as string,
+      lng: a.lng as number,
+      lat: a.lat as number,
+    }));
+  if (work && !savedPlaces.some((a) => a.kind === "work")) {
+    savedPlaces.push({ kind: "work", label: "Work", ...work });
+  }
+
+  // Weekly rent budget (TRI-37). Emphasis only: it tells the answer what to
+  // point out, and must NEVER filter rows — a suburb over budget still appears,
+  // labelled, because hiding it would silently narrow the user's options.
+  const rentBudget =
+    typeof budget === "number" && Number.isFinite(budget) && budget > 0 && budget < 5000
+      ? Math.round(budget)
       : null;
 
   const supabase = await createClient();
@@ -224,11 +306,30 @@ export async function POST(req: NextRequest) {
     .filter((s): s is string => s !== null);
   const personaLine = `Active persona: ${personaCfg.key} ("${personaCfg.label}"). ${personaCfg.promptDescriptor}`;
 
+  // TRI-92 — the user's saved places, listed for the planner so it knows which
+  // words are resolvable. Only the kind and the label; the address itself is
+  // named in the answer by the resolver, so a misinterpretation stays visible.
+  const savedPlacesLine = savedPlaces.length
+    ? ` Saved places currently set: ${savedPlaces.map((a) => `${a.kind}${a.kind === "poi" ? ` ("${a.label}")` : ""}`).join(", ")}. A saved place the user has NOT set is not resolvable — for those, intent=unsupported with a note saying which place isn't set.`
+    : " The user has NO saved places set, so any question referring to work/home/school/daycare as a place is intent=unsupported with a note saying that place isn't set yet.";
+
+  // Preferences that bias EMPHASIS only. The budget never filters rows: a
+  // suburb over budget must still appear, labelled, because hiding it would
+  // quietly narrow the user's options without telling them.
+  const budgetLine = rentBudget
+    ? ` The user's weekly rent budget is $${rentBudget}. Point out where a rent figure sits under or over it, but NEVER exclude a suburb for being over budget — say so instead.`
+    : "";
+  const preferenceNames = [
+    `${personaCfg.label} mode`,
+    ...(rentBudget ? [`your $${rentBudget}/wk budget`] : []),
+    ...(savedPlaces.length ? [`your saved ${savedPlaces.map((a) => a.kind).join("/")}`] : []),
+  ];
+
   // ---- 1. PLAN -------------------------------------------------------------
   const planText = await chat.complete("reasoning", {
     system: `You convert questions about Auckland (NZ) suburbs into a structured query plan. Coverage: Auckland region SA2 areas only; Census 2023/2018/2013, NZDep2018 deprivation, school directory, typical routed commute times (openrouteservice/OSM — drive, cycle, walk; no live traffic). Metric registry (key | label | unit):\n${registry
       .map((d) => `${d.metric_key} | ${d.label} | ${d.unit ?? "-"}`)
-      .join("\n")}\nRules: deprivation and ethnicity have no "better/worse" — a rank by nzdep_decile is allowed but is informational only.\nCommute rules, in priority order:\n1. The question mentions "work" or "workplace" as a place → ALWAYS intent=commute with that commute field set to exactly "work". The workplace is a specific saved address${work ? ` (currently: ${work.address})` : " (currently NOT set — intent=unsupported instead, note the workplace isn't set)"} — it is NOT the CBD; never answer this from the commute_* metrics. Example: "How long is the commute from Ponsonby to work?" → {"intent":"commute","suburbs":["Ponsonby"],"commute":{"origin":"Ponsonby","destination":"work","mode":"driving-car","max_minutes":null}}.\n2. "how far/long is <suburb> from the CBD/airport" → intent=lookup with the commute_* metrics (precomputed).\n3. A commute between a suburb/address and any other specific destination → intent=commute with commute.origin/destination as written. "Suburbs within N min <mode> of <place>" combined with a metric constraint → intent=rank on that metric plus commute.destination and commute.max_minutes. PUBLIC TRANSPORT (train, bus, ferry) times are NOT supported — intent=unsupported, note that only typical drive/cycle/walk times exist.\nRent questions about a specific dwelling type or bedroom count ARE supported: intent=lookup with the rent metrics — the data covers all dwelling types combined and the answer will say so; do not refuse them.\nHazard rules: questions about individual hazard layers (flood plain, coastal inundation, overland flow, liquefaction) or zoning/heritage ARE supported — intent=lookup or rank on those metrics. A general "is X safe / is X a safe suburb?" question → intent=lookup on the hazard metrics for that suburb (the answer states these are hazard-model layers only — no crime data — and gives no overall verdict). BUT a question asking for ANY risk or safety score or rating — overall or for a single layer, e.g. "flood risk score out of 10", "how risky is X overall" — or to merge hazard layers into one figure → intent=unsupported with note set to exactly "composite-risk".\nQuestions about construction / how much is being built / how many homes were built in a suburb → intent=lookup or rank on the consents metrics (the data measures consents, and the answer states that); do not refuse them.\nOther questions needing data we don't have (crime, house prices outside rent/income, other cities) are unsupported.\n${personaLine} When the question is open-ended about which metrics matter, lean toward this persona's priorities — but never drop a metric the user explicitly asks for.`,
+      .join("\n")}\nRules: deprivation and ethnicity have no "better/worse" — a rank by nzdep_decile is allowed but is informational only.\nCommute rules, in priority order:\n1. The question refers to one of the user's SAVED PLACES by name — work, home, school (drop-off), daycare, or a saved point of interest — → ALWAYS intent=commute with that commute field set to exactly that word. These are specific saved addresses, NOT suburbs and NOT the CBD; never answer them from the commute_* metrics.${savedPlacesLine} Example: "How long is the commute from Ponsonby to work?" → {"intent":"commute","suburbs":["Ponsonby"],"commute":{"origin":"Ponsonby","destination":"work","mode":"driving-car","max_minutes":null}}.\n2. "how far/long is <suburb> from the CBD/airport" → intent=lookup with the commute_* metrics (precomputed).\n3. A commute between a suburb/address and any other specific destination → intent=commute with commute.origin/destination as written. "Suburbs within N min <mode> of <place>" combined with a metric constraint → intent=rank on that metric plus commute.destination and commute.max_minutes. PUBLIC TRANSPORT (train, bus, ferry) times are NOT supported — intent=unsupported, note that only typical drive/cycle/walk times exist.\nRent questions about a specific dwelling type or bedroom count ARE supported: intent=lookup with the rent metrics — the data covers all dwelling types combined and the answer will say so; do not refuse them.\nHazard rules: questions about individual hazard layers (flood plain, coastal inundation, overland flow, liquefaction) or zoning/heritage ARE supported — intent=lookup or rank on those metrics. A general "is X safe / is X a safe suburb?" question → intent=lookup on the hazard metrics for that suburb (the answer states these are hazard-model layers only — no crime data — and gives no overall verdict). BUT a question asking for ANY risk or safety score or rating — overall or for a single layer, e.g. "flood risk score out of 10", "how risky is X overall" — or to merge hazard layers into one figure → intent=unsupported with note set to exactly "composite-risk".\nQuestions about construction / how much is being built / how many homes were built in a suburb → intent=lookup or rank on the consents metrics (the data measures consents, and the answer states that); do not refuse them.\nOther questions needing data we don't have (crime, house prices outside rent/income, other cities) are unsupported.\n${personaLine} When the question is open-ended about which metrics matter, lean toward this persona's priorities — but never drop a metric the user explicitly asks for.`,
     messages: [{ role: "user", content: question }],
     maxTokens: 500,
     jsonSchema: PLAN_SCHEMA as unknown as Record<string, unknown>,
@@ -376,8 +477,8 @@ export async function POST(req: NextRequest) {
   if (plan.intent === "commute") {
     const originText = plan.commute.origin ?? plan.suburbs[0] ?? null;
     const destText = plan.commute.destination;
-    const origin = originText ? await resolvePlace(supabase, originText, work) : null;
-    const dest = destText ? await resolvePlace(supabase, destText, work) : null;
+    const origin = originText ? await resolvePlace(supabase, originText, savedPlaces) : null;
+    const dest = destText ? await resolvePlace(supabase, destText, savedPlaces) : null;
     if (!origin || !dest) {
       plan.note =
         plan.note ||
@@ -428,7 +529,7 @@ export async function POST(req: NextRequest) {
   // Commute-constrained ranking ("under $650 within 30 min of Penrose"):
   // rank rows already hold the metric shortlist; one matrix call filters it.
   if (plan.intent === "rank" && plan.commute.destination && plan.commute.max_minutes) {
-    const dest = await resolvePlace(supabase, plan.commute.destination, work);
+    const dest = await resolvePlace(supabase, plan.commute.destination, savedPlaces);
     if (dest && rows.length) {
       const codes = rows.map((r) => r.sa2_code);
       const { data: pts } = await supabase
@@ -652,7 +753,7 @@ export async function POST(req: NextRequest) {
             )
             .join("\n");
           for await (const delta of chat.stream("reasoning", {
-            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts; NZDep2018 decile semantics: 1 = least deprived, 10 = most deprived. Rent rows from MBIE tenancy bonds cover new tenancies across ALL dwelling types — if the question asks about a specific dwelling type or bedroom count, give the all-dwellings figure and say that's what it is; never present it as type-specific. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation. Hazard rules: hazard rows are separate council model layers with different vintages — cite each with its layer and year as given in the row label, treat hazard exposure as one input among many (never a verdict on a suburb), NEVER combine hazard layers into a single risk figure or score, and when any hazard row is cited end the answer with: "${HAZARD_CAVEAT}". If the question asked whether somewhere is "safe", state that these are hazard-model layers only (crime data is not covered) and give no overall safety verdict. Building-consent rows are consents — intentions to build, not completions; if the question asks how many homes were "built" or "completed", give the consents figure and say that's what it measures. Profile-similarity rows rank suburbs by how alike their overall profiles are (census, rent, commute, hazard and planning facts) — NOT by geographic distance. When similarity rows are present, name that basis, and if the question asked for somewhere "near" or "close to" a place, say plainly that these are profile matches rather than the nearest suburbs by distance. Use the accompanying metric rows to answer what was actually asked about those suburbs.\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics. ${plan.note ? `Context note: ${plan.note}` : ""}`,
+            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts; NZDep2018 decile semantics: 1 = least deprived, 10 = most deprived. Rent rows from MBIE tenancy bonds cover new tenancies across ALL dwelling types — if the question asks about a specific dwelling type or bedroom count, give the all-dwellings figure and say that's what it is; never present it as type-specific. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation. Hazard rules: hazard rows are separate council model layers with different vintages — cite each with its layer and year as given in the row label, treat hazard exposure as one input among many (never a verdict on a suburb), NEVER combine hazard layers into a single risk figure or score, and when any hazard row is cited end the answer with: "${HAZARD_CAVEAT}". If the question asked whether somewhere is "safe", state that these are hazard-model layers only (crime data is not covered) and give no overall safety verdict. Building-consent rows are consents — intentions to build, not completions; if the question asks how many homes were "built" or "completed", give the consents figure and say that's what it measures. Profile-similarity rows rank suburbs by how alike their overall profiles are (census, rent, commute, hazard and planning facts) — NOT by geographic distance. When similarity rows are present, name that basis, and if the question asked for somewhere "near" or "close to" a place, say plainly that these are profile matches rather than the nearest suburbs by distance. Use the accompanying metric rows to answer what was actually asked about those suburbs.\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics.${budgetLine} PREFERENCE TRANSPARENCY: the settings in play for this question are ${preferenceNames.join(", ")}. Where a preference shaped what you emphasised, ordered or pointed out, say which one did — the user must never have to guess why an answer leaned a particular way. Preferences bias emphasis only; they never remove a suburb or a figure from consideration. ${plan.note ? `Context note: ${plan.note}` : ""}`,
             messages: [
               {
                 role: "user",

@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { getPersona, getWorkplace } from "./preferences";
+import { getAnchors, getPersona, getRentBudget, getWorkplace } from "./preferences";
 
 export const COMPARE_LIMIT = 3;
 
@@ -176,12 +176,16 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         const res = await fetch("/api/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          // The saved workplace rides along so "commute to work" resolves
-          // server-side (TRI-54), and the active persona steers metric
-          // emphasis (TRI-61); both snapshotted here, not reactive.
+          // Preferences ride along so the server can resolve "to work" and
+          // state what it weighted (TRI-54 → TRI-92). All snapshotted at submit
+          // time, not reactive: an answer should reflect the settings the
+          // question was asked under, even if the user changes them mid-stream.
+          // `workplace` stays for compatibility; anchors supersede it.
           body: JSON.stringify({
             question,
             workplace: getWorkplace() ?? undefined,
+            anchors: getAnchors(),
+            budget: getRentBudget() ?? undefined,
             persona: getPersona(),
           }),
           signal: controller.signal,
