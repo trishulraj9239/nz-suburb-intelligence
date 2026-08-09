@@ -167,11 +167,22 @@ async function main() {
     const B = aIsAnthropic ? "groq" : "anthropic";
     const rows = runs[A].run.meta?.sources ?? runs[B].run.meta?.sources ?? [];
     let quality = null;
-    try {
-      const verdict = await judge(q.question, runs[A].run.text, runs[B].run.text, rows);
-      quality = { anthropic: aIsAnthropic ? verdict.a : verdict.b, groq: aIsAnthropic ? verdict.b : verdict.a };
-    } catch (e) {
-      console.log(`  ! judge failed for ${q.id}: ${e.message}`);
+    let judgeError = null;
+    // TRI-110 issue 4 — a judge failure used to drop the question from the
+    // average silently, shifting the headline number. The observed failures
+    // (q16 one day, q12 another) don't reproduce with identical inputs, so
+    // they're transient: retry, and if it still fails, record the error so the
+    // dropout is visible in the results rather than inferred from a null.
+    for (let attempt = 1; attempt <= 3 && !quality; attempt++) {
+      try {
+        const verdict = await judge(q.question, runs[A].run.text, runs[B].run.text, rows);
+        quality = { anthropic: aIsAnthropic ? verdict.a : verdict.b, groq: aIsAnthropic ? verdict.b : verdict.a };
+        judgeError = null;
+      } catch (e) {
+        judgeError = e.message;
+        console.log(`  ! judge attempt ${attempt}/3 failed for ${q.id}: ${e.message}`);
+        if (attempt < 3) await new Promise((r) => setTimeout(r, attempt * 2000));
+      }
     }
     if (quality) {
       runs.anthropic.score.quality = quality.anthropic.overall;
@@ -182,6 +193,7 @@ async function main() {
       id: q.id,
       intent: q.intent,
       question: q.question,
+      judge_error: judgeError,
       results: Object.fromEntries(
         // TRI-110 — persist the ROWS too. Without them a disputed judgement
         // can't be re-examined after the fact, which is exactly what happened
@@ -214,8 +226,10 @@ async function main() {
   const body = PROVIDERS.map((p) => {
     const rows = perProvider[p];
     const q = rows.filter((r) => r.quality != null);
-    const qAvg = q.length ? avg(q, "quality").toFixed(1) : "—";
-    return `| ${PRICING[p].label} | ${pct(rows, "plan_valid")} | ${pct(rows, "citations_ok")} | ${pct(rows, "values_grounded")} | ${pct(rows, "refusal_ok")} | ${qAvg}/5 | ${Math.round(avg(rows, "latency_ms"))}ms | $${avg(rows, "cost_est_usd").toFixed(5)} |`;
+    // Show how many questions the average is OVER — a judge dropout must not
+    // silently shift the headline number (TRI-110 issue 4).
+    const qAvg = q.length ? `${avg(q, "quality").toFixed(1)}/5 (${q.length}/${rows.length} judged)` : "—";
+    return `| ${PRICING[p].label} | ${pct(rows, "plan_valid")} | ${pct(rows, "citations_ok")} | ${pct(rows, "values_grounded")} | ${pct(rows, "refusal_ok")} | ${qAvg} | ${Math.round(avg(rows, "latency_ms"))}ms | $${avg(rows, "cost_est_usd").toFixed(5)} |`;
   }).join("\n");
   const md = header + body + "\n";
   writeFileSync(join(HERE, "results", "latest.md"), md);
