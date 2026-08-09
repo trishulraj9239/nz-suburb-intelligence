@@ -556,10 +556,27 @@ export async function POST(req: NextRequest) {
           [dest.lng, dest.lat],
         );
         const cap = plan.commute.max_minutes * 60;
-        const kept = withPts.filter((_, i) => secs[i] !== null && secs[i]! <= cap);
-        const keptSecs = new Map(kept.map((r) => [r.sa2_code, secs[withPts.indexOf(r)]!]));
+        const secFor = new Map(withPts.map((r, i) => [r.sa2_code, secs[i]]));
+        const kept = withPts.filter((r) => {
+          const s = secFor.get(r.sa2_code);
+          return s != null && s <= cap;
+        });
+        // TRI-111 — this path finds the nearest AMONG the metric shortlist,
+        // not the best among the nearby (an ORS-quota tradeoff: one matrix
+        // call, not 633). When the constraint is tight and anti-correlated
+        // with the metric ("cheapest near Takapuna") the intersection can be
+        // genuinely empty. Returning zero rows was a dead end; instead show
+        // the closest few of the shortlist with their real times and say
+        // exactly what was and wasn't checked.
+        const shown = kept.length
+          ? kept.slice(0, 8)
+          : withPts
+              .filter((r) => secFor.get(r.sa2_code) != null)
+              .sort((a, b) => secFor.get(a.sa2_code)! - secFor.get(b.sa2_code)!)
+              .slice(0, 3);
+        const metricLabel = withPts[0]?.label ?? "the metric";
         rows.length = 0;
-        for (const r of kept.slice(0, 8)) {
+        for (const r of shown) {
           rows.push({ ...r, n: rows.length + 1 });
           rows.push({
             n: rows.length + 1,
@@ -567,15 +584,17 @@ export async function POST(req: NextRequest) {
             sa2_code: r.sa2_code,
             metric: `commute_${plan.commute.mode}`,
             label: `Typical ${MODE_LABEL[plan.commute.mode]} time to ${dest.label} (routed, no live traffic)`,
-            value: Math.round(keptSecs.get(r.sa2_code)! / 6) / 10,
+            value: Math.round(secFor.get(r.sa2_code)! / 6) / 10,
             unit: "min",
             source: "openrouteservice routing (OpenStreetMap)",
             as_of: new Date().toISOString().slice(0, 10),
             confidence: "medium",
           });
         }
-        if (!rows.length) {
-          plan.note = `No ranked suburb was within ${plan.commute.max_minutes} min ${MODE_LABEL[plan.commute.mode]} of ${dest.label}.`;
+        if (!kept.length && rows.length) {
+          plan.note = `None of the ${withPts.length} suburbs with the ${plan.rank_direction === "asc" ? "lowest" : "highest"} ${metricLabel} is within ${plan.commute.max_minutes} min ${MODE_LABEL[plan.commute.mode]} of ${dest.label} — travel time was checked for that shortlist only, not for every Auckland suburb. The rows are the closest of that shortlist with their actual times: none meets the ${plan.commute.max_minutes}-minute constraint, and a suburb outside the shortlist could be nearer. State this plainly, present these as the nearest of the ${plan.rank_direction === "asc" ? "lowest" : "highest"}-ranked rather than a complete answer, and suggest re-asking with a looser time limit or a specific nearby suburb for a direct look-up.`;
+        } else if (!rows.length) {
+          plan.note = `No ranked suburb was within ${plan.commute.max_minutes} min ${MODE_LABEL[plan.commute.mode]} of ${dest.label}, and routing returned no usable times for the shortlist.`;
         }
       } catch (err) {
         // Matrix down → keep the metric ranking, say the constraint was skipped.
