@@ -292,5 +292,14 @@
       "unsupported": true,
       "minSources": 0
     }
+  },
+  {
+    "id": "q28-rank-near",
+    "question": "Cheapest rent near Takapuna?",
+    "intent": "rank",
+    "expect": {
+      "unsupported": false,
+      "minSources": 1
+    }
   }
 ]
