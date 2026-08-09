@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getChat, getEmbeddings } from "@/lib/llm";
-import { orsMatrixToOne, OrsUnavailableError } from "@/lib/commute/ors";
+import { haversineMeters, orsMatrixToOne, OrsUnavailableError } from "@/lib/commute/ors";
 import { ptKey, routedCommute } from "@/lib/commute/service";
 import { DEFAULT_PERSONA, isPersonaKey, personaConfig } from "@/lib/persona";
 import { HAZARD_CAVEAT, HAZARD_METRIC_KEYS, hazardRowLabel } from "@/lib/hazard";
@@ -10,6 +10,21 @@ const MODE_LABEL: Record<string, string> = {
   "driving-car": "drive",
   "cycling-regular": "cycle",
   "foot-walking": "walk",
+};
+
+/**
+ * TRI-109 — generous per-mode speed bounds for the straight-line proximity
+ * pre-filter. Road distance is always ≥ straight-line distance, so a suburb
+ * whose straight-line distance to the destination already exceeds
+ * max_minutes at these speeds cannot possibly route inside the cap. The
+ * bounds are deliberately fast (Auckland driving never AVERAGES 80 km/h) so
+ * the pre-filter only ever removes suburbs the routed check would reject
+ * anyway — the single ORS matrix call stays the source of truth.
+ */
+const STRAIGHT_LINE_BOUND_KMH: Record<string, number> = {
+  "driving-car": 80,
+  "cycling-regular": 25,
+  "foot-walking": 6,
 };
 
 interface ResolvedPlace {
@@ -336,7 +351,7 @@ export async function POST(req: NextRequest) {
   const planText = await chat.complete("reasoning", {
     system: `You convert questions about Auckland (NZ) suburbs into a structured query plan. Coverage: Auckland region SA2 areas only; Census 2023/2018/2013, NZDep2018 deprivation, school directory, typical routed commute times (openrouteservice/OSM — drive, cycle, walk; no live traffic). Metric registry (key | label | unit):\n${registry
       .map((d) => `${d.metric_key} | ${d.label} | ${d.unit ?? "-"}`)
-      .join("\n")}\nRules: deprivation and ethnicity have no "better/worse" — a rank by nzdep_decile is allowed but is informational only.\nCommute rules, in priority order:\n1. The question refers to one of the user's SAVED PLACES by name — work, home, school (drop-off), daycare, or a saved point of interest — → ALWAYS intent=commute with that commute field set to exactly that word. These are specific saved addresses, NOT suburbs and NOT the CBD; never answer them from the commute_* metrics.${savedPlacesLine} Example: "How long is the commute from Ponsonby to work?" → {"intent":"commute","suburbs":["Ponsonby"],"commute":{"origin":"Ponsonby","destination":"work","mode":"driving-car","max_minutes":null}}.\n2. "how far/long is <suburb> from the CBD/airport" → intent=lookup with the commute_* metrics (precomputed).\n3. A commute between a suburb/address and any other specific destination → intent=commute with commute.origin/destination as written. "Suburbs within N min <mode> of <place>" combined with a metric constraint → intent=rank on that metric plus commute.destination and commute.max_minutes. PUBLIC TRANSPORT (train, bus, ferry) times are NOT supported — intent=unsupported, note that only typical drive/cycle/walk times exist.\nRent questions about a specific dwelling type or bedroom count ARE supported: intent=lookup with the rent metrics — the data covers all dwelling types combined and the answer will say so; do not refuse them.\nHazard rules: questions about individual hazard layers (flood plain, coastal inundation, overland flow, liquefaction) or zoning/heritage ARE supported — intent=lookup or rank on those metrics. A general "is X safe / is X a safe suburb?" question → intent=lookup on the hazard metrics for that suburb (the answer states these are hazard-model layers only — no crime data — and gives no overall verdict). BUT a question asking for ANY risk or safety score or rating — overall or for a single layer, e.g. "flood risk score out of 10", "how risky is X overall" — or to merge hazard layers into one figure → intent=unsupported with note set to exactly "composite-risk".\nQuestions about construction / how much is being built / how many homes were built in a suburb → intent=lookup or rank on the consents metrics (the data measures consents, and the answer states that); do not refuse them.\nOther questions needing data we don't have (crime, house prices outside rent/income, other cities) are unsupported.\n${personaLine} When the question is open-ended about which metrics matter, lean toward this persona's priorities — but never drop a metric the user explicitly asks for.`,
+      .join("\n")}\nRules: deprivation and ethnicity have no "better/worse" — a rank by nzdep_decile is allowed but is informational only.\nCommute rules, in priority order:\n1. The question refers to one of the user's SAVED PLACES by name — work, home, school (drop-off), daycare, or a saved point of interest — → ALWAYS intent=commute with that commute field set to exactly that word. These are specific saved addresses, NOT suburbs and NOT the CBD; never answer them from the commute_* metrics.${savedPlacesLine} Example: "How long is the commute from Ponsonby to work?" → {"intent":"commute","suburbs":["Ponsonby"],"commute":{"origin":"Ponsonby","destination":"work","mode":"driving-car","max_minutes":null}}.\n2. "how far/long is <suburb> from the CBD/airport" → intent=lookup with the commute_* metrics (precomputed).\n3. A commute between a suburb/address and any other specific destination → intent=commute with commute.origin/destination as written. "Suburbs within N min <mode> of <place>" combined with a metric constraint → intent=rank on that metric plus commute.destination and commute.max_minutes. "<metric> near/close to <place>" — e.g. "cheapest rent near Takapuna" — is the SAME proximity constraint: intent=rank on that metric with commute.destination set to the place and commute.max_minutes=20 when the question gives no number. Reserve intent=similar for LIKENESS — "suburbs like X", "similar to X", a described vibe — never for "near"/"close to" a place: near means distance, not resemblance. PUBLIC TRANSPORT (train, bus, ferry) times are NOT supported — intent=unsupported, note that only typical drive/cycle/walk times exist.\nRent questions about a specific dwelling type or bedroom count ARE supported: intent=lookup with the rent metrics — the data covers all dwelling types combined and the answer will say so; do not refuse them.\nHazard rules: questions about individual hazard layers (flood plain, coastal inundation, overland flow, liquefaction) or zoning/heritage ARE supported — intent=lookup or rank on those metrics. A general "is X safe / is X a safe suburb?" question → intent=lookup on the hazard metrics for that suburb (the answer states these are hazard-model layers only — no crime data — and gives no overall verdict). BUT a question asking for ANY risk or safety score or rating — overall or for a single layer, e.g. "flood risk score out of 10", "how risky is X overall" — or to merge hazard layers into one figure → intent=unsupported with note set to exactly "composite-risk".\nQuestions about construction / how much is being built / how many homes were built in a suburb → intent=lookup or rank on the consents metrics (the data measures consents, and the answer states that); do not refuse them.\nOther questions needing data we don't have (crime, house prices outside rent/income, other cities) are unsupported.\n${personaLine} When the question is open-ended about which metrics matter, lean toward this persona's priorities — but never drop a metric the user explicitly asks for.`,
     messages: [{ role: "user", content: question }],
     maxTokens: 500,
     jsonSchema: PLAN_SCHEMA as unknown as Record<string, unknown>,
@@ -373,6 +388,12 @@ export async function POST(req: NextRequest) {
   // ---- 2. EXECUTE ----------------------------------------------------------
   const rows: SourceRow[] = [];
   const compareCodes: string[] = [];
+  // TRI-105 — relax the commute chip BEFORE ranking, so a dismissed
+  // constraint doesn't pre-filter the shortlist either.
+  if (relaxed.has("commute")) plan.commute.max_minutes = null;
+  // Destination resolved once for the rank pre-filter (TRI-109) and reused by
+  // the routed-time filter below.
+  let rankDest: ResolvedPlace | null = null;
   const wantedMetrics = (plan.metric_keys.length ? plan.metric_keys : scalarKeys).filter(
     (k) => scalarKeys.includes(k),
   );
@@ -430,8 +451,38 @@ export async function POST(req: NextRequest) {
   } else if (plan.intent === "rank") {
     const metric = wantedMetrics[0] ?? "median_rent_weekly";
     const def = registry.find((d) => d.metric_key === metric);
-    // A commute constraint filters AFTER ranking — shortlist wider so the
-    // one matrix call has candidates to keep.
+    // TRI-109 — filter FIRST on geography, then rank. The old order (top-25
+    // by metric, then routed filter) found the nearest among the cheapest,
+    // not the cheapest among the nearby, and "cheap near <expensive place>"
+    // returned nothing. A straight-line pre-filter over the public
+    // commute_origin_points bounds the candidate set to plausibly-near
+    // suburbs at zero ORS cost; ranking happens inside that set and the one
+    // matrix call below still provides the real routed times.
+    let nearCodes: string[] | null = null;
+    if (plan.commute.destination && plan.commute.max_minutes) {
+      rankDest = await resolvePlace(supabase, plan.commute.destination, savedPlaces);
+      if (rankDest) {
+        const { data: pts } = await supabase
+          .from("commute_origin_points")
+          .select("sa2_code, lng, lat");
+        const boundM =
+          (plan.commute.max_minutes / 60) * STRAIGHT_LINE_BOUND_KMH[plan.commute.mode] * 1000;
+        nearCodes = (pts ?? [])
+          .filter(
+            (p) =>
+              haversineMeters(
+                [Number(p.lng), Number(p.lat)],
+                [rankDest!.lng, rankDest!.lat],
+              ) <= boundM,
+          )
+          .map((p) => p.sa2_code as string);
+        if (!nearCodes.length) {
+          plan.note = `No suburb is within ${plan.commute.max_minutes} min ${MODE_LABEL[plan.commute.mode]} of ${rankDest.label} — even by straight-line distance nothing is close enough, so loosening the time limit is the only way to get candidates.`;
+        }
+      }
+    }
+    // With a commute constraint the shortlist stays wide (25) so the routed
+    // check below has candidates to keep.
     const limit =
       plan.commute.destination && plan.commute.max_minutes
         ? 25
@@ -447,20 +498,24 @@ export async function POST(req: NextRequest) {
       .order("as_of_date", { ascending: false })
       .limit(1);
     const latestDate = latestVal?.[0]?.as_of_date;
-    const { data: vals } = latestDate
-      ? await supabase
-          .from("metric_values")
-          .select(
-            "value_num, as_of_date, confidence, geographies!inner(name, sa2_code, is_active), metric_definitions!inner(metric_key,label,unit), sources(name)",
-          )
-          .is("category", null)
-          .eq("metric_definitions.metric_key", metric)
-          .eq("geographies.is_active", true)
-          .eq("as_of_date", latestDate)
-          .not("value_num", "is", null)
-          .order("value_num", { ascending: plan.rank_direction === "asc" })
-          .limit(limit)
-      : { data: [] };
+    const { data: vals } =
+      latestDate && !(nearCodes && nearCodes.length === 0)
+        ? await (() => {
+            let q = supabase
+              .from("metric_values")
+              .select(
+                "value_num, as_of_date, confidence, geographies!inner(name, sa2_code, is_active), metric_definitions!inner(metric_key,label,unit), sources(name)",
+              )
+              .is("category", null)
+              .eq("metric_definitions.metric_key", metric)
+              .eq("geographies.is_active", true)
+              .eq("as_of_date", latestDate)
+              .not("value_num", "is", null);
+            // TRI-109 — rank inside the plausibly-near candidate set.
+            if (nearCodes) q = q.in("geographies.sa2_code", nearCodes);
+            return q.order("value_num", { ascending: plan.rank_direction === "asc" }).limit(limit);
+          })()
+        : { data: [] };
     for (const v of vals ?? []) {
       const g = v.geographies as unknown as { name: string; sa2_code: string };
       rows.push({
@@ -534,10 +589,10 @@ export async function POST(req: NextRequest) {
   }
 
   // Commute-constrained ranking ("under $650 within 30 min of Penrose"):
-  // rank rows already hold the metric shortlist; one matrix call filters it.
-  if (relaxed.has("commute")) plan.commute.max_minutes = null;
+  // rank rows hold the metric shortlist — pre-filtered to plausibly-near
+  // suburbs (TRI-109) — and one matrix call provides the routed times.
   if (plan.intent === "rank" && plan.commute.destination && plan.commute.max_minutes) {
-    const dest = await resolvePlace(supabase, plan.commute.destination, savedPlaces);
+    const dest = rankDest ?? (await resolvePlace(supabase, plan.commute.destination, savedPlaces));
     if (dest && rows.length) {
       const codes = rows.map((r) => r.sa2_code);
       const { data: pts } = await supabase
@@ -561,13 +616,13 @@ export async function POST(req: NextRequest) {
           const s = secFor.get(r.sa2_code);
           return s != null && s <= cap;
         });
-        // TRI-111 — this path finds the nearest AMONG the metric shortlist,
-        // not the best among the nearby (an ORS-quota tradeoff: one matrix
-        // call, not 633). When the constraint is tight and anti-correlated
-        // with the metric ("cheapest near Takapuna") the intersection can be
-        // genuinely empty. Returning zero rows was a dead end; instead show
-        // the closest few of the shortlist with their real times and say
-        // exactly what was and wasn't checked.
+        // TRI-111 — an empty intersection was a dead end; show the closest
+        // few of the shortlist with their real times instead, and say what
+        // was checked. Post-TRI-109 the shortlist is already the best-by-
+        // metric among plausibly-near suburbs, so emptiness here means the
+        // straight-line bound admitted candidates whose ROUTED times all
+        // exceed the cap — other nearby suburbs may still meet it but rank
+        // worse on the metric.
         const shown = kept.length
           ? kept.slice(0, 8)
           : withPts
@@ -592,7 +647,7 @@ export async function POST(req: NextRequest) {
           });
         }
         if (!kept.length && rows.length) {
-          plan.note = `None of the ${withPts.length} suburbs with the ${plan.rank_direction === "asc" ? "lowest" : "highest"} ${metricLabel} is within ${plan.commute.max_minutes} min ${MODE_LABEL[plan.commute.mode]} of ${dest.label} — travel time was checked for that shortlist only, not for every Auckland suburb. The rows are the closest of that shortlist with their actual times: none meets the ${plan.commute.max_minutes}-minute constraint, and a suburb outside the shortlist could be nearer. State this plainly, present these as the nearest of the ${plan.rank_direction === "asc" ? "lowest" : "highest"}-ranked rather than a complete answer, and suggest re-asking with a looser time limit or a specific nearby suburb for a direct look-up.`;
+          plan.note = `The ${withPts.length} suburbs with the ${plan.rank_direction === "asc" ? "lowest" : "highest"} ${metricLabel} among plausibly-near candidates all route over ${plan.commute.max_minutes} min ${MODE_LABEL[plan.commute.mode]} from ${dest.label} — the rows are the closest of them with their actual times. Other suburbs nearer to ${dest.label} may meet the time limit but rank worse on ${metricLabel} than these. State this plainly, present the rows as the best-ranked of the nearby rather than a complete answer, and suggest a looser time limit or asking for the closest suburbs regardless of ${metricLabel}.`;
         } else if (!rows.length) {
           plan.note = `No ranked suburb was within ${plan.commute.max_minutes} min ${MODE_LABEL[plan.commute.mode]} of ${dest.label}, and routing returned no usable times for the shortlist.`;
         }
@@ -794,7 +849,7 @@ export async function POST(req: NextRequest) {
             )
             .join("\n");
           for await (const delta of chat.stream("reasoning", {
-            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts; NZDep2018 decile semantics: 1 = least deprived, 10 = most deprived. Rent rows from MBIE tenancy bonds cover new tenancies across ALL dwelling types — if the question asks about a specific dwelling type or bedroom count, give the all-dwellings figure and say that's what it is; never present it as type-specific. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation. Hazard rules: hazard rows are separate council model layers with different vintages — cite each with its layer and year as given in the row label, treat hazard exposure as one input among many (never a verdict on a suburb), NEVER combine hazard layers into a single risk figure or score, and when any hazard row is cited end the answer with: "${HAZARD_CAVEAT}". If the question asked whether somewhere is "safe", state that these are hazard-model layers only (crime data is not covered) and give no overall safety verdict. Building-consent rows are consents — intentions to build, not completions; if the question asks how many homes were "built" or "completed", give the consents figure and say that's what it measures. Profile-similarity rows rank suburbs by how alike their overall profiles are (census, rent, commute, hazard and planning facts) — NOT by geographic distance. When similarity rows are present, name that basis, and if the question asked for somewhere "near" or "close to" a place, say plainly that these are profile matches rather than the nearest suburbs by distance. Use the accompanying metric rows to answer what was actually asked about those suburbs.\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics.${budgetLine} PREFERENCE TRANSPARENCY: the settings in play for this question are ${preferenceNames.join(", ")}. Where a preference shaped what you emphasised, ordered or pointed out, say which one did — the user must never have to guess why an answer leaned a particular way. Preferences bias emphasis only; they never remove a suburb or a figure from consideration. ${plan.note ? `Context note: ${plan.note}` : ""}`,
+            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts; NZDep2018 decile semantics: 1 = least deprived, 10 = most deprived. Rent rows from MBIE tenancy bonds cover new tenancies across ALL dwelling types — if the question asks about a specific dwelling type or bedroom count, give the all-dwellings figure and say that's what it is; never present it as type-specific. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation. Hazard rules: hazard rows are separate council model layers with different vintages — cite each with its layer and year as given in the row label, treat hazard exposure as one input among many (never a verdict on a suburb), NEVER combine hazard layers into a single risk figure or score, and when any hazard row is cited end the answer with: "${HAZARD_CAVEAT}". If the question asked whether somewhere is "safe", state that these are hazard-model layers only (crime data is not covered) and give no overall safety verdict. Building-consent rows are consents — intentions to build, not completions; if the question asks how many homes were "built" or "completed", give the consents figure and say that's what it measures. Profile-similarity rows rank suburbs by how alike their overall profiles are (census, rent, commute, hazard and planning facts) — NOT by geographic distance. ONLY when Profile-similarity rows are among the data rows: name that basis, and if the question asked for somewhere "near" or "close to" a place, say plainly that these are profile matches rather than the nearest suburbs by distance. When rows instead carry routed drive/cycle/walk times to a destination, the suburbs WERE selected by geographic proximity — never describe those as profile matches. Use the accompanying metric rows to answer what was actually asked about those suburbs.\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics.${budgetLine} PREFERENCE TRANSPARENCY: the settings in play for this question are ${preferenceNames.join(", ")}. Where a preference shaped what you emphasised, ordered or pointed out, say which one did — the user must never have to guess why an answer leaned a particular way. Preferences bias emphasis only; they never remove a suburb or a figure from consideration. ${plan.note ? `Context note: ${plan.note}` : ""}`,
             messages: [
               {
                 role: "user",
