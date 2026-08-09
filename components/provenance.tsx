@@ -61,6 +61,27 @@ export function confidenceLabel(confidence: string): string {
   return CONF_LABEL[confidence in CONF_LABEL ? confidence : "medium"];
 }
 
+/** TRI-112 — the chip vocabulary spelled out once, at a panel foot. */
+const LEGEND_TEXT: Record<string, string> = {
+  high: "from the source",
+  medium: "estimated / mapped",
+  low: "suppressed or rounded",
+  derived: "computed here",
+};
+
+export function ConfidenceLegend() {
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-hairline pt-2">
+      {(["high", "medium", "low", "derived"] as const).map((c) => (
+        <span key={c} className="flex items-center gap-1 text-[10px] text-ink/50" title={CONF_TITLE[c]}>
+          <ConfidenceChip confidence={c} />
+          {LEGEND_TEXT[c]}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export function SourceChip({ source, asOf }: { source: string; asOf: string }) {
   return (
     <span className="font-mono text-[10px] text-ink/45">

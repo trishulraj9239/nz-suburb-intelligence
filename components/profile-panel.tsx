@@ -24,6 +24,16 @@ import { StackedBar } from "./stacked-bar";
 import { KpiTiles } from "./kpi-tiles";
 
 /**
+ * TRI-112 (TRI-70 follow-through) — breakdowns that render as ONE stacked
+ * composition bar. Exclusive compositions only: each dwelling has one type,
+ * each household one tenure, each parcel one zone, so segments sum to ~100%.
+ * Ethnicity stays per-category rows — the census question is multi-response
+ * (people select several), so its percentages sum past 100 and a stacked bar
+ * would misrepresent it as a partition.
+ */
+const STACKED_BREAKDOWNS = new Set(["zoning_share", "dwelling_type", "tenure"]);
+
+/**
  * Percentile-vs-region bar. For metrics with higher_is_better NULL
  * (deprivation etc.) the marker stays neutral ink — position is information,
  * never verdict (UI spec §7).
@@ -435,7 +445,7 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
                 <h4 className="text-[11px] font-medium uppercase tracking-wider text-ink/45">
                   {b.def.label}
                 </h4>
-                {b.def.metric_key === "zoning_share" ? (
+                {STACKED_BREAKDOWNS.has(b.def.metric_key) ? (
                   <div className="mt-2">
                     <StackedBar b={b} />
                   </div>
