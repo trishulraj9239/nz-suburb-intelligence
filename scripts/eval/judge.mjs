@@ -62,21 +62,33 @@ const SYSTEM =
   "A question asking for an overall risk/safety score or a per-layer score out of N is correctly answered by a refusal that lists the individual measured layers — reward that refusal. " +
   "Consents criteria (M15): building-consent rows are INTENTIONS to build, not completions — an answer that presents consented dwellings as houses already built scores `grounded` low; an answer that gives the consents figure while stating that distinction is correct and scores well.";
 
+const rowsBlock = (rows) =>
+  rows
+    .map((r) => `[${r.n}] ${r.suburb} — ${r.label}: ${r.value}${r.unit ? ` ${r.unit}` : ""} (${r.source}, ${String(r.as_of).slice(0, 4)}, confidence ${r.confidence})`)
+    .join("\n") || "(none — the assistant should decline)";
+
 /**
+ * TRI-113 — each answer is judged against ITS OWN rows. The planner is run
+ * per provider, so the two answers can receive entirely different row sets;
+ * judging both against one shared set (the pre-TRI-107 assumption) produced
+ * confidently false fabrication verdicts — the judge called real rows
+ * invented because it was shown the OTHER answer's rows (q22 on 2026-08-05,
+ * q28 on 2026-08-10, both proven from the persisted rows).
+ *
  * @param {string} question
  * @param {string} answerA  answer text (with {{cN}} markers) for slot A
  * @param {string} answerB  answer text for slot B
- * @param {Array}  rows     the shared source rows both answers were given
+ * @param {Array}  rowsA    the source rows answer A was given
+ * @param {Array}  rowsB    the source rows answer B was given
  * @returns {Promise<{a: object, b: object}>}
  */
-export async function judge(question, answerA, answerB, rows) {
-  const dataBlock = rows
-    .map((r) => `[${r.n}] ${r.suburb} — ${r.label}: ${r.value}${r.unit ? ` ${r.unit}` : ""} (${r.source}, ${String(r.as_of).slice(0, 4)}, confidence ${r.confidence})`)
-    .join("\n");
+export async function judge(question, answerA, answerB, rowsA, rowsB) {
   const prompt =
     `Question: ${question}\n\n` +
-    `Data rows both answers were given:\n${dataBlock || "(none — the assistant should decline)"}\n\n` +
+    `The two answers come from separate runs and were given SEPARATE data rows — judge each answer ONLY against its own rows.\n\n` +
+    `Rows Answer A was given:\n${rowsBlock(rowsA)}\n\n` +
     `Answer A:\n${answerA || "(empty)"}\n\n` +
+    `Rows Answer B was given:\n${rowsBlock(rowsB)}\n\n` +
     `Answer B:\n${answerB || "(empty)"}\n\n` +
     `Score Answer A and Answer B independently on the rubric.`;
 

@@ -124,18 +124,23 @@ export function boundFigures(text) {
 
 /**
  * The answer prompt explicitly permits "approximately", so rounding is correct
- * behaviour, not a miss. Accept anything that rounds to the stated figure at
- * its own precision, plus a 1% band for larger numbers.
+ * behaviour, not a miss — but only TRUE roundings of the row's value count.
+ * A half-magnitude band used to sit here (±5 on a 3-digit number) and forgave
+ * "$145" quoted against a row of 148 (q9, 2026-08-10): 145 is not a rounding
+ * of 148 at any step — it's a misquote. The judge caught it; the band hid it
+ * (TRI-114 tolerance decision).
  */
 export function matches(claimed, actual) {
   if (!Number.isFinite(claimed) || !Number.isFinite(actual)) return false;
   if (claimed === actual) return true;
   const decimals = (String(claimed).split(".")[1] ?? "").length;
   const step = Math.pow(10, -decimals);
-  if (Math.abs(claimed - actual) <= step / 2) return true; // rounded to this precision
-  // "approximately $1,200" for 1214, "about 26 min" for 26.4
-  const magnitude = Math.pow(10, Math.max(0, String(Math.round(actual)).length - 2));
-  if (Math.abs(claimed - actual) <= magnitude / 2) return true;
+  // Rounded OR truncated at the claim's own precision ("16 min" for 16.9).
+  if (Math.abs(claimed - actual) < step) return true;
+  // A proper nearest-N rounding: "approximately $1,200" for 1214.
+  for (const s of [5, 10, 50, 100, 500, 1000]) {
+    if (Math.round(actual / s) * s === claimed) return true;
+  }
   return Math.abs(claimed - actual) / Math.abs(actual) <= 0.01;
 }
 

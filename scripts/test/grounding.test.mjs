@@ -172,7 +172,13 @@ test("'under a <scenario>' does not swallow the figure", () => {
 });
 
 test("rounding band", () => {
-  assert.equal(matches(1200, 1214), true);
+  assert.equal(matches(1200, 1214), true); // nearest-100
+  assert.equal(matches(1210, 1214), true); // nearest-10
+  assert.equal(matches(16, 16.9), true); // truncated at own precision
   assert.equal(matches(675, 675), true);
   assert.equal(matches(9999, 675), false);
+  // q9 2026-08-10 — "$145" against a row of 148 is a misquote, not a
+  // rounding (nearest-5 of 148 is 150). The old half-magnitude band
+  // accepted it; the judge caught it.
+  assert.equal(matches(145, 148), false);
 });
