@@ -513,7 +513,13 @@ export async function POST(req: NextRequest) {
               .not("value_num", "is", null);
             // TRI-109 — rank inside the plausibly-near candidate set.
             if (nearCodes) q = q.in("geographies.sa2_code", nearCodes);
-            return q.order("value_num", { ascending: plan.rank_direction === "asc" }).limit(limit);
+            return q
+              .order("value_num", { ascending: plan.rank_direction === "asc" })
+              // TRI-116 — deterministic tiebreak: suburbs tied at the limit
+              // boundary were included arbitrarily, so identical questions
+              // ranked over slightly different shortlists between runs.
+              .order("geo_id", { ascending: true })
+              .limit(limit);
           })()
         : { data: [] };
     for (const v of vals ?? []) {

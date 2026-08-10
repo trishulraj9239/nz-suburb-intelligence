@@ -96,7 +96,11 @@ export function ContextPanel() {
 
   const snapHeight = useCallback(
     (s: Snap) => {
-      const ph = areaH || (typeof window !== "undefined" ? window.innerHeight * 0.7 : 600);
+      // TRI-79 — server and FIRST client render must agree or hydration
+      // warns: the old client fallback read window.innerHeight (315) against
+      // the server's constant (300). Constant until the parent is measured
+      // post-mount; the sheet's height transition covers the adjustment.
+      const ph = areaH || 600;
       if (s === "peek") return PEEK_PX;
       return Math.round(ph * (s === "half" ? HALF_FRAC : FULL_FRAC));
     },
