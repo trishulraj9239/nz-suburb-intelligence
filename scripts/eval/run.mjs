@@ -165,7 +165,10 @@ async function main() {
     const aIsAnthropic = Math.random() < 0.5;
     const A = aIsAnthropic ? "anthropic" : "groq";
     const B = aIsAnthropic ? "groq" : "anthropic";
-    const rows = runs[A].run.meta?.sources ?? runs[B].run.meta?.sources ?? [];
+    // TRI-113 — each answer's OWN rows. Plans are per provider, so row sets
+    // can differ entirely; one shared set produced false fabrication verdicts.
+    const rowsA = runs[A].run.meta?.sources ?? [];
+    const rowsB = runs[B].run.meta?.sources ?? [];
     let quality = null;
     let judgeError = null;
     // TRI-110 issue 4 — a judge failure used to drop the question from the
@@ -175,7 +178,7 @@ async function main() {
     // dropout is visible in the results rather than inferred from a null.
     for (let attempt = 1; attempt <= 3 && !quality; attempt++) {
       try {
-        const verdict = await judge(q.question, runs[A].run.text, runs[B].run.text, rows);
+        const verdict = await judge(q.question, runs[A].run.text, runs[B].run.text, rowsA, rowsB);
         quality = { anthropic: aIsAnthropic ? verdict.a : verdict.b, groq: aIsAnthropic ? verdict.b : verdict.a };
         judgeError = null;
       } catch (e) {
@@ -187,6 +190,21 @@ async function main() {
     if (quality) {
       runs.anthropic.score.quality = quality.anthropic.overall;
       runs.groq.score.quality = quality.groq.overall;
+      // TRI-113 — the deterministic layer has been right both times the
+      // judge cried fabrication. When the judge scores grounding low but the
+      // markers all resolve AND every checked figure matches its row, the
+      // verdict is annotated as disputed rather than silently trusted.
+      // Only with REAL deterministic evidence (citations actually present) —
+      // an empty or data-less answer passes those checks vacuously, and the
+      // judge is right to score it low.
+      for (const p of PROVIDERS) {
+        const v = quality[p];
+        if (v.grounded <= 2 && runs[p].score.n_citations > 0 && runs[p].score.values_grounded && runs[p].score.citations_ok) {
+          v.disputed =
+            "judge grounding verdict contradicted by deterministic checks (all markers resolve; all checked figures match their rows)";
+          console.log(`  ! disputed verdict: ${q.id} · ${p} · judge grounded=${v.grounded}`);
+        }
+      }
     }
 
     detail.push({
@@ -235,6 +253,21 @@ async function main() {
   writeFileSync(join(HERE, "results", "latest.md"), md);
 
   console.log("\n" + md);
+  // TRI-114 — values_grounded GATES like citations_ok (decision 2026-08-10:
+  // zero false positives across ~170 scored answers since the extractor
+  // hardening; two true positives). Anything below N/N needs each flag
+  // adjudicated, so put the evidence straight in the output.
+  const attention = [];
+  for (const d of detail) {
+    for (const p of PROVIDERS) {
+      const r = d.results[p];
+      for (const m of r.value_mismatches ?? []) {
+        attention.push(`  ${d.id} · ${p} · c${m.marker}: claimed ${m.claimed} vs row ${m.actual} (${m.row})`);
+      }
+      if (r.quality?.disputed) attention.push(`  ${d.id} · ${p} · ${r.quality.disputed}`);
+    }
+  }
+  if (attention.length) console.log("Gate attention:\n" + attention.join("\n") + "\n");
   console.log(`Wrote scripts/eval/results/latest.json and latest.md`);
   rmSync(PARTIAL, { force: true });
 }
