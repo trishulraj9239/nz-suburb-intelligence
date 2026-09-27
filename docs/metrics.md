@@ -44,8 +44,8 @@ snapshot (2026-08-04, 26 metrics); the DB is the source of truth.
 | `rent_upper_quartile_weekly` | Upper-quartile rent | $/week | scalar | lower | latest quarter | MBIE bonds |
 | `rent_trend_12m_pct` | Rent change (12 months) | % | scalar | — | latest quarter | MBIE bonds |
 | **deprivation** ("Deprivation") |
-| `nzdep_decile` | Deprivation decile | decile | scalar | — | 2018 | NZDep2018 |
-| `nzdep_score` | Deprivation score | score | scalar | — | 2018 | NZDep2018 |
+| `nzdep_decile` | Deprivation decile | decile | scalar | — | 2018/23 | NZDep2023 (current), NZDep2018 |
+| `nzdep_score` | Deprivation score | score | scalar | — | 2018/23 | NZDep2023 (current), NZDep2018 |
 | **commute** ("Getting around") |
 | `commute_cbd_drive_min` | Drive to CBD | min | scalar | lower | 2026 | ORS/OSM |
 | `commute_cbd_cycle_min` | Cycle to CBD | min | scalar | lower | 2026 | ORS/OSM |

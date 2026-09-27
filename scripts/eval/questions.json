@@ -301,5 +301,28 @@
       "unsupported": false,
       "minSources": 1
     }
+  },
+  {
+    "id": "q29-deprivation-change",
+    "question": "How has the deprivation decile in Ponsonby West changed between NZDep2018 and NZDep2023?",
+    "intent": "lookup",
+    "expect": {
+      "unsupported": false,
+      "suburbs": [
+        "Ponsonby West"
+      ],
+      "minSources": 1,
+      "sourceIncludes": "NZDep"
+    }
+  },
+  {
+    "id": "q30-rank-deprivation-2023",
+    "question": "Which five Auckland suburbs have the lowest NZDep2023 deprivation decile?",
+    "intent": "rank",
+    "expect": {
+      "unsupported": false,
+      "minSources": 1,
+      "sourceIncludes": "NZDep2023"
+    }
   }
 ]
