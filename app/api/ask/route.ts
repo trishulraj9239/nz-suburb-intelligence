@@ -63,6 +63,42 @@ function matchAnchor(text: string, anchors: AskAnchor[]): AskAnchor | null {
 }
 
 /**
+ * TRI-121 — resolve a place name to SA2 geographies. SA2 names first (the
+ * spine; unchanged behaviour for every existing question), then the LINZ
+ * suburb/alias layer: "Grey Lynn" → the SA2s that make up Grey Lynn, ordered
+ * by how much of the suburb each holds, capped at `max`. Below the similarity
+ * floor we return nothing rather than guess — the caller says "unknown".
+ * Nothing is aggregated: each SA2 stays its own cited row.
+ */
+async function resolveSuburbGeos(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  text: string,
+  max = 3,
+): Promise<{ id: number; sa2_code: string; name: string; via?: string }[]> {
+  const { data: geos } = await supabase
+    .from("geographies")
+    .select("id, sa2_code, name")
+    .eq("geo_type", "SA2")
+    .eq("is_active", true)
+    .ilike("name", `%${text}%`)
+    .limit(1);
+  if (geos?.[0]) return [geos[0]];
+  const { data: hits } = await supabase.rpc("resolve_suburb", { p_query: text, p_limit: 1 });
+  const rows = ((hits ?? []) as { linz_id: number; name: string; sa2_code: string; sa2_name: string; suburb_share: number; sa2_share: number; score: number }[])
+    .filter((h) => h.score >= 0.35)
+    .filter((h) => Number(h.suburb_share) >= 0.15 || Number(h.sa2_share) >= 0.3)
+    .slice(0, max);
+  if (!rows.length) return [];
+  const { data: geoRows } = await supabase
+    .from("geographies")
+    .select("id, sa2_code, name")
+    .eq("geo_type", "SA2")
+    .in("sa2_code", rows.map((r) => r.sa2_code));
+  const byCode = new Map((geoRows ?? []).map((g) => [g.sa2_code as string, g]));
+  return rows.flatMap((r) => (byCode.has(r.sa2_code) ? [{ ...byCode.get(r.sa2_code)!, via: r.name }] : []));
+}
+
+/**
  * TRI-53 — resolve free text to a routable point: one of the user's saved
  * places, a suburb (ST_PointOnSurface origin), or a geocoded LINZ address.
  * Ambiguous geocodes use the top candidate only above 0.5 — and the answer
@@ -88,13 +124,7 @@ async function resolvePlace(
   // suburb name match — "home" would silently resolve to some suburb and the
   // answer would confidently route to the wrong origin.
   if (ANCHOR_PATTERNS.some(([re]) => re.test(text))) return null;
-  const { data: geos } = await supabase
-    .from("geographies")
-    .select("sa2_code, name")
-    .eq("geo_type", "SA2")
-    .eq("is_active", true)
-    .ilike("name", `%${text}%`)
-    .limit(1);
+  const geos = await resolveSuburbGeos(supabase, text, 1); // TRI-121: LINZ names too
   if (geos?.[0]) {
     const { data: pt } = await supabase
       .from("commute_origin_points")
@@ -400,15 +430,11 @@ export async function POST(req: NextRequest) {
 
   if (plan.intent === "lookup" || plan.intent === "compare") {
     for (const name of plan.suburbs.slice(0, 3)) {
-      const { data: geos } = await supabase
-        .from("geographies")
-        .select("id, sa2_code, name")
-        .eq("geo_type", "SA2")
-        .eq("is_active", true)
-        .ilike("name", `%${name}%`)
-        .limit(1);
-      const geo = geos?.[0];
-      if (!geo) continue;
+      // TRI-121 — a LINZ suburb name may resolve to several SA2s; each gets
+      // its own rows (labelled with the suburb it was asked as) — no merging.
+      const geosFor = await resolveSuburbGeos(supabase, name);
+      if (!geosFor.length) continue;
+      for (const geo of geosFor) {
       if (plan.intent === "compare") compareCodes.push(geo.sa2_code);
 
       const { data: vals } = await supabase
@@ -431,7 +457,7 @@ export async function POST(req: NextRequest) {
         seen.add(md.metric_key);
         rows.push({
           n: rows.length + 1,
-          suburb: geo.name,
+          suburb: geo.via && geo.via !== geo.name ? `${geo.name} (part of ${geo.via})` : geo.name,
           sa2_code: geo.sa2_code,
           metric: md.metric_key,
           // Hazard rows bake layer + vintage + caveat into the label (TRI-70,
@@ -446,6 +472,7 @@ export async function POST(req: NextRequest) {
           as_of: v.as_of_date,
           confidence: v.confidence,
         });
+      }
       }
     }
   } else if (plan.intent === "rank") {
@@ -670,12 +697,7 @@ export async function POST(req: NextRequest) {
   if (plan.intent === "similar") {
     if (plan.suburbs.length > 0) {
       // "Suburbs like X": nearest neighbours of X's stored profile embedding.
-      const { data: geos } = await supabase
-        .from("geographies")
-        .select("sa2_code, name")
-        .eq("geo_type", "SA2")
-        .ilike("name", `%${plan.suburbs[0]}%`)
-        .limit(1);
+      const geos = await resolveSuburbGeos(supabase, plan.suburbs[0], 1); // TRI-121
       if (geos?.[0]) {
         const { data } = await supabase.rpc("match_suburbs_by_code", {
           p_sa2_code: geos[0].sa2_code,
@@ -855,7 +877,7 @@ export async function POST(req: NextRequest) {
             )
             .join("\n");
           for await (const delta of chat.stream("reasoning", {
-            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts; NZDep2018 decile semantics: 1 = least deprived, 10 = most deprived. Rent rows from MBIE tenancy bonds cover new tenancies across ALL dwelling types — if the question asks about a specific dwelling type or bedroom count, give the all-dwellings figure and say that's what it is; never present it as type-specific. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation. Hazard rules: hazard rows are separate council model layers with different vintages — cite each with its layer and year as given in the row label, treat hazard exposure as one input among many (never a verdict on a suburb), NEVER combine hazard layers into a single risk figure or score, and when any hazard row is cited end the answer with: "${HAZARD_CAVEAT}". If the question asked whether somewhere is "safe", state that these are hazard-model layers only (crime data is not covered) and give no overall safety verdict. Building-consent rows are consents — intentions to build, not completions; if the question asks how many homes were "built" or "completed", give the consents figure and say that's what it measures. Profile-similarity rows rank suburbs by how alike their overall profiles are (census, rent, commute, hazard and planning facts) — NOT by geographic distance. ONLY when Profile-similarity rows are among the data rows: name that basis, and if the question asked for somewhere "near" or "close to" a place, say plainly that these are profile matches rather than the nearest suburbs by distance. When rows instead carry routed drive/cycle/walk times to a destination, the suburbs WERE selected by geographic proximity — never describe those as profile matches. Use the accompanying metric rows to answer what was actually asked about those suburbs.\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics.${budgetLine} PREFERENCE TRANSPARENCY: the settings in play for this question are ${preferenceNames.join(", ")}. Where a preference shaped what you emphasised, ordered or pointed out, say which one did — the user must never have to guess why an answer leaned a particular way. Preferences bias emphasis only; they never remove a suburb or a figure from consideration. ${plan.note ? `Context note: ${plan.note}` : ""}`,
+            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. A suburb name like "Grey Lynn" can span several statistical areas: such rows are labelled "<area> (part of <suburb>)" — give each area's figure with its own citation and say the suburb spans them; NEVER average or merge them into one suburb figure. Deprivation and ethnicity are information, never "better/worse" verdicts; NZDep2018 decile semantics: 1 = least deprived, 10 = most deprived. Rent rows from MBIE tenancy bonds cover new tenancies across ALL dwelling types — if the question asks about a specific dwelling type or bedroom count, give the all-dwellings figure and say that's what it is; never present it as type-specific. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation. Hazard rules: hazard rows are separate council model layers with different vintages — cite each with its layer and year as given in the row label, treat hazard exposure as one input among many (never a verdict on a suburb), NEVER combine hazard layers into a single risk figure or score, and when any hazard row is cited end the answer with: "${HAZARD_CAVEAT}". If the question asked whether somewhere is "safe", state that these are hazard-model layers only (crime data is not covered) and give no overall safety verdict. Building-consent rows are consents — intentions to build, not completions; if the question asks how many homes were "built" or "completed", give the consents figure and say that's what it measures. Profile-similarity rows rank suburbs by how alike their overall profiles are (census, rent, commute, hazard and planning facts) — NOT by geographic distance. ONLY when Profile-similarity rows are among the data rows: name that basis, and if the question asked for somewhere "near" or "close to" a place, say plainly that these are profile matches rather than the nearest suburbs by distance. When rows instead carry routed drive/cycle/walk times to a destination, the suburbs WERE selected by geographic proximity — never describe those as profile matches. Use the accompanying metric rows to answer what was actually asked about those suburbs.\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics.${budgetLine} PREFERENCE TRANSPARENCY: the settings in play for this question are ${preferenceNames.join(", ")}. Where a preference shaped what you emphasised, ordered or pointed out, say which one did — the user must never have to guess why an answer leaned a particular way. Preferences bias emphasis only; they never remove a suburb or a figure from consideration. ${plan.note ? `Context note: ${plan.note}` : ""}`,
             messages: [
               {
                 role: "user",

@@ -144,6 +144,22 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
   - UI source-chip string: **"Building consents issued (new dwellings by
     SA2) · <year>"**
 
+## LINZ NZ Suburbs and Localities — suburb names + aliases (TRI-121)
+
+- **What:** LINZ layer 113764, Auckland TA, `type IN (Suburb, Locality)` →
+  `suburbs` (names, aliases from `additional_name`, LINZ population
+  estimate, label point) and `suburb_sa2` (intersection shares with our SA2
+  polygons, kept at ≥ 20 % either way). Resolution via `resolve_suburb()`.
+  It is a **name layer only** — no metric ever attaches to a suburb row;
+  a multi-SA2 suburb resolves to a list and answers cite each area.
+  Spike: `docs/spikes/tri-121-linz-suburbs.md`.
+- **Auth:** `LINZ_LDS_API_KEY` (ETL only). **Cadence:** LINZ republishes
+  ~weekly; suburb boundaries change rarely — re-run the ETL when LINZ
+  announces changes (loaded 2026-09-27). Layer has a PK, so changesets
+  apply if it ever matters.
+- **Licence / attribution:** **CC BY 4.0**, attribute Toitū Te Whenua LINZ.
+  - UI: label layer + search-box hits carry the existing LINZ attribution.
+
 ## Existing sources (for completeness)
 
 | Source | Used for | Licence |

@@ -301,5 +301,34 @@
       "unsupported": false,
       "minSources": 1
     }
+  },
+  {
+    "id": "q34-linz-suburb-lookup",
+    "question": "What is the median weekly rent in Grey Lynn?",
+    "intent": "lookup",
+    "expect": {
+      "unsupported": false,
+      "minSources": 1,
+      "sourceIncludes": "Tenancy bond"
+    }
+  },
+  {
+    "id": "q35-linz-suburb-compare",
+    "question": "Compare Westmere and Kingsland on population and median household income.",
+    "intent": "compare",
+    "expect": {
+      "unsupported": false,
+      "minSources": 2
+    }
+  },
+  {
+    "id": "q36-linz-alias",
+    "question": "What is the deprivation decile in Arch Hill?",
+    "intent": "lookup",
+    "expect": {
+      "unsupported": false,
+      "minSources": 1,
+      "sourceIncludes": "NZDep"
+    }
   }
 ]
