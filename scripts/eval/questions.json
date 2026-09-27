@@ -301,5 +301,28 @@
       "unsupported": false,
       "minSources": 1
     }
+  },
+  {
+    "id": "q37-erp-growth-rank",
+    "question": "Which five Auckland suburbs grew fastest in population between 2023 and 2025?",
+    "intent": "rank",
+    "expect": {
+      "unsupported": false,
+      "minSources": 1,
+      "sourceIncludes": "Estimated resident population"
+    }
+  },
+  {
+    "id": "q38-erp-lookup",
+    "question": "What is the estimated population of Ponsonby West in 2025?",
+    "intent": "lookup",
+    "expect": {
+      "unsupported": false,
+      "suburbs": [
+        "Ponsonby West"
+      ],
+      "minSources": 1,
+      "sourceIncludes": "Estimated resident population"
+    }
   }
 ]

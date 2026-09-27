@@ -144,6 +144,30 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
   - UI source-chip string: **"Building consents issued (new dwellings by
     SA2) · <year>"**
 
+## Stats NZ estimated resident population grid (250 m) — post-census population (TRI-120)
+
+- **What:** "New Zealand Estimated Resident Population Grid 250 metre"
+  (datafinder layer 119709, published 2026-06-25): `PopEst2022..2025` at
+  30 June per 250 m cell, derived from SA1 estimates. Feeds
+  `population_estimate` (four annual vintages) and
+  `population_growth_2y_pct` (2023→2025). Spike + method:
+  `docs/spikes/tri-120-erp-grid.md`.
+- **Auth:** none — read from Stats NZ Geospatial's ArcGIS mirror
+  `NZGrid_250m_ERP` (FeatureServer layer 1) because `STATS_NZ_API_KEY` has
+  no datafinder WFS scope.
+- **Method:** area-weighted apportionment of each cell over the SA2 polygons
+  it overlaps (uniform density within a cell). Sanity check printed by the
+  ETL: ERP 2023 total vs Census 2023 for the same SA2s (ERP sits a few %
+  above census by design: undercount correction + residents temporarily
+  overseas).
+- **Cadence:** annual (Stats NZ republishes the grids with each subnational
+  estimate release, ~Oct); re-run and extend `YEARS`.
+- **Caveats:** Stats NZ: *"not official statistics"* — a customised
+  dataset; 2024/2025 provisional. Confidence `medium` on every row; the
+  census `population` series is never mixed with it.
+- **Licence / attribution:** **CC BY 4.0**, attribute "Stats NZ".
+  - UI source-chip string: **"Estimated resident population grid (250 m) · <year>"**
+
 ## Existing sources (for completeness)
 
 | Source | Used for | Licence |

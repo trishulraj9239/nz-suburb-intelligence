@@ -35,6 +35,8 @@ snapshot (2026-08-04, 26 metrics); the DB is the source of truth.
 | `median_age` | Median age | years | scalar | — | 2013/18/23 | Census |
 | `ethnicity` | Ethnicity | count | breakdown | — | 2013/18/23 | Census |
 | `median_household_income` | Median household income | $/year | scalar | higher | 2013/18/23 | Census |
+| `population_estimate` | Population estimate (30 June) | people | scalar | — | 2022–2025 (annual) | Stats NZ ERP grid (TRI-120) |
+| `population_growth_2y_pct` | Population change (2 years) | % | scalar | — | 2025 | Stats NZ ERP grid (TRI-120) |
 | **housing** ("Housing") |
 | `rent_median_weekly` | Median rent (new tenancies) | $/week | scalar | lower | 25 quarters (2020Q1–2026Q1) | MBIE bonds |
 | `median_rent_weekly` | Median weekly rent | $/week | scalar | — | 2013/18/23 | Census |
