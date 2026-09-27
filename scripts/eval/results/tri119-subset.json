@@ -1,0 +1,252 @@
+{
+  "base": "http://localhost:3000",
+  "judge_model": "claude-opus-4-8",
+  "providers": {
+    "anthropic": {
+      "label": "Claude Sonnet 4.6",
+      "inPerM": 3,
+      "outPerM": 15
+    },
+    "groq": {
+      "label": "Qwen 3.6 27B (Groq)",
+      "inPerM": 0.2,
+      "outPerM": 0.2
+    }
+  },
+  "questions": [
+    {
+      "id": "q39-built-form-rank",
+      "intent": "rank",
+      "question": "Which five Auckland suburbs have the largest median property size?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 8433,
+          "tokens_est": 177,
+          "cost_est_usd": 0.002466,
+          "n_sources": 5,
+          "n_citations": 5,
+          "values_checked": 5,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 3,
+            "overall": 4,
+            "note": "All five figures are accurate and correctly cited from the rows, with appropriate transparency about missing renter data, though the renter commentary adds some length."
+          },
+          "answer": "The five Auckland suburbs with the largest median property sizes are Botany Central at 50,534 m² {{c1}}, Waitākere Ranges North at 33,503 m² {{c2}}, Waikoukou Valley at 30,230 m² {{c3}}, Dairy Flat West at 20,852 m² {{c4}}, and Ardmore at 20,792 m² {{c5}}. These are all large-lot or rural-fringe areas, which as a renter is worth noting since large sections can mean more isolated locations or longer commutes — though no commute or rent data was provided in these rows to assess that directly. *Preference transparency: Renting mode was active but rent and commute data weren't available here, so the ranking is purely by the metric asked.*",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "Botany Central",
+              "sa2_code": "154600",
+              "metric": "median_property_m2",
+              "label": "Median property size",
+              "value": 50534,
+              "unit": "m²",
+              "source": "NZ Property Boundaries",
+              "as_of": "2026-09-24",
+              "confidence": "high"
+            },
+            {
+              "n": 2,
+              "suburb": "Waitākere Ranges North",
+              "sa2_code": "117100",
+              "metric": "median_property_m2",
+              "label": "Median property size",
+              "value": 33503,
+              "unit": "m²",
+              "source": "NZ Property Boundaries",
+              "as_of": "2026-09-24",
+              "confidence": "high"
+            },
+            {
+              "n": 3,
+              "suburb": "Waikoukou Valley",
+              "sa2_code": "112600",
+              "metric": "median_property_m2",
+              "label": "Median property size",
+              "value": 30230,
+              "unit": "m²",
+              "source": "NZ Property Boundaries",
+              "as_of": "2026-09-24",
+              "confidence": "high"
+            },
+            {
+              "n": 4,
+              "suburb": "Dairy Flat West",
+              "sa2_code": "113500",
+              "metric": "median_property_m2",
+              "label": "Median property size",
+              "value": 20852,
+              "unit": "m²",
+              "source": "NZ Property Boundaries",
+              "as_of": "2026-09-24",
+              "confidence": "high"
+            },
+            {
+              "n": 5,
+              "suburb": "Ardmore",
+              "sa2_code": "162300",
+              "metric": "median_property_m2",
+              "label": "Median property size",
+              "value": 20792,
+              "unit": "m²",
+              "source": "NZ Property Boundaries",
+              "as_of": "2026-09-24",
+              "confidence": "high"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 294,
+          "tokens_est": 17,
+          "cost_est_usd": 0.0000034000000000000005,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "The answer is entirely empty, providing no response at all despite having no data — it should have politely declined."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q40-built-form-compare",
+      "intent": "compare",
+      "question": "Compare Ponsonby West and Takapuna Central on building footprint coverage and buildings per hectare.",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 7999,
+          "tokens_est": 225,
+          "cost_est_usd": 0.003075,
+          "n_sources": 4,
+          "n_citations": 4,
+          "values_checked": 4,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 4,
+            "overall": 5,
+            "note": "All four figures accurately cited with correct markers, medium-confidence hedge noted, and the interpretation is reasonable and grounded."
+          },
+          "answer": "Takapuna Central has a higher building footprint coverage at approximately 26.6% {{c3}} compared to Ponsonby West's approximately 23.6% {{c1}}, meaning its buildings collectively occupy a greater share of land. However, Ponsonby West has notably more buildings per hectare at approximately 14.47/ha {{c2}} versus Takapuna Central's approximately 8.84/ha {{c4}}, suggesting Ponsonby West's buildings are smaller and more numerous while Takapuna Central's fewer buildings cover more ground each — consistent with larger apartment or commercial footprints. All figures are medium confidence from the NZ Building Outlines 2026 layer.\n\n*Preference transparency: Renting mode was active but building footprint and density are ownership/planning metrics — no renting-specific weighting was applied here.*",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "Ponsonby West",
+              "sa2_code": "130400",
+              "metric": "building_footprint_pct",
+              "label": "Building footprint coverage",
+              "value": 23.6,
+              "unit": "%",
+              "source": "NZ Building Outlines",
+              "as_of": "2026-05-18",
+              "confidence": "medium"
+            },
+            {
+              "n": 2,
+              "suburb": "Ponsonby West",
+              "sa2_code": "130400",
+              "metric": "buildings_per_ha",
+              "label": "Buildings per hectare",
+              "value": 14.47,
+              "unit": "/ha",
+              "source": "NZ Building Outlines",
+              "as_of": "2026-05-18",
+              "confidence": "medium"
+            },
+            {
+              "n": 3,
+              "suburb": "Takapuna Central",
+              "sa2_code": "126801",
+              "metric": "building_footprint_pct",
+              "label": "Building footprint coverage",
+              "value": 26.6,
+              "unit": "%",
+              "source": "NZ Building Outlines",
+              "as_of": "2026-05-18",
+              "confidence": "medium"
+            },
+            {
+              "n": 4,
+              "suburb": "Takapuna Central",
+              "sa2_code": "126801",
+              "metric": "buildings_per_ha",
+              "label": "Buildings per hectare",
+              "value": 8.84,
+              "unit": "/ha",
+              "source": "NZ Building Outlines",
+              "as_of": "2026-05-18",
+              "confidence": "medium"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 264,
+          "tokens_est": 25,
+          "cost_est_usd": 0.000005,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 3,
+            "overall": 4,
+            "note": "Correctly declines with no data provided, though a brief explanatory refusal would be ideal over total emptiness."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    }
+  ]
+}
