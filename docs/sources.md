@@ -43,8 +43,16 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
 - **What:** authoritative NZ address points (LINZ Data Service layer 123113
   "NZ Addresses"), clipped to Auckland region → `addresses` table for
   pg_trgm fuzzy geocoding. No third-party geocode API in the request path.
-- **Cadence:** LINZ updates the layer roughly weekly; our table is a one-off
-  load, refreshed manually if stale addresses become a problem.
+- **Cadence:** LINZ updates the layer roughly weekly. The table was a one-off
+  full load (TRI-44, 2026-07-31); since TRI-138 it is refreshed
+  **incrementally via LDS WFS changesets** — `layer-123113-changeset` with
+  `viewparams=from:<iso>;to:<iso>` returns the net diff (one row per
+  `address_id`, `__change__` = INSERT/UPDATE/DELETE). Refresh = run
+  `scripts/etl/tri-138-address-changeset.mjs` (reads/advances
+  `data/addresses/tri138-state.json`) → commit + push → run
+  `scripts/etl/tri-138-address-changeset.sql`. Rows that land outside the
+  633 SA2s are treated as deletes (same clip rule as the full load). Load
+  log: full 2026-07-31; changeset 2026-07-31→2026-09-27 (TRI-138).
 - **Loaded 2026-07-31:** 725,981 rows (full Auckland clip via SA2
   point-in-polygon; 37,891 bbox-spill rows dropped). `addresses` total
   171 MB incl. 43 MB trigram GIN index; whole DB 206 MB of the 500 MB
