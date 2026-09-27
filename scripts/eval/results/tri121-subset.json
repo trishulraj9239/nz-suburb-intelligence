@@ -1,0 +1,375 @@
+{
+  "base": "http://localhost:3000",
+  "judge_model": "claude-opus-4-8",
+  "providers": {
+    "anthropic": {
+      "label": "Claude Sonnet 4.6",
+      "inPerM": 3,
+      "outPerM": 15
+    },
+    "groq": {
+      "label": "Qwen 3.6 27B (Groq)",
+      "inPerM": 0.2,
+      "outPerM": 0.2
+    }
+  },
+  "questions": [
+    {
+      "id": "q34-linz-suburb-lookup",
+      "intent": "lookup",
+      "question": "What is the median weekly rent in Grey Lynn?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 7265,
+          "tokens_est": 126,
+          "cost_est_usd": 0.001758,
+          "n_sources": 4,
+          "n_citations": 4,
+          "values_checked": 4,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 4,
+            "overall": 5,
+            "note": "All four figures are grounded, correctly cited, and the answer helpfully explains the sub-area variation with high-confidence data."
+          },
+          "answer": "Grey Lynn spans multiple statistical areas, each with its own median weekly rent: Grey Lynn West is $522/wk {{c1}}, Grey Lynn East is $660/wk {{c4}}, Grey Lynn Central is $691/wk {{c3}}, and Grey Lynn North is $720/wk {{c2}}. The variation across the suburb is substantial — over $190/wk between the cheapest and most expensive areas — so the part of Grey Lynn you're looking at matters a lot as a renter (Renting mode weighted rent figures most heavily here).",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "Grey Lynn West (part of Grey Lynn)",
+              "sa2_code": "132100",
+              "metric": "median_rent_weekly",
+              "label": "Median weekly rent",
+              "value": 522,
+              "unit": "$/week",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 2,
+              "suburb": "Grey Lynn North (part of Grey Lynn)",
+              "sa2_code": "131600",
+              "metric": "median_rent_weekly",
+              "label": "Median weekly rent",
+              "value": 720,
+              "unit": "$/week",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 3,
+              "suburb": "Grey Lynn Central (part of Grey Lynn)",
+              "sa2_code": "132800",
+              "metric": "median_rent_weekly",
+              "label": "Median weekly rent",
+              "value": 691,
+              "unit": "$/week",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 4,
+              "suburb": "Grey Lynn East (part of Grey Lynn)",
+              "sa2_code": "133500",
+              "metric": "median_rent_weekly",
+              "label": "Median weekly rent",
+              "value": 660,
+              "unit": "$/week",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": true,
+          "latency_ms": 293,
+          "tokens_est": 11,
+          "cost_est_usd": 0.0000022,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "Answer is empty and provides no response at all, failing to decline or offer any useful content."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q35-linz-suburb-compare",
+      "intent": "compare",
+      "question": "Compare Westmere and Kingsland on population and median household income.",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 8078,
+          "tokens_est": 190,
+          "cost_est_usd": 0.002637,
+          "n_sources": 6,
+          "n_citations": 6,
+          "values_checked": 6,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 3,
+            "overall": 4,
+            "note": "All figures are drawn correctly from the rows with proper citations and a sound comparison, though the trailing persona note adds mild clutter."
+          },
+          "answer": "Westmere spans two statistical areas: Westmere South-Western Springs has a population of 2,859 {{c1}} and median household income of $170,600/year {{c2}}, while Westmere North has a population of 2,304 {{c3}} and median household income of $200,000/year {{c4}}. Kingsland, by contrast, is a single area with a population of 3,162 {{c5}} and median household income of $152,900/year {{c6}}. Kingsland is larger in population than either Westmere part individually, but both Westmere areas report higher household incomes than Kingsland.\n\n*Note: Renting mode was active but these metrics (population and income) are not rent or commute figures, so no persona weighting was applied here.*",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "Westmere South-Western Springs (part of Westmere)",
+              "sa2_code": "130300",
+              "metric": "population",
+              "label": "Population",
+              "value": 2859,
+              "unit": "count",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 2,
+              "suburb": "Westmere South-Western Springs (part of Westmere)",
+              "sa2_code": "130300",
+              "metric": "median_household_income",
+              "label": "Median household income",
+              "value": 170600,
+              "unit": "$/year",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 3,
+              "suburb": "Westmere North (part of Westmere)",
+              "sa2_code": "129800",
+              "metric": "population",
+              "label": "Population",
+              "value": 2304,
+              "unit": "count",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 4,
+              "suburb": "Westmere North (part of Westmere)",
+              "sa2_code": "129800",
+              "metric": "median_household_income",
+              "label": "Median household income",
+              "value": 200000,
+              "unit": "$/year",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 5,
+              "suburb": "Kingsland",
+              "sa2_code": "134400",
+              "metric": "population",
+              "label": "Population",
+              "value": 3162,
+              "unit": "count",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 6,
+              "suburb": "Kingsland",
+              "sa2_code": "134400",
+              "metric": "median_household_income",
+              "label": "Median household income",
+              "value": 152900,
+              "unit": "$/year",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": true,
+          "latency_ms": 251,
+          "tokens_est": 19,
+          "cost_est_usd": 0.0000038000000000000005,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "An empty response provides no answer or polite decline, so it fails on all dimensions."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q36-linz-alias",
+      "intent": "lookup",
+      "question": "What is the deprivation decile in Arch Hill?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 6066,
+          "tokens_est": 92,
+          "cost_est_usd": 0.001248,
+          "n_sources": 4,
+          "n_citations": 4,
+          "values_checked": 1,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 3,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 5,
+            "overall": 5,
+            "note": "Accurately reports each matched area's decile with correct citations, explains the Arch Hill-to-Grey Lynn mapping, and stays concise."
+          },
+          "answer": "\"Arch Hill\" maps to parts of Grey Lynn in the statistical data. The suburb spans multiple areas with varying deprivation deciles (NZDep2023, where 1 = least deprived, 10 = most deprived): Grey Lynn West is decile 7 {{c1}}, while Grey Lynn North, Grey Lynn Central, and Grey Lynn East are each decile 3 {{c2}} {{c3}} {{c4}}.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "Grey Lynn West (part of Grey Lynn, matched from \"Arch Hill\")",
+              "sa2_code": "132100",
+              "metric": "nzdep_decile",
+              "label": "Deprivation decile",
+              "value": 7,
+              "unit": "decile",
+              "source": "NZDep2023 Deprivation Index",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 2,
+              "suburb": "Grey Lynn North (part of Grey Lynn, matched from \"Arch Hill\")",
+              "sa2_code": "131600",
+              "metric": "nzdep_decile",
+              "label": "Deprivation decile",
+              "value": 3,
+              "unit": "decile",
+              "source": "NZDep2023 Deprivation Index",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 3,
+              "suburb": "Grey Lynn Central (part of Grey Lynn, matched from \"Arch Hill\")",
+              "sa2_code": "132800",
+              "metric": "nzdep_decile",
+              "label": "Deprivation decile",
+              "value": 3,
+              "unit": "decile",
+              "source": "NZDep2023 Deprivation Index",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 4,
+              "suburb": "Grey Lynn East (part of Grey Lynn, matched from \"Arch Hill\")",
+              "sa2_code": "133500",
+              "metric": "nzdep_decile",
+              "label": "Deprivation decile",
+              "value": 3,
+              "unit": "decile",
+              "source": "NZDep2023 Deprivation Index",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 260,
+          "tokens_est": 11,
+          "cost_est_usd": 0.0000022,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 3,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 2,
+            "note": "An empty answer neither provides grounded data nor explicitly declines, offering no value to the user."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    }
+  ]
+}

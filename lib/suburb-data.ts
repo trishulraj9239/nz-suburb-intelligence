@@ -180,6 +180,43 @@ export async function fetchSuburbs(): Promise<Suburb[]> {
   return suburbsCache;
 }
 
+/** TRI-121 — a LINZ suburb/locality name (with aliases) and the SA2s it
+ * covers, ordered by how much of the suburb each SA2 holds. A NAME layer only:
+ * metrics never attach to a place, they stay on the SA2 rows. */
+export interface SuburbPlace {
+  linz_id: number;
+  name: string;
+  aliases: string[];
+  type: string;
+  population_estimate: number | null;
+  /** SA2s covering this place, best-first (share = fraction of the place). */
+  sa2: { sa2_code: string; share: number }[];
+}
+
+let placesCache: SuburbPlace[] | null = null;
+export async function fetchSuburbPlaces(): Promise<SuburbPlace[]> {
+  if (placesCache) return placesCache;
+  const supabase = createClient();
+  const [{ data: places, error: e1 }, { data: links, error: e2 }] = await Promise.all([
+    supabase.from("suburbs").select("linz_id, name, aliases, type, population_estimate").order("name"),
+    supabase.from("suburb_sa2").select("linz_id, sa2_code, suburb_share"),
+  ]);
+  if (e1) throw e1;
+  if (e2) throw e2;
+  const byPlace = new Map<number, { sa2_code: string; share: number }[]>();
+  for (const l of links ?? []) {
+    const list = byPlace.get(l.linz_id) ?? [];
+    list.push({ sa2_code: l.sa2_code, share: Number(l.suburb_share) });
+    byPlace.set(l.linz_id, list);
+  }
+  placesCache = (places ?? []).map((p) => ({
+    ...p,
+    aliases: p.aliases ?? [],
+    sa2: (byPlace.get(p.linz_id) ?? []).sort((a, b) => b.share - a.share),
+  }));
+  return placesCache;
+}
+
 let statsCache: RegionalStat[] | null = null;
 export async function fetchRegionalStats(): Promise<RegionalStat[]> {
   if (statsCache) return statsCache;

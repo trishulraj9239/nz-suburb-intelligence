@@ -297,6 +297,27 @@ function overlayLayers(): StyleSpecification["layers"] {
       filter: ["==", ["get", "SA22023_V1_00"], ""],
       paint: { "line-color": token("--harbour", "#0e6e73"), "line-width": 2.5 },
     },
+    {
+      // TRI-121 — LINZ suburb/locality names at mid zoom (the basemap's own
+      // labels are sparse at these levels). Labels only; never a boundary.
+      id: "suburb-labels",
+      type: "symbol",
+      source: "suburb-labels",
+      minzoom: 11,
+      layout: {
+        "text-field": ["get", "name"],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": 11,
+        "text-letter-spacing": 0.03,
+        "text-padding": 6,
+      },
+      paint: {
+        "text-color": token("--ink", "#13212e"),
+        "text-opacity": 0.72,
+        "text-halo-color": token("--canvas", "#f4f6f5"),
+        "text-halo-width": 1.3,
+      },
+    },
   ];
 }
 
@@ -310,6 +331,14 @@ const SA2_SOURCE = {
 const COVERAGE_SOURCE = {
   type: "geojson",
   data: "/geo/auckland-coverage.geojson",
+} as const;
+
+// TRI-121 — LINZ suburb/locality label points (scripts/etl/tri-121-suburbs.mjs).
+// Names only: the SA2 outlines stay the data boundaries.
+const SUBURB_LABELS_SOURCE = {
+  type: "geojson",
+  data: "/geo/auckland-suburb-labels.geojson",
+  attribution: LINZ_ATTRIBUTION,
 } as const;
 
 // Hazard overlays (TRI-69) — simplified geometry in public/geo/hazards/
@@ -360,7 +389,7 @@ async function buildStyle(): Promise<StyleSpecification> {
       const res = await fetch(LINZ_STYLE);
       if (res.ok) {
         const base = (await res.json()) as StyleSpecification;
-        base.sources = { ...base.sources, sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE, "compare-links": { type: "geojson", data: EMPTY_FC }, ...hazardSources() };
+        base.sources = { ...base.sources, sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE, "suburb-labels": SUBURB_LABELS_SOURCE, "compare-links": { type: "geojson", data: EMPTY_FC }, ...hazardSources() };
         base.layers = [...base.layers, ...overlayLayers()];
         return base;
       }
@@ -370,7 +399,7 @@ async function buildStyle(): Promise<StyleSpecification> {
   }
   return {
     version: 8,
-    sources: { sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE, "compare-links": { type: "geojson", data: EMPTY_FC }, ...hazardSources() },
+    sources: { sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE, "suburb-labels": SUBURB_LABELS_SOURCE, "compare-links": { type: "geojson", data: EMPTY_FC }, ...hazardSources() },
     layers: [
       {
         id: "background",
