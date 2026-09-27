@@ -47,7 +47,7 @@ export const LINK_OUTS: LinkOut[] = [
     reason:
       "No open source publishes sales; the estimates on listing sites are proprietary models. The only price signal here is suburb-level rent from MBIE bond data.",
     pattern:
-      /\b(worth|sale price|sold for|last sold|sales? history|price estimate|estimated value|asking price|market value|house price|property value|what (would|does|did) .* (cost|sell)|how much (is|was|would|does|did) .* (cost|sell|worth|go for)|homes estimate|ranged? estimate)\b/i,
+      /\b(worth|sale price|sold for|last sold|sales? history|price estimate|estimated value|asking price|market value|house price|property value|what (would|does|did) .* (cost|sell)|how much (is|was|would|does|did) .* (cost|sell|worth|go for)|homes estimate|ranged? estimate|(good|bad|smart|sound|safe) (buy|investment|purchase)|should i buy|over ?priced|under ?priced|fair price|worth buying)\b/i,
   },
   {
     key: "claims",

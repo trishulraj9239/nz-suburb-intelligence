@@ -176,3 +176,24 @@ Nothing in this block is fetched, cached or proxied.
 | `How many building consents were issued in Ponsonby last year?` | still answered from the SA2 consents rows — the link-out only takes over when a street address is named or the planner already declined |
 
 Automated: `node scripts/test/tri132-verify.mjs` (dev server on :3000).
+
+## Property panel composition (TRI-133) — manual checks
+
+With a pinned address the profile opens with **This property** — public
+records & point checks — composed of three groups whose headers state the
+epistemic level: **Public records about the land** (LINZ title & land),
+**Area-level models at this point** (council hazard layers with the verbatim
+caveat at the top and the foot, drive times), and **Not held by this app**
+(the link-outs). The area banner sits UNDER the panel and says everything
+below it describes the area. Sections whose tickets have not shipped are
+absent, never "N/A". Nothing in the panel is a score, badge or verdict.
+
+| Ask / do | Expect |
+|---|---|
+| pin `42 Ponsonby Rd` (desktop) | order top-to-bottom: This property panel → banner → Grey Lynn East header; three group headers present |
+| same at 390 px | the mobile sheet's Profile tab shows the same component in the same order; the desktop answer strip is not mounted |
+| `What do the public records say about 42 Ponsonby Road?` | LINZ record rows (title type, land area, title number) reported as records; ownership stated as not public |
+| `Is 42 Ponsonby Road a good buy?` | refuses — no recommendation, no score; points at the records and the area profile |
+| hover a confidence chip | one-sentence explanation of the level ("Exact value from the source", …) |
+
+Automated: `node scripts/test/tri133-verify.mjs` (dev server on :3000).
