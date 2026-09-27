@@ -22,6 +22,7 @@ node scripts/test/tri127-verify.mjs     # built form on the unit: count, roof fo
 node scripts/test/tri128-verify.mjs     # Unitary Plan overlays at the pin: ten rows, decoded council names on hits, chapter links, no advice
 node scripts/test/tri129-verify.mjs     # extended hazards at the pin: flood prone depth, landslide susceptibility wording, ASCIE lines, tsunami zone, HAIL gap + map links
 node scripts/test/tri130-verify.mjs     # this block (SA1) beside this suburb: Census 2023 + NZDep2023, suppression as 'not published', no verdicts
+node scripts/test/tri131-verify.mjs     # nearby from the pin: nearest park, RTN stop, schools by level — straight-line, 'not necessarily zoned', derived
 ```
 
 Screenshots are written to `shots/`, which is git-ignored — the assertions are

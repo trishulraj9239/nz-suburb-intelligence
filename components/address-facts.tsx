@@ -131,6 +131,23 @@ export interface SuburbStats {
   nzdep_decile: number | null;
   ethnicity: Record<string, number | null>;
 }
+// TRI-131 — nearest park / station / schools, straight-line from the pin.
+interface NearbyPlace {
+  name: string;
+  distance_m: number;
+  detail: string | null;
+}
+interface NearbyResponse {
+  park: NearbyPlace | null;
+  station: NearbyPlace | null;
+  schools: { primary: NearbyPlace | null; intermediate: NearbyPlace | null; secondary: NearbyPlace | null };
+  unavailable: string[];
+  note: string;
+  source: string;
+  retrieved_at: string;
+}
+const fmtDistance = (m: number) => (m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1)} km`);
+
 const BLOCK_NOTE =
   "Census 2023 counts for the statistical block (SA1) containing the address — an area, not the property. Small-area cells are random-rounded to base 3 and suppressed when small; \"not published for this block\" is Stats NZ's suppression, never a zero. NZDep2023 is the index's native block level: information, not a verdict.";
 const fmtInt = (v: number | null) => (v === null ? null : v.toLocaleString());
@@ -404,6 +421,33 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
     };
   }, [key, pin.lng, pin.lat]);
   const blk = bs.key === key ? bs.r : null;
+
+  // TRI-131 — nearby, as the crow flies.
+  const [nb, setNb] = useState<{ key: string; r: NearbyResponse | null | "error" }>({ key: "", r: null });
+  useEffect(() => {
+    let stale = false;
+    cachedJson<NearbyResponse>(`/api/nearby?lng=${pin.lng}&lat=${pin.lat}`)
+      .then((r) => {
+        if (!stale) setNb({ key, r });
+      })
+      .catch(() => {
+        if (!stale) setNb({ key, r: "error" });
+      });
+    return () => {
+      stale = true;
+    };
+  }, [key, pin.lng, pin.lat]);
+  const nearby = nb.key === key ? nb.r : null;
+  const nearbyRows: { label: string; place: NearbyPlace | null; missing: string }[] =
+    nearby && nearby !== "error"
+      ? [
+          { label: "Nearest park or reserve", place: nearby.park, missing: nearby.unavailable.includes("parks") ? "council service unavailable — not checked" : "none within 2 km" },
+          { label: "Nearest rapid-transit stop", place: nearby.station, missing: nearby.unavailable.includes("rapid transit stops") ? "council service unavailable — not checked" : "none found" },
+          { label: "Nearest primary school", place: nearby.schools.primary, missing: nearby.unavailable.includes("schools") ? "schools lookup unavailable — not checked" : "none found" },
+          { label: "Nearest intermediate (Years 7–8)", place: nearby.schools.intermediate, missing: nearby.unavailable.includes("schools") ? "schools lookup unavailable — not checked" : "none found" },
+          { label: "Nearest secondary school", place: nearby.schools.secondary, missing: nearby.unavailable.includes("schools") ? "schools lookup unavailable — not checked" : "none found" },
+        ]
+      : [];
   const blockRows: { label: string; block: string | null; suburb: string | null | undefined; nzdep?: boolean }[] =
     blk && blk !== "error" && !blk.unavailable && !blk.none
       ? [
@@ -715,6 +759,39 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
           None of these targets accepts an address in the URL (tested
           2026-09-28), so the block offers a copy button instead of a fake deep
           link. Nothing here is fetched, cached or proxied. */}
+      <h4 data-testid="epistemic-nearby" className="mt-3 border-t border-hairline pt-2 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/70">
+        Nearby, as the crow flies
+        <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">straight-line from the address point · not a walk or a drive</span>
+      </h4>
+      {nearby === null && <p className="py-1 text-xs text-ink/50">Measuring to the nearest park, stop and schools…</p>}
+      {nearby === "error" && <p className="py-1 text-xs text-ink/60">The nearby lookup could not be reached — nothing was measured.</p>}
+      {nearbyRows.length > 0 && (
+        <div data-testid="nearby">
+          <ul className="divide-y divide-hairline/60">
+            {nearbyRows.map((r) => (
+              <li key={r.label} className="py-1.5" data-testid="nearby-row">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-sm text-ink/80">{r.label}</span>
+                  <span className={`shrink-0 font-mono text-sm font-medium ${r.place ? "text-ink" : "text-[10px] text-ink/45"}`}>
+                    {r.place ? fmtDistance(r.place.distance_m) : r.missing}
+                  </span>
+                </div>
+                {r.place && (
+                  <p className="mt-0.5 text-[11px] leading-snug text-ink/60">
+                    {r.place.name}
+                    {r.place.detail ? <span className="text-ink/45"> · {r.place.detail}</span> : null}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1 text-[10px] leading-snug text-ink/50">{nearby !== "error" && nearby ? nearby.note : ""}</p>
+          <div className="mt-1 flex justify-end">
+            <Provenance source="Council parks + RTN stops · MOE schools" asOf={nearby && nearby !== "error" ? nearby.retrieved_at.slice(0, 10) : ""} confidence="derived" />
+          </div>
+        </div>
+      )}
+
       <h4 data-testid="epistemic-notheld" className="mt-3 border-t border-hairline pt-2 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/70">
         Not held by this app
       </h4>

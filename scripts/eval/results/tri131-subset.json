@@ -1,0 +1,285 @@
+{
+  "base": "http://localhost:3000",
+  "judge_model": "claude-opus-4-8",
+  "providers": {
+    "anthropic": {
+      "label": "Claude Sonnet 4.6",
+      "inPerM": 3,
+      "outPerM": 15
+    },
+    "groq": {
+      "label": "Qwen 3.6 27B (Groq)",
+      "inPerM": 0.2,
+      "outPerM": 0.2
+    }
+  },
+  "questions": [
+    {
+      "id": "q64-address-nearby",
+      "intent": "lookup",
+      "question": "What's near 42 Ponsonby Road — the nearest park, train or busway station, and primary school?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 7662,
+          "tokens_est": 143,
+          "cost_est_usd": 0.001872,
+          "n_sources": 17,
+          "n_citations": 3,
+          "values_checked": 3,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Accurately uses the amenity rows with correct citations, states the not-zoned and straight-line caveats, and answers exactly the three amenities asked."
+          },
+          "answer": "The nearest park to 42 Ponsonby Road is Western Park - Freemans Bay (Waitematā local board), just 45 m straight-line as the crow flies {{c13}}. The nearest rapid-transit stop is K Road Train Station, approximately 726 m straight-line {{c14}}. The nearest primary school is Newton Central School (Contributing, State) at about 403 m straight-line — nearest, not necessarily zoned {{c15}}. All distances are straight-line from the address point, not walking or driving distances.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_flood",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: flood plain (one-percent annual-exceedance event) (2026 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 2,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_overland",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: overland flow path (within twenty metres) (2026 council layer) — within twenty metres (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 1,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 3,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_coastal",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: coastal inundation (one-percent annual-exceedance event, present-day sea level) (2025 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 4,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_coastal_slr1m",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: coastal inundation (one-percent annual-exceedance event, plus one metre of sea-level rise) (2025 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 5,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_liquefaction",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: liquefaction vulnerability class (2022 council layer) — Very Low Liquefaction Vulnerability (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 1,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 6,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_flood_prone",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: flood prone area (a modelled ponding depression, with its one-hundred-year depth) (2026 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 7,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_flood_sensitive",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: flood sensitive area (council catchment model extent) (2024 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 8,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_landslide_large",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: large-scale landslide susceptibility class (council regional model; susceptibility, not occurrence) (2025 council layer) — Low; terrain less prone to large-scale landslides than most of the region, per the council's regional model — susceptibility, not occurrence · council confidence: fairly confident (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 1,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 9,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_ascie_2050",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: coastal erosion susceptibility line, ASCIE 2050 RCP8.5 (the mapped landward limit; within twenty metres) (2024 council layer) — none within twenty metres (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 10,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_ascie_2080",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: coastal erosion susceptibility line, ASCIE 2080 RCP8.5 (the mapped landward limit; within twenty metres) (2024 council layer) — none within twenty metres (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 11,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_ascie_2130",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: coastal erosion susceptibility line, ASCIE 2130 RCP8.5 (the mapped landward limit; within twenty metres) (2024 council layer) — none within twenty metres (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 12,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_tsunami",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: tsunami evacuation zone (beach and marine warning) (2024 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 13,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "nearby_park",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: nearest council park or reserve — Western Park - Freemans Bay (Waitemata local board), straight-line distance as the crow flies (45 m; not a walk or a drive)",
+              "value": 45,
+              "unit": "m",
+              "source": "Auckland Council Park Extents + Rapid Transit Network stops · MOE schools directory — straight-line from the address point",
+              "as_of": "2026-09-27",
+              "confidence": "derived"
+            },
+            {
+              "n": 14,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "nearby_station",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: nearest rapid-transit stop (train, busway or ferry) — K Road Train Station, straight-line distance as the crow flies (726 m; not a walk or a drive)",
+              "value": 726,
+              "unit": "m",
+              "source": "Auckland Council Park Extents + Rapid Transit Network stops · MOE schools directory — straight-line from the address point",
+              "as_of": "2026-09-27",
+              "confidence": "derived"
+            },
+            {
+              "n": 15,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "nearby_school_primary",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: nearest primary school (nearest, not necessarily zoned) — Newton Central School (Contributing · State), straight-line distance as the crow flies (403 m; not a walk or a drive)",
+              "value": 403,
+              "unit": "m",
+              "source": "Auckland Council Park Extents + Rapid Transit Network stops · MOE schools directory — straight-line from the address point",
+              "as_of": "2026-09-27",
+              "confidence": "derived"
+            },
+            {
+              "n": 16,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "nearby_school_intermediate",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: nearest intermediate school (nearest, not necessarily zoned) — City 0-10 (Composite · Private : Provisionally Registered), straight-line distance as the crow flies (879 m; not a walk or a drive)",
+              "value": 879,
+              "unit": "m",
+              "source": "Auckland Council Park Extents + Rapid Transit Network stops · MOE schools directory — straight-line from the address point",
+              "as_of": "2026-09-27",
+              "confidence": "derived"
+            },
+            {
+              "n": 17,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "nearby_school_secondary",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: nearest secondary school (nearest, not necessarily zoned) — Auckland Girls' Grammar School (Secondary (Year 9-15) · State), straight-line distance as the crow flies (335 m; not a walk or a drive)",
+              "value": 335,
+              "unit": "m",
+              "source": "Auckland Council Park Extents + Rapid Transit Network stops · MOE schools directory — straight-line from the address point",
+              "as_of": "2026-09-27",
+              "confidence": "derived"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 295,
+          "tokens_est": 24,
+          "cost_est_usd": 0.000004800000000000001,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "An empty response provides no answer and no polite decline, so it fails on every dimension."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    }
+  ]
+}

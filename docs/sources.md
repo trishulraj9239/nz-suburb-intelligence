@@ -302,6 +302,20 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
   listed in `suppressed` → "not published for this block". Shares use each
   topic's own "Total stated". Suburb column = the app's SA2 registry values
   passed in by the profile panel, so the two scales sit side by side.
+- **Nearby from a point** (`lib/nearby.ts`, TRI-131): council `Park_Extents`
+  (3,954 polygons, CC BY 4.0) queried live within 2 km of the pin as GeoJSON
+  with `maxAllowableOffset`, distance to the polygon edge via turf
+  (`polygonToLine` + `pointToLineDistance`); council
+  `RapidTransportNetworkStops_PROD_view` (61 stops, 2022; train, busway,
+  ferry; one stop per direction, so de-duplicated by station name) fetched
+  once a day and held in memory — swap for GTFS stops when TRI-102 lands;
+  schools from the DB via `nearest_schools_from_point(lng, lat, count)`
+  (migration 0011, KNN on `schools.location`; plain STABLE SQL, anon may
+  call it because `schools` is public-read), nearest by MOE type: primary =
+  Contributing / Full Primary / Composite, intermediate = Intermediate /
+  Full Primary / Composite / Restricted Composite / Secondary (Year 7-…),
+  secondary = Secondary … / Composite. All straight-line, confidence
+  `derived`; travel time only via the commute engine when asked.
 - **LINZ title & land at a point** (`lib/property-facts.ts`): NZ Property
   Boundaries (122657) by `INTERSECTS(geom, SRID=4326;POINT(lng lat))` — note
   the `SRID=4326;` prefix; a bare `POINT(lng lat)` is read lat-first and
