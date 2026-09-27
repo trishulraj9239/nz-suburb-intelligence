@@ -301,5 +301,29 @@
       "unsupported": false,
       "minSources": 1
     }
+  },
+  {
+    "id": "q39-built-form-rank",
+    "question": "Which five Auckland suburbs have the largest median property size?",
+    "intent": "rank",
+    "expect": {
+      "unsupported": false,
+      "minSources": 1,
+      "sourceIncludes": "Property Boundaries"
+    }
+  },
+  {
+    "id": "q40-built-form-compare",
+    "question": "Compare Ponsonby West and Takapuna Central on building footprint coverage and buildings per hectare.",
+    "intent": "compare",
+    "expect": {
+      "unsupported": false,
+      "suburbs": [
+        "Ponsonby West",
+        "Takapuna Central"
+      ],
+      "minSources": 2,
+      "sourceIncludes": "Building Outlines"
+    }
   }
 ]

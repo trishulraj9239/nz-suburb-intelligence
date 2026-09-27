@@ -63,6 +63,9 @@ snapshot (2026-08-04, 26 metrics); the DB is the source of truth.
 | `intensification_capacity_indicator` | Intensification capacity | % | scalar | — | AUP Jul 2026 | Auckland Council |
 | `consents_new_dwellings_12m` | New dwellings consented (12 m) | — | scalar | — | 24 months (rolling 12 m) | Stats NZ |
 | `consents_per_1000_dwellings` | Consenting rate | /1k dwellings | scalar | — | latest month | Stats NZ |
+| `building_footprint_pct` | Building footprint coverage | % | scalar | — | 2026 (imagery 2024–25) | LINZ Building Outlines (TRI-119) |
+| `buildings_per_ha` | Buildings per hectare | /ha | scalar | — | 2026 (imagery 2024–25) | LINZ Building Outlines (TRI-119) |
+| `median_property_m2` | Median property size | m² | scalar | — | 2026 | LINZ Property Boundaries (TRI-119) |
 
 Sources, licences, quotas, and refresh procedures: `docs/sources.md`.
 Per-source decision records: `docs/spikes/`. Deferred registry scope is
