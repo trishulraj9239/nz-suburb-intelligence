@@ -324,5 +324,42 @@
       "minSources": 1,
       "sourceIncludes": "NZDep2023"
     }
+  },
+  {
+    "id": "q31-damp-lookup",
+    "question": "What share of homes in Manurewa East are damp?",
+    "intent": "lookup",
+    "expect": {
+      "unsupported": false,
+      "suburbs": [
+        "Manurewa East"
+      ],
+      "minSources": 1,
+      "sourceIncludes": "Census 2023 dwellings"
+    }
+  },
+  {
+    "id": "q32-rank-mould",
+    "question": "Which five Auckland suburbs have the lowest share of mouldy homes?",
+    "intent": "rank",
+    "expect": {
+      "unsupported": false,
+      "minSources": 1,
+      "sourceIncludes": "Census 2023 dwellings"
+    }
+  },
+  {
+    "id": "q33-compare-bedrooms",
+    "question": "Compare Ponsonby West and Takapuna Central on average bedrooms and dwellings per km².",
+    "intent": "compare",
+    "expect": {
+      "unsupported": false,
+      "suburbs": [
+        "Ponsonby West",
+        "Takapuna Central"
+      ],
+      "minSources": 2,
+      "sourceIncludes": "Census 2023 dwellings"
+    }
   }
 ]

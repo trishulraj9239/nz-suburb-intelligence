@@ -182,6 +182,27 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
   automation — re-check by hand when convenient). Attribute *"University of
   Otago (Atkinson et al. 2024)"*.
   - UI source-chip string: **"NZDep2023 · 2023"**
+## Stats NZ Census 2023 dwellings — housing quality (TRI-118)
+
+- **What:** "2023 Census totals by topic for dwellings by SA2" (dampness,
+  mould, heating types, bedrooms) and "2023 Census change in occupied and
+  unoccupied private dwellings by SA2" (total dwellings + land area). Feed
+  `dwelling_damp_pct`, `dwelling_mould_pct`, `avg_bedrooms`, `bedrooms`,
+  `heat_pump_pct`, `no_heating_pct`, `dwelling_density_per_km2`. Spike +
+  column mapping: `docs/spikes/tri-118-census-housing-quality.md`.
+- **Auth:** none. Read from Stats NZ Geospatial's ArcGIS Online services
+  (`services2.arcgis.com/vKb0s8tBIA3bdocZ`), which mirror datafinder layers
+  120853 / 119481 under the same licence. **Our `STATS_NZ_API_KEY` is an ADE
+  key and cannot read datafinder WFS** ("Feature type unknown"); the
+  datafinder lookup-table attachments (VAR code dictionary) are keyless.
+- **Cadence:** none until the next census. Coverage 627/633 Auckland SA2s;
+  9 fully confidentialised SA2s (industrial/hospital/harbour) carry no rows.
+- **Caveats:** suppressed cells are `-999` in the source → absent rows, never
+  zeros; counts random-rounded base 3, so % metrics need ≥ 30 stated
+  dwellings; heating is multi-response → single-type shares only; density =
+  published total dwellings ÷ Stats NZ `LAND_AREA_SQ_KM`.
+- **Licence / attribution:** **CC BY 4.0**, attribute "Stats NZ".
+  - UI source-chip string: **"Census 2023 dwellings · <year>"**
 
 ## Existing sources (for completeness)
 

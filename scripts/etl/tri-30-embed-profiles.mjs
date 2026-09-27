@@ -48,6 +48,17 @@ for (const r of consents) {
   consentsBySuburb.set(r.g, m);
 }
 
+// TRI-118: housing quality, latest census vintage per suburb (damp / mould /
+// heat pump / average bedrooms). Same neutral framing as everything else.
+const housingQ = JSON.parse(readFileSync("data/census/tri118-housing-quality.json", "utf8"));
+const hqBySuburb = new Map();
+for (const r of housingQ) {
+  if (r.c !== null || !["dwelling_damp_pct", "dwelling_mould_pct", "heat_pump_pct", "avg_bedrooms"].includes(r.m)) continue;
+  const m = hqBySuburb.get(r.g) ?? {};
+  if (!m[r.m] || r.d > m[r.m].d) m[r.m] = { v: r.v, d: r.d };
+  hqBySuburb.set(r.g, m);
+}
+
 // TRI-71: hazard + planning facts, neutral framing — shares of modelled
 // layers with source + vintage, never good/bad language (retrieval and the
 // answer layer both stay verdict-free; the caveat lives in lib/hazard.ts).
@@ -143,6 +154,16 @@ function profileText(sa2) {
   const sep = pct(m["dwelling_type:cats"], "Separate house");
   const joined = pct(m["dwelling_type:cats"], "Joined dwelling (townhouse/apartment)");
   if (sep !== null) bits.push(`Housing stock: ${sep}% separate houses, ${joined ?? 0}% townhouses/apartments.`);
+  const hq = hqBySuburb.get(sa2);
+  if (hq?.dwelling_damp_pct || hq?.avg_bedrooms) {
+    const parts = [];
+    if (hq.avg_bedrooms) parts.push(`average ${hq.avg_bedrooms.v} bedrooms per dwelling`);
+    if (hq.dwelling_damp_pct) parts.push(`${hq.dwelling_damp_pct.v}% of dwellings reported damp`);
+    if (hq.dwelling_mould_pct) parts.push(`${hq.dwelling_mould_pct.v}% reported mould`);
+    if (hq.heat_pump_pct) parts.push(`${hq.heat_pump_pct.v}% have a heat pump`);
+    const yr = (hq.dwelling_damp_pct ?? hq.avg_bedrooms).d.slice(0, 4);
+    bits.push(`Housing quality (Census ${yr}, self-reported): ${parts.join(", ")}.`);
+  }
   const eth = (m["ethnicity:cats"] ?? [])
     .filter(([c]) => !c.startsWith("Total"))
     .sort((a, b) => b[1] - a[1])

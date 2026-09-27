@@ -43,6 +43,13 @@ snapshot (2026-08-04, 26 metrics); the DB is the source of truth.
 | `rent_lower_quartile_weekly` | Lower-quartile rent | $/week | scalar | lower | latest quarter | MBIE bonds |
 | `rent_upper_quartile_weekly` | Upper-quartile rent | $/week | scalar | lower | latest quarter | MBIE bonds |
 | `rent_trend_12m_pct` | Rent change (12 months) | % | scalar | — | latest quarter | MBIE bonds |
+| `dwelling_damp_pct` | Damp dwellings | % | scalar | lower | 2018/23 | Census dwellings (TRI-118) |
+| `dwelling_mould_pct` | Mouldy dwellings | % | scalar | lower | 2018/23 | Census dwellings (TRI-118) |
+| `avg_bedrooms` | Average bedrooms | bedrooms | scalar | — | 2013/18/23 | Census dwellings (TRI-118) |
+| `bedrooms` | Bedrooms per dwelling | count | breakdown | — | 2013/18/23 | Census dwellings (TRI-118) |
+| `heat_pump_pct` | Homes with a heat pump | % | scalar | — | 2018/23 | Census dwellings (TRI-118) |
+| `no_heating_pct` | Homes with no heating | % | scalar | — | 2018/23 | Census dwellings (TRI-118) |
+| `dwelling_density_per_km2` | Dwellings per km² | /km² | scalar | — | 2013/18/23 | Census dwellings (TRI-118) |
 | **deprivation** ("Deprivation") |
 | `nzdep_decile` | Deprivation decile | decile | scalar | — | 2018/23 | NZDep2023 (current), NZDep2018 |
 | `nzdep_score` | Deprivation score | score | scalar | — | 2018/23 | NZDep2023 (current), NZDep2018 |
