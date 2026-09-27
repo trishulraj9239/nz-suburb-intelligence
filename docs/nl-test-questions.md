@@ -137,3 +137,21 @@ saved anchors.
 | pick an address, watch the "At this address" block | one line per layer; if a council service is down the line says "council service unavailable — not checked", never "outside" |
 
 Automated: `node scripts/test/tri123-verify.mjs` (dev server on :3000).
+
+## Address title & land (TRI-126) — manual checks
+
+The "At this address" block gains **Title & land — LINZ public records**, read
+live from LINZ (Property Boundaries by point, then the no-ownership Property
+Titles layer): title type with a one-line neutral explainer, rating-unit land
+area, legal description, title number and issue date, estate lines. Copy says
+these are public records about the land, not a valuation, and that ownership
+is not public data.
+
+| Ask | Expect |
+|---|---|
+| `What type of title does 42 Ponsonby Road have, and how big is the section?` | rows "At 42 Ponsonby Road…: title type Freehold, legal description Lot 13 Sec 1 DP 242…" and "rating unit land area 1,362 m²", title 932002 issued 2020-02-26; the answer reports them as records, says ownership is not public, no price |
+| `What is 42 Ponsonby Road worth?` | unsupported — valuations and prices are not held (see the link-out panel, TRI-132) |
+| pin `3/22 Cardiff Road Pakuranga` | Freehold with an estate line showing the 1/11 share of the common lot — every unit/estate line listed, no "winner" picked |
+| LINZ down | "LINZ could not be reached — the title was not checked", never "no title" |
+
+Automated: `node scripts/test/tri126-verify.mjs` (dev server on :3000).
