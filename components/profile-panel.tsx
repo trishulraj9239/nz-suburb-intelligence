@@ -22,6 +22,7 @@ import { InfoTip } from "./info-tip";
 import { ConfidenceChip, Provenance, SourceChip } from "./provenance";
 import { StackedBar } from "./stacked-bar";
 import { KpiTiles } from "./kpi-tiles";
+import { AddressFacts } from "./address-facts";
 
 /**
  * TRI-112 (TRI-70 follow-through) — breakdowns that render as ONE stacked
@@ -385,6 +386,7 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
           describes the area, not the property.
         </p>
       )}
+      {pin && pin.sa2_code === sa2 && <AddressFacts pin={pin} />}
       {/* Header */}
       <div>
         <div className="flex items-start justify-between gap-2">

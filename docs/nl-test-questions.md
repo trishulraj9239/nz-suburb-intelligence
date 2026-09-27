@@ -119,3 +119,21 @@ address is a pin and a banner only.
 | pick an address, then pick `Takapuna Central` by name | banner and pin disappear; a pin never claims an address sits in the wrong area |
 
 Automated: `node scripts/test/tri122-verify.mjs` (dev server on :3000).
+
+## Address tier 2 (TRI-123) — manual checks
+
+After picking an address, the profile shows an **"At this address"** block
+above the area sections: five council hazard layers checked at the point
+(flood plain, overland flow within 20 m, coastal inundation now and +1 m,
+liquefaction class), each in the layer's own words with the verbatim caveat,
+and drive times **from** the address to the CBD, the airport and your first
+saved anchors.
+
+| Ask | Expect |
+|---|---|
+| `Is 42 Ponsonby Road in a flood plain?` | rows labelled "At 42 Ponsonby Road, Grey Lynn, Auckland: Flood plain (1% AEP) (2026 council layer) — outside …" plus the other layers; the answer reports each layer's status, cites each, ends with the caveat, no verdict |
+| `How long is the drive from 42 Ponsonby Road to Auckland Airport?` | a routed drive time (or a labelled straight-line distance if routing is down) |
+| `Is 999999 Nowhere Street in a flood plain?` | honest note: the address could not be resolved; no rows |
+| pick an address, watch the "At this address" block | one line per layer; if a council service is down the line says "council service unavailable — not checked", never "outside" |
+
+Automated: `node scripts/test/tri123-verify.mjs` (dev server on :3000).

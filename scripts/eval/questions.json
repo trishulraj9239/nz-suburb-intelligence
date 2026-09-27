@@ -436,5 +436,34 @@
       "minSources": 2,
       "sourceIncludes": "Building Outlines"
     }
+  },
+  {
+    "id": "q41-address-flood",
+    "question": "Is 42 Ponsonby Road in a flood plain?",
+    "intent": "lookup",
+    "expect": {
+      "unsupported": false,
+      "minSources": 1,
+      "sourceIncludes": "Auckland Council"
+    }
+  },
+  {
+    "id": "q42-address-commute",
+    "question": "How long is the drive from 42 Ponsonby Road to Auckland Airport?",
+    "intent": "commute",
+    "expect": {
+      "unsupported": false,
+      "minSources": 1,
+      "sourceIncludes": "openrouteservice"
+    }
+  },
+  {
+    "id": "q43-address-unresolvable",
+    "question": "Is 999999 Nowhere Street in a flood plain?",
+    "intent": "lookup",
+    "expect": {
+      "unsupported": false,
+      "minSources": 0
+    }
   }
 ]
