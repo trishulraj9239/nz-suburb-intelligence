@@ -93,6 +93,47 @@ interface BuiltFormResponse {
   unavailable?: string;
 }
 const BUILT_FORM_NOTE = "Roof outlines from LINZ aerial imagery; not floor area, not a consent record.";
+
+// TRI-128 — Unitary Plan overlays at the point (council services, live).
+interface OverlayHit {
+  name: string | null;
+  type: string | null;
+  subtype: string | null;
+  schedule: string | null;
+  version: string | null;
+  document_url: string | null;
+}
+interface OverlayLayer {
+  key: string;
+  label: string;
+  chapter: string;
+  kind: "polygon" | "point";
+  status: string;
+  inside: boolean | null;
+  hits: OverlayHit[];
+}
+interface OverlaysResponse {
+  layers: OverlayLayer[];
+  source: string;
+  updated: string | null;
+  retrieved_at: string;
+}
+const OVERLAY_STATUS: Record<string, string> = {
+  inside: "inside",
+  near: "on or near the boundary",
+  outside: "outside",
+  within: "within 30 m",
+  none: "none within 30 m",
+  unavailable: "council service unavailable — not checked",
+};
+const AUP_HOME = "https://unitaryplan.aucklandcouncil.govt.nz/";
+const OVERLAY_NOTE =
+  "Operative overlays as published by the council; descriptive only — what an overlay allows is set out in its chapter. Designations and consent history are not open data (see the LIM link-out).";
+function overlayHitText(h: OverlayHit): string {
+  const parts = [h.type, h.subtype, h.name, h.schedule ? `schedule ${h.schedule}` : null].filter(Boolean) as string[];
+  const s = [...new Set(parts)].join(" · ");
+  return h.version ? `${s || "overlay"} (${h.version.toLowerCase()}, not operative)` : s;
+}
 const GEOMAPS_URL = "https://geomapspublic.aucklandcouncil.govt.nz/viewer/index.html";
 
 const TITLE_TYPE_NOTE: Record<string, string> = {
@@ -264,6 +305,23 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
     };
   }, [key, pin.lng, pin.lat]);
   const built = bf.key === key ? bf.r : null;
+
+  // TRI-128 — plan overlays at the point.
+  const [ov, setOv] = useState<{ key: string; r: OverlaysResponse | null | "error" }>({ key: "", r: null });
+  useEffect(() => {
+    let stale = false;
+    cachedJson<OverlaysResponse>(`/api/point-overlays?lng=${pin.lng}&lat=${pin.lat}`)
+      .then((r) => {
+        if (!stale) setOv({ key, r });
+      })
+      .catch(() => {
+        if (!stale) setOv({ key, r: "error" });
+      });
+    return () => {
+      stale = true;
+    };
+  }, [key, pin.lng, pin.lat]);
+  const overlays = ov.key === key ? ov.r : null;
   const imageryCaption = built && built !== "error" && built.imagery
     ? `LINZ aerial basemap · ${built.imagery.title} · CC BY 4.0`
     : "LINZ aerial basemap · CC BY 4.0 · imagery date not reported for this point";
@@ -395,6 +453,55 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
             >
               Auckland Council GeoMaps ↗
             </a>
+          </div>
+        </div>
+      )}
+
+      <h4 data-testid="epistemic-plan" className="mt-3 border-t border-hairline pt-2 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/70">
+        Council plan records at this point
+      </h4>
+      <h5 className="mt-1.5 text-[11px] font-medium uppercase tracking-wider text-ink/45">Plan overlays — Auckland Unitary Plan</h5>
+      {overlays === null && <p className="py-1 text-xs text-ink/50">Checking the Unitary Plan overlays…</p>}
+      {overlays === "error" && (
+        <p className="py-1 text-xs text-ink/60">The council plan services could not be reached — no overlay was checked.</p>
+      )}
+      {overlays && overlays !== "error" && (
+        <div data-testid="plan-overlays">
+          <ul className="divide-y divide-hairline/60">
+            {overlays.layers.map((l) => (
+              <li key={l.key} className="py-1.5" data-testid="overlay-row">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-sm text-ink/80">
+                    {l.label}
+                    <span className="ml-1 font-mono text-[10px] text-ink/45">{l.chapter}</span>
+                  </span>
+                  <span className={`shrink-0 font-mono text-sm font-medium ${l.status === "unavailable" ? "text-ink/45" : "text-ink"}`}>
+                    {OVERLAY_STATUS[l.status] ?? l.status}
+                  </span>
+                </div>
+                {l.hits.length > 0 && (
+                  <ul className="mt-0.5">
+                    {l.hits.map((h, i) => (
+                      <li key={i} className="text-[11px] leading-snug text-ink/65">
+                        {overlayHitText(h)}
+                        <a
+                          href={h.document_url ?? AUP_HOME}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-1.5 font-mono text-[10px] text-accent underline-offset-2 hover:underline"
+                        >
+                          {h.document_url ? "chapter ↗" : "AUP ↗"}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1 text-[10px] leading-snug text-ink/50">{OVERLAY_NOTE}</p>
+          <div className="mt-1 flex justify-end">
+            <Provenance source="Auckland Unitary Plan overlays · Auckland Council" asOf={overlays.updated ?? overlays.retrieved_at.slice(0, 10)} confidence="high" />
           </div>
         </div>
       )}

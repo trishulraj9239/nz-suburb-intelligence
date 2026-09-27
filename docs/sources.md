@@ -292,6 +292,21 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
   nothing proxied); the caption names the aerial layer at that point from the
   basemap attribution feed (`/v1/attribution/aerial/WebMercatorQuad/summary.json`,
   cached a day), e.g. "Auckland 0.075m Urban Aerial Photos (2024-2025)".
+- **Unitary Plan overlays at a point** (`lib/point-overlays.ts`, TRI-128):
+  ten operative overlay services on the council hub
+  (`Special_Character_Areas_Overlay_Residential_and_Business`,
+  `Historic_Heritage_Overlay_Extent_of_Place` / `_Place`, `Notable_Trees_Overlay`
+  / `Notable_Group_of_Trees_Overlay`, `Aircraft_Noise_Overlay`,
+  `City_Centre_Port_Noise_Overlay`, the two volcanic viewshaft overlays,
+  `Waitakere_Ranges_Heritage_Area_Overlay`), keyless, `f=json`. Polygons:
+  one 5 m query, then an exact-point query only on a hit (inside / on or
+  near the boundary / outside); points: 30 m. Attribute codes (TYPE,
+  SUBTYPE, VERSIONSTATUS) are decoded from each layer's coded-value domains
+  fetched from its metadata (cached a day) — `TYPE 18` renders as "Business
+  Ponsonby Road". `outFields=*` because not every service has
+  `DocumentURL`. Non-operative version statuses are shown as such. Proposed
+  plan-change layers are never queried. Licence rider (TRI-67): derived
+  facts per point, never a bulk republication.
 - **Licence / attribution:** council layers CC BY 4.0 (Auckland Council);
   LINZ layers CC BY 4.0 (Toitū Te Whenua LINZ). Point results are public
   records / area-level models, never a valuation or inspection — the copy

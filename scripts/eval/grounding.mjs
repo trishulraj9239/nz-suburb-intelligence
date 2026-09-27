@@ -171,7 +171,9 @@ export function scoreGrounding(text, sources) {
     // carries other numbers ("1% AEP", "20 m") from the layer's name. Binding
     // those to the flag flagged a correct answer (2026-09-28), so they are
     // unmeasured here, not checked.
-    if (/^(point_|record_(title|none|unavailable))/.test(String(row.metric ?? ""))) continue;
+    // TRI-128 — overlay rows are categorical too (0/1 with chapter codes in
+    // the label).
+    if (/^(point_|overlay_|record_(title|none|unavailable))/.test(String(row.metric ?? ""))) continue;
     // A run of k markers carrying fewer than k citable figures is a
     // collective claim (set membership, a range) — its numbers don't map
     // one-per-row, so it's unmeasured here, not mismatched. Equal counts

@@ -595,5 +595,25 @@
    "minSources": 1,
    "sourceIncludes": "LINZ"
   }
+ },
+ {
+  "id": "q58-address-special-character",
+  "question": "Is 42 Ponsonby Road in a special character area under the Unitary Plan?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "Unitary Plan"
+  }
+ },
+ {
+  "id": "q59-address-heritage-trees",
+  "question": "Are there any heritage listings, notable trees or noise overlays affecting 42 Ponsonby Road?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "Unitary Plan"
+  }
  }
 ]
