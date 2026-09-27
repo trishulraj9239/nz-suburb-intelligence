@@ -241,6 +241,29 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
   census `population` series is never mixed with it.
 - **Licence / attribution:** **CC BY 4.0**, attribute "Stats NZ".
   - UI source-chip string: **"Estimated resident population grid (250 m) · <year>"**
+## LINZ Building Outlines + Property Boundaries — built form (TRI-119)
+
+- **What:** layer 101290 NZ Building Outlines (roof outlines ≥ 10 m² from
+  aerial imagery) and layer 122657 NZ Property Boundaries (rating units /
+  titles / parcels with LINZ's `area`), streamed for the Auckland box and
+  assigned to SA2s by building centre / property point-on-surface. Feed
+  `building_footprint_pct`, `buildings_per_ha` (confidence `medium`,
+  imagery-derived) and `median_property_m2` (`high`, exact published
+  areas; all property types). Spike: `docs/spikes/tri-119-built-form.md`.
+- **Auth:** `LINZ_LDS_API_KEY` (ETL only). Volumes: ~770k outlines, ~725k
+  properties → paged WFS with a JSONL checkpoint in gitignored
+  `tmp/built-form/` (reduced to `{sa2, area}` at fetch time); the ETL
+  resumes after a kill and `--aggregate` re-runs the maths from the cache.
+- **Cadence:** outlines republished ~yearly (last 2026-05-18); properties
+  weekly. Re-run when LINZ republishes outlines. Land area denominator is
+  Stats NZ `LAND_AREA_SQ_KM`.
+- **Caveats:** footprint is a roof outline, not floor area, and includes
+  garages/sheds; the median property size has **no residential filter**
+  (Auckland is not in LINZ's open DVR, so there is no open property-category
+  field) — the description says "all property types". SA2s with < 20 rating
+  units carry no median.
+- **Licence / attribution:** **CC BY 4.0**, attribute Toitū Te Whenua LINZ.
+  - UI source-chip strings: **"NZ Building Outlines · 2026"**, **"NZ Property Boundaries · 2026"**
 
 ## Existing sources (for completeness)
 

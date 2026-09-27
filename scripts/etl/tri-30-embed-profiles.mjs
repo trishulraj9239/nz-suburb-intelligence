@@ -70,6 +70,16 @@ for (const r of erp) {
   erpBySuburb.set(r.g, m);
 }
 
+// TRI-119: built form (LINZ outlines + property boundaries) — what is
+// physically there, stated as measurements, never as a verdict.
+const builtForm = JSON.parse(readFileSync("data/built-form/tri119-built-form.json", "utf8"));
+const bfBySuburb = new Map();
+for (const r of builtForm) {
+  const m = bfBySuburb.get(r.g) ?? {};
+  m[r.m] = r.v;
+  bfBySuburb.set(r.g, m);
+}
+
 // TRI-71: hazard + planning facts, neutral framing — shares of modelled
 // layers with source + vintage, never good/bad language (retrieval and the
 // answer layer both stay verdict-free; the caveat lives in lib/hazard.ts).
@@ -242,6 +252,14 @@ function profileText(sa2) {
     bits.push(
       `${cons.n} new dwelling${cons.n === 1 ? "" : "s"} consented in the 12 months to ${latestConsentM.slice(0, 7)}${cons.rate != null ? ` (${cons.rate} per 1,000 existing dwellings)` : ""} (Stats NZ building consents; consents are intentions to build, not completions).`,
     );
+  }
+  const bf = bfBySuburb.get(sa2);
+  if (bf && (bf.building_footprint_pct != null || bf.median_property_m2 != null)) {
+    const parts = [];
+    if (bf.building_footprint_pct != null) parts.push(`buildings cover ${bf.building_footprint_pct}% of the land`);
+    if (bf.buildings_per_ha != null) parts.push(`${bf.buildings_per_ha} buildings per hectare`);
+    if (bf.median_property_m2 != null) parts.push(`median property ${bf.median_property_m2} m² (all property types)`);
+    bits.push(`Built form (LINZ building outlines and property boundaries, 2026): ${parts.join(", ")}.`);
   }
   return bits.join(" ");
 }
