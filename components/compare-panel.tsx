@@ -10,7 +10,8 @@ import {
   type RegionalStat,
   type SuburbProfile,
 } from "@/lib/suburb-data";
-import { useWorkspace } from "@/lib/workspace";
+import { useWorkspace, type AddressPin } from "@/lib/workspace";
+import { AddressFacts } from "@/components/address-facts";
 import { usePersona } from "@/lib/preferences";
 import { orderBySection, personaConfig } from "@/lib/persona";
 import { HAZARD_CAVEAT } from "@/lib/hazard";
@@ -113,6 +114,7 @@ function CompareColumn({
   sectionOrder,
   onOpen,
   onRemove,
+  addresses,
 }: {
   p: SuburbProfile;
   all: SuburbProfile[];
@@ -121,6 +123,8 @@ function CompareColumn({
   sectionOrder: string[];
   onOpen: () => void;
   onRemove: () => void;
+  /** TRI-141 — shortlisted addresses in this SA2: they head the column. */
+  addresses?: AddressPin[];
 }) {
   const owned = pctOf(p, "tenure", "Owned or partly owned");
   const houses = pctOf(p, "dwelling_type", "Separate house");
@@ -133,7 +137,7 @@ function CompareColumn({
           className="text-left font-display text-sm font-semibold leading-tight text-ink hover:text-harbour"
           title="Open profile"
         >
-          {p.suburb.name}
+          {addresses?.length ? <AddressHead addresses={addresses} suburb={p.suburb.name} /> : p.suburb.name}
         </button>
         <button
           type="button"
@@ -244,8 +248,33 @@ function CompareColumn({
   );
 }
 
+/**
+ * TRI-141 — a column headed by the address(es) pinned in this SA2, sub-headed
+ * by the area the figures belong to. Two addresses in one area share the
+ * column with an explicit note — never two identical columns dressed up as a
+ * comparison.
+ */
+function AddressHead({ addresses, suburb }: { addresses: AddressPin[]; suburb: string }) {
+  return (
+    <span className="block" data-testid="compare-address-head">
+      {addresses.map((a) => (
+        <span key={a.label} className="block">
+          {a.label}
+        </span>
+      ))}
+      <span className="mt-0.5 block font-mono text-[10px] font-normal text-ink/50">area: {suburb}</span>
+      {addresses.length > 1 && (
+        <span className="mt-0.5 block font-mono text-[10px] font-normal normal-case text-ink/60" data-testid="same-area-note">
+          both addresses are in the same statistical area, so area figures are identical
+        </span>
+      )}
+    </span>
+  );
+}
+
 export function ComparePanel() {
-  const { compare, toggleCompare, select } = useWorkspace();
+  const { compare, toggleCompare, select, pins } = useWorkspace();
+  const pinsFor = (sa2: string) => pins.filter((x) => x.sa2_code === sa2);
   const [onlyDiff, setOnlyDiff] = useState(false);
   const persona = usePersona();
   const sectionOrder = personaConfig(persona).sectionOrder;
@@ -352,6 +381,27 @@ export function ComparePanel() {
         )}
       </label>
 
+      {/* TRI-141 — per-address facts side by side, ABOVE the area columns and
+          visibly separate from them: these are point checks and public
+          records for each pinned address, not area figures. */}
+      {profiles.some((p) => pinsFor(p.suburb.sa2_code).length > 0) && (
+        <div className="mb-3" data-testid="compare-address-facts">
+          <p className="mb-1 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/60">
+            At each address
+            <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">public records &amp; point checks · not area figures</span>
+          </p>
+          <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${profiles.length}, minmax(0, 1fr))` }}>
+            {profiles.map((p) => (
+              <div key={p.suburb.sa2_code} className="flex min-w-0 flex-col gap-2">
+                {pinsFor(p.suburb.sa2_code).map((a) => (
+                  <AddressFacts key={a.label} pin={a} />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Desktop: full profiles side by side */}
       <div
         className="hidden gap-3 lg:grid"
@@ -365,6 +415,7 @@ export function ComparePanel() {
             bestSets={bestSets}
             stats={stats}
             sectionOrder={sectionOrder}
+            addresses={pinsFor(p.suburb.sa2_code)}
             onOpen={() => select(p.suburb.sa2_code)}
             onRemove={() => toggleCompare(p.suburb.sa2_code)}
           />
@@ -383,7 +434,7 @@ export function ComparePanel() {
                   onClick={() => select(p.suburb.sa2_code)}
                   className="w-full text-left font-display text-xs font-semibold leading-tight text-ink hover:text-harbour"
                 >
-                  {p.suburb.name}
+                  {pinsFor(p.suburb.sa2_code).length ? <AddressHead addresses={pinsFor(p.suburb.sa2_code)} suburb={p.suburb.name} /> : p.suburb.name}
                 </button>
                 <button
                   type="button"
