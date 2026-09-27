@@ -166,6 +166,12 @@ export function scoreGrounding(text, sources) {
     const row = byN.get(b.n);
     if (!row || !b.candidates?.length) continue;
     if (NON_QUOTABLE_UNITS.has(row.unit)) continue;
+    // TRI-123 — point-in-layer rows ("At <address>: flood plain … — outside")
+    // are categorical: the value is a 0/1 flag and the prose legitimately
+    // carries other numbers ("1% AEP", "20 m") from the layer's name. Binding
+    // those to the flag flagged a correct answer (2026-09-28), so they are
+    // unmeasured here, not checked.
+    if (String(row.metric ?? "").startsWith("point_")) continue;
     // A run of k markers carrying fewer than k citable figures is a
     // collective claim (set membership, a range) — its numbers don't map
     // one-per-row, so it's unmeasured here, not mismatched. Equal counts
