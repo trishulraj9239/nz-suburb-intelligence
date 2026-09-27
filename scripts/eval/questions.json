@@ -308,8 +308,7 @@
     "intent": "lookup",
     "expect": {
       "unsupported": false,
-      "minSources": 1,
-      "sourceIncludes": "Tenancy bond"
+      "minSources": 2
     }
   },
   {
