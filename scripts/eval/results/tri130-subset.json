@@ -1,0 +1,480 @@
+{
+  "base": "http://localhost:3000",
+  "judge_model": "claude-opus-4-8",
+  "providers": {
+    "anthropic": {
+      "label": "Claude Sonnet 4.6",
+      "inPerM": 3,
+      "outPerM": 15
+    },
+    "groq": {
+      "label": "Qwen 3.6 27B (Groq)",
+      "inPerM": 0.2,
+      "outPerM": 0.2
+    }
+  },
+  "questions": [
+    {
+      "id": "q62-address-block-profile",
+      "intent": "lookup",
+      "question": "What is the block around 42 Ponsonby Road like — how many people live there, what is the median age, and how many rent?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 17450,
+          "tokens_est": 162,
+          "cost_est_usd": 0.00207,
+          "n_sources": 14,
+          "n_citations": 4,
+          "values_checked": 4,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 4,
+            "overall": 5,
+            "note": "Directly answers all three asked figures with correct citations, useful area context, and the area-not-property caveat, with only a minor unsolicited 'as a renter' inference."
+          },
+          "answer": "The Census 2023 block (SA1 7005116) containing 42 Ponsonby Road had 219 people counted {{c1}}, with a median age of 34.5 years {{c2}} — slightly older than the broader Grey Lynn East statistical area median of 32.8 years {{c14}}. As a renter, the tenure split is relevant: 44.2% of households in this block were renting (not owned, not in a family trust) {{c3}}, suggesting a solidly mixed tenure area. These are small-area census figures (random-rounded) for the block around the address, not facts about the property itself.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_population",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): people counted (random-rounded small-area census cell; an area, not the property)",
+              "value": 219,
+              "unit": null,
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 2,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_median_age",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): median age (random-rounded small-area census cell; an area, not the property)",
+              "value": 34.5,
+              "unit": "years",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 3,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_renting_pct",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): households renting (not owned, not in a family trust) (random-rounded small-area census cell; an area, not the property)",
+              "value": 44.2,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 4,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_median_household_income",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): median household income (random-rounded small-area census cell; an area, not the property)",
+              "value": 147300,
+              "unit": "$",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 5,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_nzdep_decile",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): NZDep2023 decile (1 = least deprived, 10 = most deprived; information, not a verdict) (random-rounded small-area census cell; an area, not the property)",
+              "value": 3,
+              "unit": null,
+              "source": "NZDep2023 at SA1 · University of Otago (via Massey Healthspace mirror) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 6,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_eth_european",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): European ethnicity share (random-rounded small-area census cell; an area, not the property)",
+              "value": 82.2,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 7,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_eth_m_ori",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): Māori ethnicity share (random-rounded small-area census cell; an area, not the property)",
+              "value": 9.6,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 8,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_eth_pacific_peoples",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): Pacific Peoples ethnicity share (random-rounded small-area census cell; an area, not the property)",
+              "value": 2.7,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 9,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_eth_asian",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): Asian ethnicity share (random-rounded small-area census cell; an area, not the property)",
+              "value": 13.7,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 10,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_overseas_born_pct",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): overseas-born share (random-rounded small-area census cell; an area, not the property)",
+              "value": 32.9,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 11,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_separate_house_pct",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): separate houses share of occupied dwellings (random-rounded small-area census cell; an area, not the property)",
+              "value": 6.8,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 12,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_one_person_pct",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): one-person households share (random-rounded small-area census cell; an area, not the property)",
+              "value": 40.5,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 13,
+              "suburb": "Grey Lynn East (the statistical area containing 42 Ponsonby Road, Grey Lynn, Auckland)",
+              "sa2_code": "133500",
+              "metric": "population",
+              "label": "Population",
+              "value": 1800,
+              "unit": "count",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 14,
+              "suburb": "Grey Lynn East (the statistical area containing 42 Ponsonby Road, Grey Lynn, Auckland)",
+              "sa2_code": "133500",
+              "metric": "median_age",
+              "label": "Median age",
+              "value": 32.8,
+              "unit": "years",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 364,
+          "tokens_est": 30,
+          "cost_est_usd": 0.000006,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "Answer A is empty; it provides no response at all, and the data was actually available so a decline was not the correct action here."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q63-address-block-deprivation",
+      "intent": "lookup",
+      "question": "What is the deprivation decile of the block at 42 Ponsonby Road, and how does it compare with the suburb?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 7588,
+          "tokens_est": 143,
+          "cost_est_usd": 0.001836,
+          "n_sources": 14,
+          "n_citations": 3,
+          "values_checked": 2,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 1,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Accurately reports decile 3 for both block and suburb with correct citations, area-level caveat, and clear comparison."
+          },
+          "answer": "The block around 42 Ponsonby Road (SA1 7005116) has an NZDep2023 deprivation decile of 3 {{c5}}, meaning it sits toward the less-deprived end of the national scale (1 = least deprived, 10 = most deprived). The Grey Lynn East statistical area containing that address also has a decile of 3 in 2023 {{c13}}, unchanged from 2018 {{c14}}, so the block and its broader area are closely aligned. These are area-level figures — not a characteristic of the property itself.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_population",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): people counted (random-rounded small-area census cell; an area, not the property)",
+              "value": 219,
+              "unit": null,
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 2,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_median_age",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): median age (random-rounded small-area census cell; an area, not the property)",
+              "value": 34.5,
+              "unit": "years",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 3,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_renting_pct",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): households renting (not owned, not in a family trust) (random-rounded small-area census cell; an area, not the property)",
+              "value": 44.2,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 4,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_median_household_income",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): median household income (random-rounded small-area census cell; an area, not the property)",
+              "value": 147300,
+              "unit": "$",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 5,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_nzdep_decile",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): NZDep2023 decile (1 = least deprived, 10 = most deprived; information, not a verdict) (random-rounded small-area census cell; an area, not the property)",
+              "value": 3,
+              "unit": null,
+              "source": "NZDep2023 at SA1 · University of Otago (via Massey Healthspace mirror) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 6,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_eth_european",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): European ethnicity share (random-rounded small-area census cell; an area, not the property)",
+              "value": 82.2,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 7,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_eth_m_ori",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): Māori ethnicity share (random-rounded small-area census cell; an area, not the property)",
+              "value": 9.6,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 8,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_eth_pacific_peoples",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): Pacific Peoples ethnicity share (random-rounded small-area census cell; an area, not the property)",
+              "value": 2.7,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 9,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_eth_asian",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): Asian ethnicity share (random-rounded small-area census cell; an area, not the property)",
+              "value": 13.7,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 10,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_overseas_born_pct",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): overseas-born share (random-rounded small-area census cell; an area, not the property)",
+              "value": 32.9,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 11,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_separate_house_pct",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): separate houses share of occupied dwellings (random-rounded small-area census cell; an area, not the property)",
+              "value": 6.8,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 12,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "block_one_person_pct",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: this block (SA1 7005116, 219 people counted at Census 2023): one-person households share (random-rounded small-area census cell; an area, not the property)",
+              "value": 40.5,
+              "unit": "%",
+              "source": "Stats NZ 2023 Census, SA1 totals by topic (random-rounded) · CC BY 4.0",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 13,
+              "suburb": "Grey Lynn East (the statistical area containing 42 Ponsonby Road, Grey Lynn, Auckland)",
+              "sa2_code": "133500",
+              "metric": "nzdep_decile",
+              "label": "Deprivation decile (2023)",
+              "value": 3,
+              "unit": "decile",
+              "source": "NZDep2023 Deprivation Index",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 14,
+              "suburb": "Grey Lynn East (the statistical area containing 42 Ponsonby Road, Grey Lynn, Auckland)",
+              "sa2_code": "133500",
+              "metric": "nzdep_decile",
+              "label": "Deprivation decile (2018)",
+              "value": 3,
+              "unit": "decile",
+              "source": "NZDep2018 Deprivation Index",
+              "as_of": "2018-03-06",
+              "confidence": "medium"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 232,
+          "tokens_est": 27,
+          "cost_est_usd": 0.0000054,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "Empty answer provides no response despite the question being answerable, so it fails on all dimensions."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    }
+  ]
+}

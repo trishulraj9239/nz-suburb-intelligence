@@ -260,3 +260,25 @@ links the council Flood Viewer and GeoMaps. No score, ever.
 | a council service down | that row reads "council service unavailable — not checked" |
 
 Automated: `node scripts/test/tri129-verify.mjs` (dev server on :3000).
+
+## This block beside this suburb (TRI-130) — manual checks
+
+A new group **This block, beside this suburb — about the ~N people counted
+in this block at Census 2023** shows the SA1 (statistical block) containing
+the address next to the suburb (SA2) figure, both columns labelled: people
+counted, median age, households renting, median household income, NZDep2023
+decile (the index's native block level), the four largest ethnicity shares,
+overseas-born, separate houses, one-person households, average bedrooms.
+Suppressed cells read **"not published for this block"** — never zero, never
+the suburb value; a measure the app does not hold at suburb level reads
+"not held at suburb level". Live from the Stats NZ and Healthspace mirrors;
+nothing loaded. No verdict language anywhere.
+
+| Ask / do | Expect |
+|---|---|
+| pin `42 Ponsonby Rd` | block SA1 7005116 (Grey Lynn East): people counted, median age, renting %, income, NZDep decile beside the suburb's; the random-rounding note under the table |
+| `What is the block around 42 Ponsonby Road like — how many people live there, what is the median age, and how many rent?` | block rows ("At 42 Ponsonby Road…: this block (SA1 7005116, N people counted…)") beside the Grey Lynn East rows; the answer gives both, names which is which, never merges |
+| `What is the deprivation decile of the block at 42 Ponsonby Road, and how does it compare with the suburb?` | block NZDep2023 decile and the suburb decile, both cited, described as information not a verdict |
+| a block with suppressed cells (try a rural pin) | "not published by Stats NZ for this block: …" row; the answer says so and does not substitute the suburb figure |
+
+Automated: `node scripts/test/tri130-verify.mjs` (dev server on :3000).

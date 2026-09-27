@@ -366,6 +366,13 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
   const statFor = (key: string, asOf: string) =>
     stats.find((s) => s.metric_key === key && s.as_of_date === asOf);
   const inCompare = compare.includes(sa2);
+  // TRI-130 — the suburb-level figures the block column is shown beside.
+  const scalarValue = (k: string) => scalars.find((x) => x.def.metric_key === k)?.value ?? null;
+  const categoryPct = (k: string, label: RegExp) =>
+    (() => {
+      const pct = breakdowns.find((b) => b.def.metric_key === k)?.categories.find((c) => label.test(c.label))?.pct;
+      return pct == null ? null : Math.round(pct * 10) / 10;
+    })();
 
   // Persona section order, then any dimensions it doesn't list (in registry
   // order) — personas reorder sections, they never hide data.
@@ -379,7 +386,21 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
           FIRST; the banner then draws the hard line: everything under it is
           the area's. TRI-122 — a searched address only ever locates the area;
           it carries no data of its own, and the copy says so before any figure. */}
-      {pin && pin.sa2_code === sa2 && <AddressFacts pin={pin} />}
+      {pin && pin.sa2_code === sa2 && (
+        <AddressFacts
+          pin={pin}
+          suburb={{
+            name: suburb.name,
+            population: scalarValue("population"),
+            median_age: scalarValue("median_age"),
+            median_household_income: scalarValue("median_household_income"),
+            nzdep_decile: scalarValue("nzdep_decile"),
+            renting_pct: categoryPct("tenure", /not owned/i),
+            separate_house_pct: categoryPct("dwelling_type", /separate house/i),
+            ethnicity: Object.fromEntries(["European", "Māori", "Pacific Peoples", "Asian"].map((e) => [e, categoryPct("ethnicity", new RegExp("^" + e + "$", "i"))])),
+          }}
+        />
+      )}
       {pin && pin.sa2_code === sa2 && (
         <p
           data-testid="address-banner"

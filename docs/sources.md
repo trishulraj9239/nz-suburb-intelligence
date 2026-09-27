@@ -291,6 +291,17 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
   `maxDuration` 60), and the panel merges the two. `/api/ask` waits for the
   slow layer only when the question is about landslides. Results cache per
   layer, so the phases never repeat a council query.
+- **This block — Census 2023 + NZDep2023 at SA1** (`lib/block-stats.ts`,
+  TRI-130): the Stats NZ AGOL mirror's `2023_Census_totals_by_topic_for_
+  {individuals,households,dwellings}_by_SA1` layers (SA1 polygons joined to
+  the topic tables; field codes are `VAR_n_m` — the aliases identify them;
+  codes used are listed in the helper and were verified 2026-09-28) plus the
+  Healthspace NZDep2023 service's SA1 layer (id 0). Four point queries,
+  cached an hour, nothing loaded (no `sa1_code` on addresses, no SA1 rows in
+  the registry). Stats NZ sentinels (`-999`, `-997`, `-998`) → null and
+  listed in `suppressed` → "not published for this block". Shares use each
+  topic's own "Total stated". Suburb column = the app's SA2 registry values
+  passed in by the profile panel, so the two scales sit side by side.
 - **LINZ title & land at a point** (`lib/property-facts.ts`): NZ Property
   Boundaries (122657) by `INTERSECTS(geom, SRID=4326;POINT(lng lat))` — note
   the `SRID=4326;` prefix; a bare `POINT(lng lat)` is read lat-first and

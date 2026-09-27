@@ -635,5 +635,25 @@
    "minSources": 1,
    "sourceIncludes": "Auckland Council"
   }
+ },
+ {
+  "id": "q62-address-block-profile",
+  "question": "What is the block around 42 Ponsonby Road like — how many people live there, what is the median age, and how many rent?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "SA1"
+  }
+ },
+ {
+  "id": "q63-address-block-deprivation",
+  "question": "What is the deprivation decile of the block at 42 Ponsonby Road, and how does it compare with the suburb?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "NZDep2023"
+  }
  }
 ]
