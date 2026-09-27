@@ -397,6 +397,18 @@ export async function POST(req: NextRequest) {
   const wantedMetrics = (plan.metric_keys.length ? plan.metric_keys : scalarKeys).filter(
     (k) => scalarKeys.includes(k),
   );
+  // TRI-117 — lookups normally keep one row per metric (the latest vintage).
+  // When the question is about change over time ("how has X changed", "since
+  // 2018", "between 2018 and 2023", "trend"), keep the earlier vintages too
+  // (capped at HISTORY_ROWS per metric) and put the year in the row label so
+  // the answer can cite each vintage and describe the change from real rows
+  // instead of refusing or guessing. The MBIE rent series stays capped the same
+  // way, so a 25-quarter history never floods the prompt.
+  const wantsHistory =
+    /\b(chang(e|ed|ing|es)|since|between|trend|over time|compared? (to|with)|earlier|previous|20(13|18|23))\b/i.test(
+      question,
+    );
+  const HISTORY_ROWS = 3;
 
   if (plan.intent === "lookup" || plan.intent === "compare") {
     for (const name of plan.suburbs.slice(0, 3)) {
@@ -420,15 +432,16 @@ export async function POST(req: NextRequest) {
         .is("category", null)
         .in("metric_definitions.metric_key", wantedMetrics)
         .order("as_of_date", { ascending: false });
-      const seen = new Set<string>();
+      const seen = new Map<string, number>(); // metric_key → vintages kept
       for (const v of vals ?? []) {
         const md = v.metric_definitions as unknown as {
           metric_key: string;
           label: string;
           unit: string | null;
         };
-        if (seen.has(md.metric_key) || v.value_num === null) continue;
-        seen.add(md.metric_key);
+        const kept = seen.get(md.metric_key) ?? 0;
+        if (v.value_num === null || kept >= (wantsHistory ? HISTORY_ROWS : 1)) continue;
+        seen.set(md.metric_key, kept + 1);
         rows.push({
           n: rows.length + 1,
           suburb: geo.name,
@@ -439,7 +452,9 @@ export async function POST(req: NextRequest) {
           // already carry the framing.
           label: HAZARD_METRIC_KEYS.has(md.metric_key)
             ? hazardRowLabel(md.label, v.as_of_date)
-            : md.label,
+            : wantsHistory
+              ? `${md.label} (${v.as_of_date.slice(0, 4)})`
+              : md.label,
           value: Number(v.value_num),
           unit: md.unit,
           source: (v.sources as unknown as { name: string } | null)?.name ?? "—",

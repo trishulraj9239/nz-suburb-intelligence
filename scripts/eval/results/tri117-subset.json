@@ -1,0 +1,228 @@
+{
+  "base": "http://localhost:3000",
+  "judge_model": "claude-opus-4-8",
+  "providers": {
+    "anthropic": {
+      "label": "Claude Sonnet 4.6",
+      "inPerM": 3,
+      "outPerM": 15
+    },
+    "groq": {
+      "label": "Qwen 3.6 27B (Groq)",
+      "inPerM": 0.2,
+      "outPerM": 0.2
+    }
+  },
+  "questions": [
+    {
+      "id": "q29-deprivation-change",
+      "intent": "lookup",
+      "question": "How has the deprivation decile in Ponsonby West changed between NZDep2018 and NZDep2023?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 5254,
+          "tokens_est": 69,
+          "cost_est_usd": 0.000771,
+          "n_sources": 2,
+          "n_citations": 2,
+          "values_checked": 2,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 5,
+            "overall": 5,
+            "note": "Both figures are grounded with correct citations and the answer accurately describes the unchanged decile, though it could have flagged the medium confidence on the 2018 figure."
+          },
+          "answer": "Ponsonby West held a deprivation decile of 4 in 2018 {{c2}} and remained at 4 in 2023 {{c1}}, so its relative position across all New Zealand areas was unchanged between the two vintages.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "Ponsonby West",
+              "sa2_code": "130400",
+              "metric": "nzdep_decile",
+              "label": "Deprivation decile (2023)",
+              "value": 4,
+              "unit": "decile",
+              "source": "NZDep2023 Deprivation Index",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 2,
+              "suburb": "Ponsonby West",
+              "sa2_code": "130400",
+              "metric": "nzdep_decile",
+              "label": "Deprivation decile (2018)",
+              "value": 4,
+              "unit": "decile",
+              "source": "NZDep2018 Deprivation Index",
+              "as_of": "2018-03-06",
+              "confidence": "medium"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 288,
+          "tokens_est": 22,
+          "cost_est_usd": 0.0000044,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "Answer A is empty and provides no response at all, failing to decline or address the question."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q30-rank-deprivation-2023",
+      "intent": "rank",
+      "question": "Which five Auckland suburbs have the lowest NZDep2023 deprivation decile?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 7572,
+          "tokens_est": 176,
+          "cost_est_usd": 0.002427,
+          "n_sources": 5,
+          "n_citations": 5,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 5,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 3,
+            "overall": 4,
+            "note": "All five suburbs and decile-1 figures are grounded with correct per-suburb citations and note missing renter data, though the preference-transparency block adds mild verbosity."
+          },
+          "answer": "All five suburbs — Waikoukou Valley, Coatesville, Te Puru, Maraetai, and Tuscany Heights — share the lowest possible NZDep2023 deprivation decile of 1 {{c1}}{{c2}}{{c3}}{{c4}}{{c5}}, meaning they rank among the least deprived areas across all of New Zealand. Note that deprivation decile is one piece of context about an area; as a renter, you'd also want to weigh up rents and commute times for these suburbs, but no such data was provided in the rows available here. **Preference transparency:** Renting mode was active but had no rent or commute figures to emphasise, so the answer reflects only the deprivation data provided.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "Waikoukou Valley",
+              "sa2_code": "112600",
+              "metric": "nzdep_decile",
+              "label": "Deprivation decile",
+              "value": 1,
+              "unit": "decile",
+              "source": "NZDep2023 Deprivation Index",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 2,
+              "suburb": "Coatesville",
+              "sa2_code": "115501",
+              "metric": "nzdep_decile",
+              "label": "Deprivation decile",
+              "value": 1,
+              "unit": "decile",
+              "source": "NZDep2023 Deprivation Index",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 3,
+              "suburb": "Te Puru",
+              "sa2_code": "156400",
+              "metric": "nzdep_decile",
+              "label": "Deprivation decile",
+              "value": 1,
+              "unit": "decile",
+              "source": "NZDep2023 Deprivation Index",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 4,
+              "suburb": "Maraetai",
+              "sa2_code": "157400",
+              "metric": "nzdep_decile",
+              "label": "Deprivation decile",
+              "value": 1,
+              "unit": "decile",
+              "source": "NZDep2023 Deprivation Index",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 5,
+              "suburb": "Tuscany Heights",
+              "sa2_code": "158900",
+              "metric": "nzdep_decile",
+              "label": "Deprivation decile",
+              "value": 1,
+              "unit": "decile",
+              "source": "NZDep2023 Deprivation Index",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 228,
+          "tokens_est": 19,
+          "cost_est_usd": 0.0000038000000000000005,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "An empty response provides no answer to a question that had answerable data been present should have been addressed, and here simply fails to respond."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    }
+  ]
+}
