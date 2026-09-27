@@ -60,6 +60,8 @@ export const SECTION_LABELS: Record<string, string> = {
 
 /** Section-heading ⓘ explainer copy, keyed by dimension (rendered via InfoTip). */
 export const SECTION_EXPLAINERS: Record<string, string> = {
+  housing:
+    "Rents are MBIE tenancy-bond medians for new tenancies (all dwelling types). Tenure, dwelling types, bedrooms, damp, mould, heating and dwellings per km² come from Census 2013/2018/2023 dwelling tables (Stats NZ, CC BY 4.0): counts are random-rounded, suppressed cells are left blank rather than shown as zero, and percentage figures are only shown where at least 30 dwellings answered. Damp and mould are self-reported at census night.",
   hazard:
     "Shares of this area's land inside Auckland Council hazard model layers (flood plain 1% AEP, coastal storm-tide inundation, overland flow paths, liquefaction vulnerability). Layers have different vintages and are separate models — they never combine into one risk score. Area-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property. Source: Auckland Council open data (CC BY 4.0).",
   planning:
@@ -91,6 +93,8 @@ export const PERSONAS: Record<string, PersonaConfig> = {
       commute_cbd_cycle_min: 1.25,
       rent_median_weekly: 2, // MBIE bond series, M13
       rent_trend_12m_pct: 1.5,
+      dwelling_damp_pct: 1.25, // TRI-118 — living conditions matter most to renters
+      dwelling_mould_pct: 1.25,
     },
     promptDescriptor:
       "The user is a renter: prioritise current rents, rent trend, and commute times; long-horizon ownership metrics (zoning, consents) matter less.",
@@ -118,6 +122,7 @@ export const PERSONAS: Record<string, PersonaConfig> = {
       consents_per_1000_dwellings: 1.5, // M15 — the comparable rate
       consents_new_dwellings_12m: 1.25, // M15 — absolute volume, size-biased
       rent_median_weekly: 0.75,
+      avg_bedrooms: 1.25, // TRI-118 — stock size matters to buyers
     },
     promptDescriptor:
       "The user is a prospective buyer: prioritise zoning and intensification capacity, consenting activity (prefer the per-1,000-dwellings rate when comparing suburbs), and hazard exposure alongside housing stock; current rent levels matter less.",
