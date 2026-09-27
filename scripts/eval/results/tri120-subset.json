@@ -1,0 +1,216 @@
+{
+  "base": "http://localhost:3000",
+  "judge_model": "claude-opus-4-8",
+  "providers": {
+    "anthropic": {
+      "label": "Claude Sonnet 4.6",
+      "inPerM": 3,
+      "outPerM": 15
+    },
+    "groq": {
+      "label": "Qwen 3.6 27B (Groq)",
+      "inPerM": 0.2,
+      "outPerM": 0.2
+    }
+  },
+  "questions": [
+    {
+      "id": "q37-erp-growth-rank",
+      "intent": "rank",
+      "question": "Which five Auckland suburbs grew fastest in population between 2023 and 2025?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 8724,
+          "tokens_est": 209,
+          "cost_est_usd": 0.00291,
+          "n_sources": 5,
+          "n_citations": 5,
+          "values_checked": 5,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 3,
+            "overall": 4,
+            "note": "All five figures are grounded and correctly cited with appropriate medium-confidence hedging, but the tacked-on renter commentary is unnecessary filler."
+          },
+          "answer": "Based on modelled estimates (Stats NZ 250 m grid, 30 June 2023–2025 — not census counts), the five fastest-growing Auckland suburbs were Massey Red Hills at approximately 203.7% {{c1}}, Bremner Ridge at approximately 69.7% {{c2}}, Ormiston South East at approximately 68.5% {{c3}}, Drury West at approximately 57.6% {{c4}}, and Silverdale Central at approximately 54.3% {{c5}} over that two-year period. These are all modelled estimates with medium confidence, so treat the figures as indicative rather than precise counts. Note that as a renter (Renting mode), these fast-growing greenfield areas may see new rental stock come to market, but no rent or commute data was provided in the rows above, so no further renter-specific comparison can be made here.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "Massey Red Hills",
+              "sa2_code": "117003",
+              "metric": "population_growth_2y_pct",
+              "label": "Population change (2 years)",
+              "value": 203.7,
+              "unit": "%",
+              "source": "Estimated resident population grid (250 m)",
+              "as_of": "2025-06-30",
+              "confidence": "medium"
+            },
+            {
+              "n": 2,
+              "suburb": "Bremner Ridge",
+              "sa2_code": "158602",
+              "metric": "population_growth_2y_pct",
+              "label": "Population change (2 years)",
+              "value": 69.7,
+              "unit": "%",
+              "source": "Estimated resident population grid (250 m)",
+              "as_of": "2025-06-30",
+              "confidence": "medium"
+            },
+            {
+              "n": 3,
+              "suburb": "Ormiston South East",
+              "sa2_code": "158603",
+              "metric": "population_growth_2y_pct",
+              "label": "Population change (2 years)",
+              "value": 68.5,
+              "unit": "%",
+              "source": "Estimated resident population grid (250 m)",
+              "as_of": "2025-06-30",
+              "confidence": "medium"
+            },
+            {
+              "n": 4,
+              "suburb": "Drury West",
+              "sa2_code": "164301",
+              "metric": "population_growth_2y_pct",
+              "label": "Population change (2 years)",
+              "value": 57.6,
+              "unit": "%",
+              "source": "Estimated resident population grid (250 m)",
+              "as_of": "2025-06-30",
+              "confidence": "medium"
+            },
+            {
+              "n": 5,
+              "suburb": "Silverdale Central (Auckland)",
+              "sa2_code": "113800",
+              "metric": "population_growth_2y_pct",
+              "label": "Population change (2 years)",
+              "value": 54.3,
+              "unit": "%",
+              "source": "Estimated resident population grid (250 m)",
+              "as_of": "2025-06-30",
+              "confidence": "medium"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 302,
+          "tokens_est": 20,
+          "cost_est_usd": 0.000004,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "An empty response with no rows given fails to even politely decline, providing no useful answer."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q38-erp-lookup",
+      "intent": "lookup",
+      "question": "What is the estimated population of Ponsonby West in 2025?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 4971,
+          "tokens_est": 70,
+          "cost_est_usd": 0.00087,
+          "n_sources": 1,
+          "n_citations": 1,
+          "values_checked": 1,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Uses only the provided figure with correct citation, notes it is a modelled estimate with medium confidence, and stays concise."
+          },
+          "answer": "The estimated resident population of Ponsonby West as of 30 June 2025 is approximately 2,347 people {{c1}}. This is a modelled grid-based estimate (Stats NZ 250 m grid), not a census count, and carries medium confidence.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "Ponsonby West",
+              "sa2_code": "130400",
+              "metric": "population_estimate",
+              "label": "Population estimate (30 June)",
+              "value": 2347,
+              "unit": "people",
+              "source": "Estimated resident population grid (250 m)",
+              "as_of": "2025-06-30",
+              "confidence": "medium"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 243,
+          "tokens_est": 15,
+          "cost_est_usd": 0.000003,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "An empty response fails to politely decline as required when no data is available."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    }
+  ]
+}

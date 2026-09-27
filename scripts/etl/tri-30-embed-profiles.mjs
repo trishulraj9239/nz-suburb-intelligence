@@ -59,6 +59,17 @@ for (const r of housingQ) {
   hqBySuburb.set(r.g, m);
 }
 
+// TRI-120: latest post-census population estimate + 2-year change (Stats NZ
+// 250 m ERP grid, provisional) — stated as an estimate, never as a count.
+const erp = JSON.parse(readFileSync("data/census/tri120-erp-grid.json", "utf8"));
+const erpBySuburb = new Map();
+for (const r of erp) {
+  const m = erpBySuburb.get(r.g) ?? {};
+  if (r.m === "population_estimate" && (!m.est || r.d > m.est.d)) m.est = { v: r.v, d: r.d };
+  if (r.m === "population_growth_2y_pct") m.growth = r.v;
+  erpBySuburb.set(r.g, m);
+}
+
 // TRI-71: hazard + planning facts, neutral framing — shares of modelled
 // layers with source + vintage, never good/bad language (retrieval and the
 // answer layer both stay verdict-free; the caveat lives in lib/hazard.ts).
@@ -135,6 +146,12 @@ function profileText(sa2) {
   const sch = schoolsBySuburb.get(sa2) ?? [];
   const bits = [`${name}, a suburb (SA2 area) of Auckland, New Zealand.`];
   if (m.population) bits.push(`Population ${m.population} (2023 census).`);
+  const e = erpBySuburb.get(sa2);
+  if (e?.est) {
+    bits.push(
+      `Estimated resident population about ${e.est.v} at June ${e.est.d.slice(0, 4)}${e.growth != null ? `, ${e.growth >= 0 ? "up" : "down"} ${Math.abs(e.growth)}% on June 2023` : ""} (Stats NZ 250 m population grid estimate, provisional — not a census count).`,
+    );
+  }
   if (m.median_age) bits.push(`Median age ${m.median_age} years.`);
   if (m.median_household_income)
     bits.push(`Median household income $${m.median_household_income}.`);
