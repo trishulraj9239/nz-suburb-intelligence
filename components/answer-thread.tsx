@@ -28,7 +28,7 @@ function CitationChip({ s, onSelect }: { s: AnswerSource; onSelect: () => void }
       title={`${s.suburb} — ${s.label}: ${s.value}${s.unit ? ` ${s.unit}` : ""} · ${s.source} · ${s.as_of.slice(0, 4)}${s.confidence !== "high" ? ` · confidence ${s.confidence}` : ""}`}
       className="mx-0.5 inline-flex translate-y-[-1px] items-center rounded border border-amber/50 bg-amber/15 px-1 font-mono text-[10px] leading-4 text-ink transition-colors hover:bg-amber/30"
     >
-      {s.source.replace("NZDep2018 Deprivation Index", "NZDep2018")} ·{" "}
+      {s.source.replace(/NZDep(\d{4}) Deprivation Index/, "NZDep$1")} ·{" "}
       {s.as_of.slice(0, 4)}
     </button>
   );

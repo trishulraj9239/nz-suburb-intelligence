@@ -45,7 +45,7 @@ export function ConfidenceChip({ confidence }: { confidence: string }) {
 /** Abbreviate long source names for chip-sized surfaces. */
 export function shortSource(source: string): string {
   return source
-    .replace("NZDep2018 Deprivation Index", "NZDep2018")
+    .replace(/NZDep(\d{4}) Deprivation Index/, "NZDep$1")
     .replace("Tenancy bond data (quarterly, SA2)", "MBIE Tenancy bonds");
 }
 

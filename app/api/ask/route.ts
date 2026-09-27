@@ -349,7 +349,7 @@ export async function POST(req: NextRequest) {
 
   // ---- 1. PLAN -------------------------------------------------------------
   const planText = await chat.complete("reasoning", {
-    system: `You convert questions about Auckland (NZ) suburbs into a structured query plan. Coverage: Auckland region SA2 areas only; Census 2023/2018/2013, NZDep2018 deprivation, school directory, typical routed commute times (openrouteservice/OSM — drive, cycle, walk; no live traffic). Metric registry (key | label | unit):\n${registry
+    system: `You convert questions about Auckland (NZ) suburbs into a structured query plan. Coverage: Auckland region SA2 areas only; Census 2023/2018/2013, NZDep deprivation (NZDep2023 current, NZDep2018 kept for change), school directory, typical routed commute times (openrouteservice/OSM — drive, cycle, walk; no live traffic). Metric registry (key | label | unit):\n${registry
       .map((d) => `${d.metric_key} | ${d.label} | ${d.unit ?? "-"}`)
       .join("\n")}\nRules: deprivation and ethnicity have no "better/worse" — a rank by nzdep_decile is allowed but is informational only.\nCommute rules, in priority order:\n1. The question refers to one of the user's SAVED PLACES by name — work, home, school (drop-off), daycare, or a saved point of interest — → ALWAYS intent=commute with that commute field set to exactly that word. These are specific saved addresses, NOT suburbs and NOT the CBD; never answer them from the commute_* metrics.${savedPlacesLine} Example: "How long is the commute from Ponsonby to work?" → {"intent":"commute","suburbs":["Ponsonby"],"commute":{"origin":"Ponsonby","destination":"work","mode":"driving-car","max_minutes":null}}.\n2. "how far/long is <suburb> from the CBD/airport" → intent=lookup with the commute_* metrics (precomputed).\n3. A commute between a suburb/address and any other specific destination → intent=commute with commute.origin/destination as written. "Suburbs within N min <mode> of <place>" combined with a metric constraint → intent=rank on that metric plus commute.destination and commute.max_minutes. "<metric> near/close to <place>" — e.g. "cheapest rent near Takapuna" — is the SAME proximity constraint: intent=rank on that metric with commute.destination set to the place and commute.max_minutes=20 when the question gives no number. Reserve intent=similar for LIKENESS — "suburbs like X", "similar to X", a described vibe — never for "near"/"close to" a place: near means distance, not resemblance. PUBLIC TRANSPORT (train, bus, ferry) times are NOT supported — intent=unsupported, note that only typical drive/cycle/walk times exist.\nRent questions about a specific dwelling type or bedroom count ARE supported: intent=lookup with the rent metrics — the data covers all dwelling types combined and the answer will say so; do not refuse them.\nHazard rules: questions about individual hazard layers (flood plain, coastal inundation, overland flow, liquefaction) or zoning/heritage ARE supported — intent=lookup or rank on those metrics. A general "is X safe / is X a safe suburb?" question → intent=lookup on the hazard metrics for that suburb (the answer states these are hazard-model layers only — no crime data — and gives no overall verdict). BUT a question asking for ANY risk or safety score or rating — overall or for a single layer, e.g. "flood risk score out of 10", "how risky is X overall" — or to merge hazard layers into one figure → intent=unsupported with note set to exactly "composite-risk".\nQuestions about construction / how much is being built / how many homes were built in a suburb → intent=lookup or rank on the consents metrics (the data measures consents, and the answer states that); do not refuse them.\nOther questions needing data we don't have (crime, house prices outside rent/income, other cities) are unsupported.\n${personaLine} When the question is open-ended about which metrics matter, lean toward this persona's priorities — but never drop a metric the user explicitly asks for.`,
     messages: [{ role: "user", content: question }],
@@ -397,6 +397,18 @@ export async function POST(req: NextRequest) {
   const wantedMetrics = (plan.metric_keys.length ? plan.metric_keys : scalarKeys).filter(
     (k) => scalarKeys.includes(k),
   );
+  // TRI-117 — lookups normally keep one row per metric (the latest vintage).
+  // When the question is about change over time ("how has X changed", "since
+  // 2018", "between 2018 and 2023", "trend"), keep the earlier vintages too
+  // (capped at HISTORY_ROWS per metric) and put the year in the row label so
+  // the answer can cite each vintage and describe the change from real rows
+  // instead of refusing or guessing. The MBIE rent series stays capped the same
+  // way, so a 25-quarter history never floods the prompt.
+  const wantsHistory =
+    /\b(chang(e|ed|ing|es)|since|between|trend|over time|compared? (to|with)|earlier|previous|20(13|18|23))\b/i.test(
+      question,
+    );
+  const HISTORY_ROWS = 3;
 
   if (plan.intent === "lookup" || plan.intent === "compare") {
     for (const name of plan.suburbs.slice(0, 3)) {
@@ -420,15 +432,16 @@ export async function POST(req: NextRequest) {
         .is("category", null)
         .in("metric_definitions.metric_key", wantedMetrics)
         .order("as_of_date", { ascending: false });
-      const seen = new Set<string>();
+      const seen = new Map<string, number>(); // metric_key → vintages kept
       for (const v of vals ?? []) {
         const md = v.metric_definitions as unknown as {
           metric_key: string;
           label: string;
           unit: string | null;
         };
-        if (seen.has(md.metric_key) || v.value_num === null) continue;
-        seen.add(md.metric_key);
+        const kept = seen.get(md.metric_key) ?? 0;
+        if (v.value_num === null || kept >= (wantsHistory ? HISTORY_ROWS : 1)) continue;
+        seen.set(md.metric_key, kept + 1);
         rows.push({
           n: rows.length + 1,
           suburb: geo.name,
@@ -439,7 +452,9 @@ export async function POST(req: NextRequest) {
           // already carry the framing.
           label: HAZARD_METRIC_KEYS.has(md.metric_key)
             ? hazardRowLabel(md.label, v.as_of_date)
-            : md.label,
+            : wantsHistory
+              ? `${md.label} (${v.as_of_date.slice(0, 4)})`
+              : md.label,
           value: Number(v.value_num),
           unit: md.unit,
           source: (v.sources as unknown as { name: string } | null)?.name ?? "—",
@@ -855,7 +870,7 @@ export async function POST(req: NextRequest) {
             )
             .join("\n");
           for await (const delta of chat.stream("reasoning", {
-            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts; NZDep2018 decile semantics: 1 = least deprived, 10 = most deprived. Rent rows from MBIE tenancy bonds cover new tenancies across ALL dwelling types — if the question asks about a specific dwelling type or bedroom count, give the all-dwellings figure and say that's what it is; never present it as type-specific. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation. Hazard rules: hazard rows are separate council model layers with different vintages — cite each with its layer and year as given in the row label, treat hazard exposure as one input among many (never a verdict on a suburb), NEVER combine hazard layers into a single risk figure or score, and when any hazard row is cited end the answer with: "${HAZARD_CAVEAT}". If the question asked whether somewhere is "safe", state that these are hazard-model layers only (crime data is not covered) and give no overall safety verdict. Building-consent rows are consents — intentions to build, not completions; if the question asks how many homes were "built" or "completed", give the consents figure and say that's what it measures. Profile-similarity rows rank suburbs by how alike their overall profiles are (census, rent, commute, hazard and planning facts) — NOT by geographic distance. ONLY when Profile-similarity rows are among the data rows: name that basis, and if the question asked for somewhere "near" or "close to" a place, say plainly that these are profile matches rather than the nearest suburbs by distance. When rows instead carry routed drive/cycle/walk times to a destination, the suburbs WERE selected by geographic proximity — never describe those as profile matches. Use the accompanying metric rows to answer what was actually asked about those suburbs.\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics.${budgetLine} PREFERENCE TRANSPARENCY: the settings in play for this question are ${preferenceNames.join(", ")}. Where a preference shaped what you emphasised, ordered or pointed out, say which one did — the user must never have to guess why an answer leaned a particular way. Preferences bias emphasis only; they never remove a suburb or a figure from consideration. ${plan.note ? `Context note: ${plan.note}` : ""}`,
+            system: `You answer questions about Auckland suburbs using ONLY the numbered data rows provided. Every factual figure MUST be followed by its citation marker {{cN}} matching the row number — e.g. "median rent is $545/wk {{c3}}". Never state a number that is not in the rows. Keep it to 2-5 sentences, plain prose, no headers or lists unless ranking. Deprivation and ethnicity are information, never "better/worse" verdicts; NZDep decile semantics: 1 = least deprived, 10 = most deprived; NZDep2023 is the current index and NZDep2018 rows exist only to show change — deciles are ranks across all NZ areas, so describe a change between vintages as relative, never as conditions getting better or worse. Rent rows from MBIE tenancy bonds cover new tenancies across ALL dwelling types — if the question asks about a specific dwelling type or bedroom count, give the all-dwellings figure and say that's what it is; never present it as type-specific. If confidence is medium/low, say "approximately" or note the vintage. Commute rules: every commute figure keeps its caveat — precomputed anchor times and routed times are "typical, no live traffic"; a straight-line row is a distance, never present it as a travel time. When a row shows a resolved address for the origin or destination, state it so the user can spot a wrong interpretation. Hazard rules: hazard rows are separate council model layers with different vintages — cite each with its layer and year as given in the row label, treat hazard exposure as one input among many (never a verdict on a suburb), NEVER combine hazard layers into a single risk figure or score, and when any hazard row is cited end the answer with: "${HAZARD_CAVEAT}". If the question asked whether somewhere is "safe", state that these are hazard-model layers only (crime data is not covered) and give no overall safety verdict. Building-consent rows are consents — intentions to build, not completions; if the question asks how many homes were "built" or "completed", give the consents figure and say that's what it measures. Profile-similarity rows rank suburbs by how alike their overall profiles are (census, rent, commute, hazard and planning facts) — NOT by geographic distance. ONLY when Profile-similarity rows are among the data rows: name that basis, and if the question asked for somewhere "near" or "close to" a place, say plainly that these are profile matches rather than the nearest suburbs by distance. When rows instead carry routed drive/cycle/walk times to a destination, the suburbs WERE selected by geographic proximity — never describe those as profile matches. Use the accompanying metric rows to answer what was actually asked about those suburbs.\n${personaLine}${weightNotes.length ? ` Persona emphasis weights: ${weightNotes.join("; ")}.` : ""} When you rank or recommend suburbs, state explicitly which factors this persona weighted more heavily (e.g. "${personaCfg.label} mode weights …"). Transparent emphasis only — NEVER compute or present a combined score or index across metrics.${budgetLine} PREFERENCE TRANSPARENCY: the settings in play for this question are ${preferenceNames.join(", ")}. Where a preference shaped what you emphasised, ordered or pointed out, say which one did — the user must never have to guess why an answer leaned a particular way. Preferences bias emphasis only; they never remove a suburb or a figure from consideration. ${plan.note ? `Context note: ${plan.note}` : ""}`,
             messages: [
               {
                 role: "user",

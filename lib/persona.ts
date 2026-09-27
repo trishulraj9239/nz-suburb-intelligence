@@ -67,7 +67,7 @@ export const SECTION_EXPLAINERS: Record<string, string> = {
   commute:
     "Typical times from a representative point in this area, routed on OpenStreetMap roads by openrouteservice — no live traffic, so peak-hour drives will usually take longer. Walking times may use ferry links. Routing: openrouteservice · © OpenStreetMap contributors (ODbL).",
   deprivation:
-    "NZDep2018 (University of Otago) measures relative socioeconomic deprivation of small areas — not of individual people. It combines nine Census 2018 variables: income, benefit receipt, employment, qualifications, home ownership, family structure, overcrowding, internet access, and living conditions. Decile 1 = the least deprived 10% of NZ areas; decile 10 = the most deprived 10%. It describes access to resources across areas and carries no judgment about residents or an area's worth.",
+    "NZDep (University of Otago) measures relative socioeconomic deprivation of small areas — not of individual people. NZDep2023 is the current index, built from nine Census 2023 variables (income, benefit receipt, employment, qualifications, home ownership, family structure, overcrowding, internet access, living conditions); NZDep2018 is kept so the change can be shown. Decile 1 = the least deprived 10% of NZ areas; decile 10 = the most deprived 10%. Deciles are ranks across all NZ areas, so a change between vintages is relative, not absolute. It describes access to resources across areas and carries no judgment about residents or an area's worth. Source: University of Otago (Atkinson et al. 2024), CC BY 4.0.",
 };
 
 export const DEFAULT_PERSONA = "renter";

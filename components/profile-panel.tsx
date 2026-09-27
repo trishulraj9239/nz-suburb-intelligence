@@ -81,6 +81,19 @@ function Trend({ s }: { s: ScalarValue }) {
   const last = h[h.length - 1].value;
   const pct = prev === 0 ? 0 : ((last - prev) / Math.abs(prev)) * 100;
   const arrow = pct > 0.5 ? "↑" : pct < -0.5 ? "↓" : "→";
+  // TRI-117 — deprivation is a rank, not a quantity: a decile moving 4→5 is
+  // not "+25%". Show the two vintages' values instead of a percentage, and no
+  // arrow (direction would read as a verdict on a verdict-free metric).
+  if (s.def.metric_key.startsWith("nzdep")) {
+    return (
+      <span
+        className="font-mono text-[10px] text-ink/55"
+        title={`${h.map((p) => `${p.asOf.slice(0, 4)}: ${p.value.toLocaleString()}`).join(" · ")} — relative to all NZ areas`}
+      >
+        {h[Math.max(h.length - 2, 0)].asOf.slice(0, 4)} {prev.toLocaleString()} → {last.toLocaleString()}
+      </span>
+    );
+  }
   return (
     <span
       className="flex items-center gap-1"

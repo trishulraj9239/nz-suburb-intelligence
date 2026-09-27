@@ -24,7 +24,12 @@ if (!KEY) throw new Error("GEMINI_API_KEY missing from .env.local");
 // --- Load the repo's data artifacts ----------------------------------------
 const geo = JSON.parse(readFileSync("public/geo/auckland-sa2.geojson", "utf8"));
 const metrics = JSON.parse(readFileSync("data/census/tri17-metric-values.json", "utf8"));
-const deprivation = JSON.parse(readFileSync("data/census/tri18-deprivation.json", "utf8"));
+// TRI-117: NZDep2023 (SA2-2023 native) is the current vintage; the TRI-18
+// NZDep2018 file is only a fallback for suburbs with no 2023 value.
+const deprivation = [
+  ...JSON.parse(readFileSync("data/census/tri117-nzdep2023.json", "utf8")).map((r) => ({ ...r, y: 2023 })),
+  ...JSON.parse(readFileSync("data/census/tri18-deprivation.json", "utf8")).map((r) => ({ ...r, y: 2018 })),
+];
 const schools = JSON.parse(readFileSync("data/census/tri18-schools.json", "utf8"));
 const commute = JSON.parse(readFileSync("data/commute/tri46-staging.json", "utf8"));
 const rent = JSON.parse(readFileSync("data/rent/tri63-rent-metrics.json", "utf8"));
@@ -94,7 +99,10 @@ for (const r of metrics) {
 for (const r of deprivation) {
   if (r.m !== "nzdep_decile") continue;
   const m = bySuburb.get(r.g) ?? {};
-  m.nzdep_decile = r.v;
+  if (m.nzdep_decile == null || r.y > m.nzdep_year) {
+    m.nzdep_decile = r.v;
+    m.nzdep_year = r.y;
+  }
   bySuburb.set(r.g, m);
 }
 const schoolsBySuburb = new Map();
@@ -142,7 +150,7 @@ function profileText(sa2) {
     .map(([c]) => c);
   if (eth.length) bits.push(`Largest ethnic groups: ${eth.join(", ")}.`);
   if (m.nzdep_decile)
-    bits.push(`NZDep2018 deprivation decile ${m.nzdep_decile} of 10 (10 = most deprived; informational, not a verdict).`);
+    bits.push(`NZDep${m.nzdep_year} deprivation decile ${m.nzdep_decile} of 10 (10 = most deprived; informational, not a verdict).`);
   bits.push(
     sch.length
       ? `${sch.length} school${sch.length > 1 ? "s" : ""} located in the area: ${sch.slice(0, 4).map((s) => s.name).join("; ")}.`

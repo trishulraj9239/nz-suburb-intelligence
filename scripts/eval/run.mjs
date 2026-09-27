@@ -146,8 +146,15 @@ async function main() {
   const done = new Set(detail.map((d) => d.id));
   mkdirSync(join(HERE, "results"), { recursive: true });
 
+  // EVAL_ONLY=q29-deprivation-change,q30-rank-deprivation-2023 runs a subset
+  // (new questions for a data ticket) without spending the daily quotas on the
+  // whole suite; the summary then covers only that subset — say so in the PR.
+  const only = process.env.EVAL_ONLY ? new Set(process.env.EVAL_ONLY.split(",").map((s) => s.trim())) : null;
+  if (only) console.log(`EVAL_ONLY: ${[...only].join(", ")}`);
+
   for (const q of questions) {
     if (done.has(q.id)) continue;
+    if (only && !only.has(q.id)) continue;
     // Run both providers for this question.
     const runs = {};
     for (const provider of PROVIDERS) {
