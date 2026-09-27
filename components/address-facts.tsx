@@ -338,13 +338,13 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
       <ul className="divide-y divide-hairline/60" data-testid="link-outs">
         {LINK_OUTS.map((l) => (
           <li key={l.key} className="py-1.5" data-testid="link-out">
-            <div className="flex items-baseline justify-between gap-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
               <span className="text-sm text-ink/80">{l.what}</span>
               <a
                 href={l.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 font-mono text-[11px] text-accent underline-offset-2 hover:underline"
+                className="font-mono text-[11px] text-accent underline-offset-2 hover:underline"
               >
                 {l.where} ↗
               </a>
