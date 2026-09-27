@@ -368,11 +368,12 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
                 <span className="font-mono text-sm font-medium text-ink" data-testid="site-coverage">{built.site_coverage_pct}%</span>
               </div>
             )}
-            {built.outlines.some((o) => o.use || o.name) && (
+            {/* LINZ tags most houses "Unknown"; only a real use or name is worth a line. */}
+            {built.outlines.some((o) => o.name || (o.use && o.use !== "Unknown")) && (
               <p className="mt-1 text-[11px] leading-snug text-ink/60">
                 {built.outlines
-                  .filter((o) => o.use || o.name)
-                  .map((o) => [o.name, o.use].filter(Boolean).join(" · "))
+                  .filter((o) => o.name || (o.use && o.use !== "Unknown"))
+                  .map((o) => [o.name, o.use !== "Unknown" ? o.use : null].filter(Boolean).join(" · "))
                   .join("; ")}
               </p>
             )}
