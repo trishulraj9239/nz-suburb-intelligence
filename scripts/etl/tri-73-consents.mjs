@@ -28,7 +28,7 @@ import { execFileSync } from "node:child_process";
 import { createReadStream, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createInterface } from "node:readline";
 
-const RELEASE = "may-2026"; // bump on refresh — release URLs are month-stamped
+const RELEASE = "july-2026"; // bump on refresh — release URLs are month-stamped
 const MONTHS_KEPT = 24;     // rolling-12m rows loaded (TRI-72 decision 4)
 
 const ZIP_URL =
@@ -36,8 +36,14 @@ const ZIP_URL =
   `Building-consents-issued-${RELEASE.replace(/^([a-z])/, (c) => c.toUpperCase()).replace(/-(\d)/, "-$1")}/` +
   `Download-data/new-dwellings-consented-by-statistical-area-2-${RELEASE}.zip`;
 
-const TMP = "tmp/consents";
+// TRI-137: cache is keyed by RELEASE — a stale CSV from an earlier release
+// used to short-circuit the download and silently re-emit old months.
+const TMP = `tmp/consents/${RELEASE}`;
 const CSV_2023 = `${TMP}/New dwellings consented by 2023 statistical area 2 (Monthly).csv`;
+// The zip is bzip2-compressed: Windows' bundled bsdtar extracts it, GNU tar
+// (git-bash) does not — pin the System32 binary on win32 so the ETL behaves
+// the same from PowerShell and from a bash shell.
+const TAR = process.platform === "win32" ? "C:\\Windows\\System32\\tar.exe" : "tar";
 
 // --- fetch + extract (cached in gitignored tmp/) -----------------------------
 mkdirSync(TMP, { recursive: true });
@@ -47,7 +53,7 @@ if (!existsSync(CSV_2023)) {
     console.log(`downloading ${ZIP_URL}`);
     execFileSync("curl", ["-sf", "--max-time", "300", "-o", zip, ZIP_URL]);
   }
-  execFileSync("tar", ["-xf", zip, "-C", TMP]); // bsdtar handles the odd zip method
+  execFileSync(TAR, ["-xf", zip, "-C", TMP]); // bsdtar handles the bzip2 zip method
 }
 
 // --- inputs ------------------------------------------------------------------

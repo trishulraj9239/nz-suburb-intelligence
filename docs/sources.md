@@ -129,8 +129,15 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
 - **Auth:** none — keyless zip under the release page's
   `/assets/Uploads/Building-consents-issued/...` path. URLs are
   **month-stamped**: bump `RELEASE` in `scripts/etl/tri-73-consents.mjs`.
-- **Cadence:** monthly, ≈2-month publication lag (May data published 1 July).
-  Refresh = bump `RELEASE` → re-run ETL → commit/push → `tri-73-consents.sql`.
+- **Cadence:** monthly, ≈2-month publication lag (May data published 1 July;
+  July data published 28 Aug). Refresh = bump `RELEASE` → re-run ETL →
+  commit/push → `tri-73-consents.sql`. Loaded releases: May 2026 (TRI-73,
+  2026-08-04), **July 2026 (TRI-137, 2026-09-27)** — each load upserts 24
+  month-ends, so the history in the DB accumulates (26 dates after July).
+  - The zip is bzip2-compressed: only Windows' bundled bsdtar extracts it
+    (the ETL pins `C:\Windows\System32\tar.exe`; git-bash GNU tar fails).
+  - Cache is keyed by release (`tmp/consents/<release>/`) — a stale CSV
+    once silently re-emitted the old months.
 - **Caveats:**
   - **Consents are intentions to build, not completions** — stated in metric
     descriptions, the profile embedding sentence, and the answer prompt.
