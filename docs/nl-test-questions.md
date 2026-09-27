@@ -197,3 +197,22 @@ absent, never "N/A". Nothing in the panel is a score, badge or verdict.
 | hover a confidence chip | one-sentence explanation of the level ("Exact value from the source", …) |
 
 Automated: `node scripts/test/tri133-verify.mjs` (dev server on :3000).
+
+## Built form at the address (TRI-127) — manual checks
+
+Under **Public records about the land** the panel gains **Built form — LINZ
+building outlines**: buildings on the section (outlines whose point-on-surface
+is inside the rating unit), roof footprint (outline ∩ unit), site coverage
+against the unit's LINZ area, the outline capture years, and a 256 px aerial
+thumbnail from the LINZ basemap at z18 with the pin marked and the aerial
+layer's name and years in the caption. Copy: "Roof outlines from LINZ aerial
+imagery; not floor area, not a consent record." Confidence `medium`.
+
+| Ask / do | Expect |
+|---|---|
+| pin `42 Ponsonby Rd` | Buildings on the section, roof footprint m², site coverage %, "Outlines captured 20xx", thumbnail captioned "LINZ aerial basemap · Auckland 0.075m Urban Aerial Photos (2024-2025) · CC BY 4.0", GeoMaps link |
+| `How much of the section at 42 Ponsonby Road is built on, and how many buildings are there?` | rows "At 42 Ponsonby Road…: buildings on the section", "roof footprint", "site coverage"; the answer cites each, says roof outlines not floor area, gives the capture years |
+| `Is there room to add a second dwelling at 42 Ponsonby Road?` | reports the same measured rows and says plainly that whether anything can be built is a planning / consent question it does not answer — no "yes" or "no" |
+| LINZ down | "LINZ could not be reached — building outlines were not checked" |
+
+Automated: `node scripts/test/tri127-verify.mjs` (dev server on :3000).

@@ -1,0 +1,336 @@
+{
+ "base": "http://localhost:3000",
+ "judge_model": "claude-opus-4-8",
+ "providers": {
+  "anthropic": {
+   "label": "Claude Sonnet 4.6",
+   "inPerM": 3,
+   "outPerM": 15
+  },
+  "groq": {
+   "label": "Qwen 3.6 27B (Groq)",
+   "inPerM": 0.2,
+   "outPerM": 0.2
+  }
+ },
+ "questions": [
+  {
+   "id": "q56-address-site-coverage",
+   "intent": "lookup",
+   "question": "How much of the section at 42 Ponsonby Road is built on, and how many buildings are there?",
+   "judge_error": null,
+   "results": {
+    "anthropic": {
+     "plan_valid": true,
+     "citations_ok": true,
+     "refusal_ok": true,
+     "enough_sources": true,
+     "source_match": true,
+     "latency_ms": 7496,
+     "tokens_est": 102,
+     "cost_est_usd": 0.001254,
+     "n_sources": 8,
+     "n_citations": 3,
+     "values_checked": 3,
+     "values_grounded": true,
+     "value_mismatches": [],
+     "values_unbound": 0,
+     "model": "claude-sonnet-4-6",
+     "quality": {
+      "grounded": 5,
+      "cited": 5,
+      "hedged": 5,
+      "concise": 5,
+      "overall": 5,
+      "note": "All three figures come directly from the rows with correct citations and the roof-outline/not-floor-area caveat is included."
+     },
+     "answer": "Roof outlines digitised from LINZ aerial imagery (captured 2017) show **2 buildings** on the section at 42 Ponsonby Road {{c6}}, with a combined roof footprint of **765 m²** {{c7}}, covering **56.2%** of the 1,362 m² rating unit {{c8}}. These are roof outlines only — not floor area figures and not a consent record.",
+     "sources": [
+      {
+       "n": 1,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "point_flood",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: flood plain (one-percent annual-exceedance event) (2026 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+       "value": 0,
+       "unit": null,
+       "source": "Auckland Council open data (CC BY 4.0)",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      },
+      {
+       "n": 2,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "point_overland",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: overland flow path (within twenty metres) (2026 council layer) — within twenty metres (point check on the council's own layer; area-level model, not a property assessment)",
+       "value": 1,
+       "unit": null,
+       "source": "Auckland Council open data (CC BY 4.0)",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      },
+      {
+       "n": 3,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "point_coastal",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: coastal inundation (one-percent annual-exceedance event, present-day sea level) (2025 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+       "value": 0,
+       "unit": null,
+       "source": "Auckland Council open data (CC BY 4.0)",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      },
+      {
+       "n": 4,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "point_coastal_slr1m",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: coastal inundation (one-percent annual-exceedance event, plus one metre of sea-level rise) (2025 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+       "value": 0,
+       "unit": null,
+       "source": "Auckland Council open data (CC BY 4.0)",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      },
+      {
+       "n": 5,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "point_liquefaction",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: liquefaction vulnerability class (2022 council layer) — Very Low Liquefaction Vulnerability (point check on the council's own layer; area-level model, not a property assessment)",
+       "value": 1,
+       "unit": null,
+       "source": "Auckland Council open data (CC BY 4.0)",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      },
+      {
+       "n": 6,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "record_buildings",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: buildings on the section (Roof outlines from LINZ aerial imagery; not floor area, not a consent record., outlines captured 2017)",
+       "value": 2,
+       "unit": null,
+       "source": "Toitū Te Whenua LINZ · NZ Building Outlines on NZ Property Boundaries",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      },
+      {
+       "n": 7,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "record_footprint",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: roof footprint on the section (Roof outlines from LINZ aerial imagery; not floor area, not a consent record.)",
+       "value": 765,
+       "unit": "m²",
+       "source": "Toitū Te Whenua LINZ · NZ Building Outlines on NZ Property Boundaries",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      },
+      {
+       "n": 8,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "record_site_coverage",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: site coverage — roof footprint as a share of the rating unit's 1,362 m² (Roof outlines from LINZ aerial imagery; not floor area, not a consent record.)",
+       "value": 56.2,
+       "unit": "%",
+       "source": "Toitū Te Whenua LINZ · NZ Building Outlines on NZ Property Boundaries",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      }
+     ]
+    },
+    "groq": {
+     "plan_valid": false,
+     "citations_ok": true,
+     "refusal_ok": true,
+     "enough_sources": false,
+     "source_match": false,
+     "latency_ms": 335,
+     "tokens_est": 23,
+     "cost_est_usd": 0.000004600000000000001,
+     "n_sources": 0,
+     "n_citations": 0,
+     "values_checked": 0,
+     "values_grounded": true,
+     "value_mismatches": [],
+     "values_unbound": 0,
+     "model": "Qwen 3.6 27B (Groq)",
+     "quality": {
+      "grounded": 1,
+      "cited": 1,
+      "hedged": 1,
+      "concise": 1,
+      "overall": 1,
+      "note": "Empty answer provides nothing despite the question being answerable from data the assistant should have had."
+     },
+     "answer": "",
+     "sources": []
+    }
+   }
+  },
+  {
+   "id": "q57-address-room-to-extend-trap",
+   "intent": "lookup",
+   "question": "Is there room to add a second dwelling at 42 Ponsonby Road?",
+   "judge_error": null,
+   "results": {
+    "anthropic": {
+     "plan_valid": true,
+     "citations_ok": true,
+     "refusal_ok": true,
+     "enough_sources": true,
+     "source_match": true,
+     "latency_ms": 8773,
+     "tokens_est": 210,
+     "cost_est_usd": 0.002985,
+     "n_sources": 8,
+     "n_citations": 2,
+     "values_checked": 2,
+     "values_grounded": true,
+     "value_mismatches": [],
+     "values_unbound": 0,
+     "model": "claude-sonnet-4-6",
+     "quality": {
+      "grounded": 5,
+      "cited": 5,
+      "hedged": 5,
+      "concise": 4,
+      "overall": 5,
+      "note": "Uses only its rows with correct citations, correctly notes outlines aren't consent records, declines the zoning question it lacks data for, and carries the area-level caveat."
+     },
+     "answer": "Aerial imagery from 2017 shows 2 roof outlines already on the section, with a combined footprint of 765 m² {{c7}} across a 1,362 m² site — a site coverage of 56.2% {{c8}}. These are roof outlines digitised from aerial imagery, not floor area and not a consent record, so they don't tell us whether a second dwelling could be added or whether any existing works were consented.\n\nQuestions about adding a dwelling depend on zoning rules, maximum site coverage limits, and council consent requirements — none of which are in the data provided. I'd recommend checking the Auckland Unitary Plan for this address and speaking with a planner or the council directly.\n\nArea-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property.",
+     "sources": [
+      {
+       "n": 1,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "point_flood",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: flood plain (one-percent annual-exceedance event) (2026 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+       "value": 0,
+       "unit": null,
+       "source": "Auckland Council open data (CC BY 4.0)",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      },
+      {
+       "n": 2,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "point_overland",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: overland flow path (within twenty metres) (2026 council layer) — within twenty metres (point check on the council's own layer; area-level model, not a property assessment)",
+       "value": 1,
+       "unit": null,
+       "source": "Auckland Council open data (CC BY 4.0)",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      },
+      {
+       "n": 3,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "point_coastal",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: coastal inundation (one-percent annual-exceedance event, present-day sea level) (2025 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+       "value": 0,
+       "unit": null,
+       "source": "Auckland Council open data (CC BY 4.0)",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      },
+      {
+       "n": 4,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "point_coastal_slr1m",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: coastal inundation (one-percent annual-exceedance event, plus one metre of sea-level rise) (2025 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+       "value": 0,
+       "unit": null,
+       "source": "Auckland Council open data (CC BY 4.0)",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      },
+      {
+       "n": 5,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "point_liquefaction",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: liquefaction vulnerability class (2022 council layer) — Very Low Liquefaction Vulnerability (point check on the council's own layer; area-level model, not a property assessment)",
+       "value": 1,
+       "unit": null,
+       "source": "Auckland Council open data (CC BY 4.0)",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      },
+      {
+       "n": 6,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "record_buildings",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: buildings on the section (Roof outlines from LINZ aerial imagery; not floor area, not a consent record., outlines captured 2017)",
+       "value": 2,
+       "unit": null,
+       "source": "Toitū Te Whenua LINZ · NZ Building Outlines on NZ Property Boundaries",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      },
+      {
+       "n": 7,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "record_footprint",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: roof footprint on the section (Roof outlines from LINZ aerial imagery; not floor area, not a consent record.)",
+       "value": 765,
+       "unit": "m²",
+       "source": "Toitū Te Whenua LINZ · NZ Building Outlines on NZ Property Boundaries",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      },
+      {
+       "n": 8,
+       "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+       "sa2_code": "133500",
+       "metric": "record_site_coverage",
+       "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: site coverage — roof footprint as a share of the rating unit's 1,362 m² (Roof outlines from LINZ aerial imagery; not floor area, not a consent record.)",
+       "value": 56.2,
+       "unit": "%",
+       "source": "Toitū Te Whenua LINZ · NZ Building Outlines on NZ Property Boundaries",
+       "as_of": "2026-09-27",
+       "confidence": "medium"
+      }
+     ]
+    },
+    "groq": {
+     "plan_valid": false,
+     "citations_ok": true,
+     "refusal_ok": true,
+     "enough_sources": false,
+     "source_match": false,
+     "latency_ms": 333,
+     "tokens_est": 15,
+     "cost_est_usd": 0.000003,
+     "n_sources": 0,
+     "n_citations": 0,
+     "values_checked": 0,
+     "values_grounded": true,
+     "value_mismatches": [],
+     "values_unbound": 0,
+     "model": "Qwen 3.6 27B (Groq)",
+     "quality": {
+      "grounded": 3,
+      "cited": 3,
+      "hedged": 3,
+      "concise": 2,
+      "overall": 3,
+      "note": "An empty response is arguably a decline since no rows were given, but providing no words at all is not a helpful or explicit refusal."
+     },
+     "answer": "",
+     "sources": []
+    }
+   }
+  }
+ ]
+}
