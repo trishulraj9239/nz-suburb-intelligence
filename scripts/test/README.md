@@ -20,6 +20,7 @@ node scripts/test/tri132-verify.mjs     # "Also check" link-outs: seven external
 node scripts/test/tri133-verify.mjs     # property panel composition: epistemic headers, panel-above-banner order, both frames (1440 + 390)
 node scripts/test/tri127-verify.mjs     # built form on the unit: count, roof footprint, site coverage, aerial thumbnail with imagery caption
 node scripts/test/tri128-verify.mjs     # Unitary Plan overlays at the pin: ten rows, decoded council names on hits, chapter links, no advice
+node scripts/test/tri129-verify.mjs     # extended hazards at the pin: flood prone depth, landslide susceptibility wording, ASCIE lines, tsunami zone, HAIL gap + map links
 ```
 
 Screenshots are written to `shots/`, which is git-ignored — the assertions are

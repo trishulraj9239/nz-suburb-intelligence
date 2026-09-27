@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
-import { pointHazards } from "@/lib/point-hazards";
+import { pointHazards, type PointHazardMode } from "@/lib/point-hazards";
 import { allowRequest, clientIp, RATE_LIMIT_MESSAGE } from "@/lib/commute/rate-limit";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
+export const maxDuration = 60; // TRI-129 — the slow shallow-landslide phase
 
 /**
  * TRI-123 — GET /api/point-hazards?lng=&lat=
@@ -28,5 +28,9 @@ export async function GET(req: NextRequest) {
   if (lng < AKL.minLng || lng > AKL.maxLng || lat < AKL.minLat || lat > AKL.maxLat) {
     return Response.json({ error: "point is outside the Auckland region" }, { status: 400 });
   }
-  return Response.json(await pointHazards(lng, lat));
+  // TRI-129 — ?mode=fast answers the quick layers (slow ones `pending`),
+  // ?mode=slow answers the ~20 s shallow-landslide layer; default: all.
+  const m = req.nextUrl.searchParams.get("mode");
+  const mode: PointHazardMode = m === "fast" || m === "slow" ? m : "all";
+  return Response.json(await pointHazards(lng, lat, mode));
 }

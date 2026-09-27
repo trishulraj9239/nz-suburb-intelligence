@@ -236,3 +236,27 @@ Copy is descriptive only. Confidence `high` (operative record).
 | council service down | that row reads "council service unavailable — not checked", never "outside" |
 
 Automated: `node scripts/test/tri128-verify.mjs` (dev server on :3000).
+
+## Extended hazards at the address (TRI-129) — manual checks
+
+**Area-level models at this point** grows from five to thirteen council
+layers: flood prone area (with the record's modelled 100-year ponding depth),
+flood sensitive area (model type / rainfall event / climate-adjusted flag),
+shallow and large-scale landslide **susceptibility** (a class of terrain,
+worded "terrain more/less prone … per the council's regional model —
+susceptibility, not occurrence", never "risk"), the ASCIE coastal-erosion
+susceptibility lines for 2050 / 2080 / 2130 (RCP8.5, within 20 m of the
+mapped landward limit), and tsunami evacuation zones (zone colour). Each row's
+vintage is the service's last edit (hover the "layer" tag). The verbatim
+caveat stays at the top and the foot; the foot also states the HAIL gap and
+links the council Flood Viewer and GeoMaps. No score, ever.
+
+| Ask / do | Expect |
+|---|---|
+| pin `42 Ponsonby Rd` | thirteen rows; shallow landslide "Low" with the "terrain less prone…" line; tsunami "outside"; flood prone "outside"; ASCIE lines "none within 20 m" |
+| `GET /api/point-hazards?lng=174.8318&lat=-36.8489` (Mission Bay) | flood prone **inside** with "modelled 100-year ponding depth 0.52 m"; tsunami **Yellow** |
+| `Is 42 Ponsonby Road prone to landslides?` | both landslide rows cited with their class and the susceptibility wording; no "risk", no verdict; caveat at the end |
+| `Is 42 Ponsonby Road in a tsunami evacuation zone or a flood prone area?` | both rows reported in their own words (outside / outside); caveat |
+| a council service down | that row reads "council service unavailable — not checked" |
+
+Automated: `node scripts/test/tri129-verify.mjs` (dev server on :3000).
