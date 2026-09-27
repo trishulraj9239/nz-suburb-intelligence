@@ -24,14 +24,14 @@
           "plan_valid": true,
           "citations_ok": true,
           "refusal_ok": true,
-          "enough_sources": false,
-          "source_match": false,
-          "latency_ms": 5011,
-          "tokens_est": 110,
-          "cost_est_usd": 0.001425,
-          "n_sources": 0,
-          "n_citations": 0,
-          "values_checked": 0,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 8724,
+          "tokens_est": 209,
+          "cost_est_usd": 0.00291,
+          "n_sources": 5,
+          "n_citations": 5,
+          "values_checked": 5,
           "values_grounded": true,
           "value_mismatches": [],
           "values_unbound": 0,
@@ -40,12 +40,73 @@
             "grounded": 5,
             "cited": 5,
             "hedged": 5,
-            "concise": 5,
-            "overall": 5,
-            "note": "Correctly declines because 2025 data is unavailable, explains coverage, invents no figures."
+            "concise": 3,
+            "overall": 4,
+            "note": "All five figures are grounded and correctly cited with appropriate medium-confidence hedging, but the tacked-on renter commentary is unnecessary filler."
           },
-          "answer": "I can't answer that with the data I have. Population data for 2025 is not available; coverage is Census 2023/2018/2013 only, so a 2023–2025 growth comparison cannot be made. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers.",
-          "sources": []
+          "answer": "Based on modelled estimates (Stats NZ 250 m grid, 30 June 2023–2025 — not census counts), the five fastest-growing Auckland suburbs were Massey Red Hills at approximately 203.7% {{c1}}, Bremner Ridge at approximately 69.7% {{c2}}, Ormiston South East at approximately 68.5% {{c3}}, Drury West at approximately 57.6% {{c4}}, and Silverdale Central at approximately 54.3% {{c5}} over that two-year period. These are all modelled estimates with medium confidence, so treat the figures as indicative rather than precise counts. Note that as a renter (Renting mode), these fast-growing greenfield areas may see new rental stock come to market, but no rent or commute data was provided in the rows above, so no further renter-specific comparison can be made here.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "Massey Red Hills",
+              "sa2_code": "117003",
+              "metric": "population_growth_2y_pct",
+              "label": "Population change (2 years)",
+              "value": 203.7,
+              "unit": "%",
+              "source": "Estimated resident population grid (250 m)",
+              "as_of": "2025-06-30",
+              "confidence": "medium"
+            },
+            {
+              "n": 2,
+              "suburb": "Bremner Ridge",
+              "sa2_code": "158602",
+              "metric": "population_growth_2y_pct",
+              "label": "Population change (2 years)",
+              "value": 69.7,
+              "unit": "%",
+              "source": "Estimated resident population grid (250 m)",
+              "as_of": "2025-06-30",
+              "confidence": "medium"
+            },
+            {
+              "n": 3,
+              "suburb": "Ormiston South East",
+              "sa2_code": "158603",
+              "metric": "population_growth_2y_pct",
+              "label": "Population change (2 years)",
+              "value": 68.5,
+              "unit": "%",
+              "source": "Estimated resident population grid (250 m)",
+              "as_of": "2025-06-30",
+              "confidence": "medium"
+            },
+            {
+              "n": 4,
+              "suburb": "Drury West",
+              "sa2_code": "164301",
+              "metric": "population_growth_2y_pct",
+              "label": "Population change (2 years)",
+              "value": 57.6,
+              "unit": "%",
+              "source": "Estimated resident population grid (250 m)",
+              "as_of": "2025-06-30",
+              "confidence": "medium"
+            },
+            {
+              "n": 5,
+              "suburb": "Silverdale Central (Auckland)",
+              "sa2_code": "113800",
+              "metric": "population_growth_2y_pct",
+              "label": "Population change (2 years)",
+              "value": 54.3,
+              "unit": "%",
+              "source": "Estimated resident population grid (250 m)",
+              "as_of": "2025-06-30",
+              "confidence": "medium"
+            }
+          ]
         },
         "groq": {
           "plan_valid": false,
@@ -53,7 +114,7 @@
           "refusal_ok": true,
           "enough_sources": false,
           "source_match": false,
-          "latency_ms": 364,
+          "latency_ms": 302,
           "tokens_est": 20,
           "cost_est_usd": 0.000004,
           "n_sources": 0,
@@ -69,7 +130,7 @@
             "hedged": 1,
             "concise": 1,
             "overall": 1,
-            "note": "Empty response provides no answer or useful decline."
+            "note": "An empty response with no rows given fails to even politely decline, providing no useful answer."
           },
           "answer": "",
           "sources": []
@@ -88,9 +149,9 @@
           "refusal_ok": true,
           "enough_sources": true,
           "source_match": true,
-          "latency_ms": 4499,
-          "tokens_est": 53,
-          "cost_est_usd": 0.000615,
+          "latency_ms": 4971,
+          "tokens_est": 70,
+          "cost_est_usd": 0.00087,
           "n_sources": 1,
           "n_citations": 1,
           "values_checked": 1,
@@ -104,9 +165,9 @@
             "hedged": 5,
             "concise": 5,
             "overall": 5,
-            "note": "Accurately cites the population figure with correct marker and appropriately notes medium confidence in a concise sentence."
+            "note": "Uses only the provided figure with correct citation, notes it is a modelled estimate with medium confidence, and stays concise."
           },
-          "answer": "Ponsonby West has an estimated resident population of approximately 2,347 people {{c1}} as of 30 June 2025, though confidence on this figure is medium.",
+          "answer": "The estimated resident population of Ponsonby West as of 30 June 2025 is approximately 2,347 people {{c1}}. This is a modelled grid-based estimate (Stats NZ 250 m grid), not a census count, and carries medium confidence.",
           "sources": [
             {
               "n": 1,
@@ -128,7 +189,7 @@
           "refusal_ok": true,
           "enough_sources": false,
           "source_match": false,
-          "latency_ms": 252,
+          "latency_ms": 243,
           "tokens_est": 15,
           "cost_est_usd": 0.000003,
           "n_sources": 0,
@@ -144,7 +205,7 @@
             "hedged": 1,
             "concise": 1,
             "overall": 1,
-            "note": "An empty response fails to decline politely or provide any useful content."
+            "note": "An empty response fails to politely decline as required when no data is available."
           },
           "answer": "",
           "sources": []
