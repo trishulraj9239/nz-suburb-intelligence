@@ -13,6 +13,7 @@ node scripts/test/tri85-verify.mjs           # geometry-derived map fit, control
 node scripts/test/tri104-verify.mjs     # Results tab + intent-driven choreography
 node scripts/test/tri93-verify.mjs      # question chips: starters, follow-ups, persona
 node scripts/test/tri106-verify.mjs     # persona KPI tiles + Auckland-median reference
+node scripts/test/tri122-verify.mjs     # address search: hit → SA2 profile + pin + banner; honest no-match
 ```
 
 Screenshots are written to `shots/`, which is git-ignored — the assertions are

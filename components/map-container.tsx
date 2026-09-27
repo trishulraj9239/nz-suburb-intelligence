@@ -318,6 +318,37 @@ function overlayLayers(): StyleSpecification["layers"] {
         "text-halo-width": 1.3,
       },
     },
+    {
+      // TRI-122 — the searched address. A point and its label, nothing else:
+      // the area profile is the data; the pin only says where the address is.
+      id: "address-pin",
+      type: "circle",
+      source: "address-pin",
+      paint: {
+        "circle-radius": 7,
+        "circle-color": token("--amber", "#d99a2b"),
+        "circle-stroke-color": token("--surface", "#ffffff"),
+        "circle-stroke-width": 2,
+      },
+    },
+    {
+      id: "address-pin-label",
+      type: "symbol",
+      source: "address-pin",
+      layout: {
+        "text-field": ["get", "label"],
+        "text-font": ["Noto Sans Regular"],
+        "text-size": 12,
+        "text-offset": [0, 1.2],
+        "text-anchor": "top",
+        "text-max-width": 14,
+      },
+      paint: {
+        "text-color": token("--ink", "#13212e"),
+        "text-halo-color": token("--canvas", "#f4f6f5"),
+        "text-halo-width": 1.6,
+      },
+    },
   ];
 }
 
@@ -389,7 +420,7 @@ async function buildStyle(): Promise<StyleSpecification> {
       const res = await fetch(LINZ_STYLE);
       if (res.ok) {
         const base = (await res.json()) as StyleSpecification;
-        base.sources = { ...base.sources, sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE, "suburb-labels": SUBURB_LABELS_SOURCE, "compare-links": { type: "geojson", data: EMPTY_FC }, ...hazardSources() };
+        base.sources = { ...base.sources, sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE, "suburb-labels": SUBURB_LABELS_SOURCE, "compare-links": { type: "geojson", data: EMPTY_FC }, "address-pin": { type: "geojson", data: EMPTY_FC }, ...hazardSources() };
         base.layers = [...base.layers, ...overlayLayers()];
         return base;
       }
@@ -399,7 +430,7 @@ async function buildStyle(): Promise<StyleSpecification> {
   }
   return {
     version: 8,
-    sources: { sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE, "suburb-labels": SUBURB_LABELS_SOURCE, "compare-links": { type: "geojson", data: EMPTY_FC }, ...hazardSources() },
+    sources: { sa2: SA2_SOURCE, coverage: COVERAGE_SOURCE, "suburb-labels": SUBURB_LABELS_SOURCE, "compare-links": { type: "geojson", data: EMPTY_FC }, "address-pin": { type: "geojson", data: EMPTY_FC }, ...hazardSources() },
     layers: [
       {
         id: "background",
@@ -480,7 +511,7 @@ export function MapContainer() {
   /** Transient geolocation feedback (TRI-86) — never persisted. */
   const [geoNotice, setGeoNotice] = useState<string | null>(null);
   const { resolvedTheme } = useTheme();
-  const { selected, select, compare, hovered, resetSeq } = useWorkspace();
+  const { selected, select, compare, hovered, resetSeq, pin } = useWorkspace();
 
   // TRI-104 — Results-row hover highlight. Its own effect: hovering is high
   // frequency and must never re-run the fit/connector work below.
@@ -657,6 +688,35 @@ export function MapContainer() {
       mapRef.current = null;
     };
   }, []);
+
+  // TRI-122 — address pin: draw it and fly to it. Selection fly-to for the
+  // containing SA2 is skipped by the pin (a street-level view is what the user
+  // asked for); clearing the pin clears the layer.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const apply = () => {
+      const m = mapRef.current;
+      if (!m) return;
+      const src = m.getSource("address-pin") as GeoJSONSource | undefined;
+      if (!src) return;
+      if (!pin) {
+        src.setData(EMPTY_FC);
+        return;
+      }
+      src.setData({
+        type: "FeatureCollection",
+        features: [{ type: "Feature", geometry: { type: "Point", coordinates: [pin.lng, pin.lat] }, properties: { label: pin.label } }],
+      });
+      skipFlyRef.current = true;
+      m.flyTo({ center: [pin.lng, pin.lat], zoom: Math.max(m.getZoom(), 14.5), duration: 900 });
+    };
+    // isStyleLoaded() is false transiently while the map is mid-update (a
+    // fly-to or a filter change); "load" has already fired by then and would
+    // never call back, so wait for the next idle instead.
+    if (map.isStyleLoaded()) apply();
+    else map.once("idle", apply);
+  }, [pin]);
 
   // Theme swap repaints chrome + re-applies the shade ramp in the new hue.
   useEffect(() => {

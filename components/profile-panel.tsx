@@ -315,7 +315,7 @@ function ScalarRow({ s, stat }: { s: ScalarValue; stat?: RegionalStat }) {
 }
 
 export function ProfilePanel({ sa2 }: { sa2: string }) {
-  const { compare, toggleCompare } = useWorkspace();
+  const { compare, toggleCompare, pin } = useWorkspace();
   // Persona drives section order. The null server snapshot means SSR and the
   // hydration render use DEFAULT_PERSONA; the stored persona applies in a
   // post-mount re-render (same mechanism as the budget/workplace prefs).
@@ -374,6 +374,17 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* TRI-122 — a searched address only ever locates the area; it carries
+          no data of its own, and the copy says so before any figure. */}
+      {pin && pin.sa2_code === sa2 && (
+        <p
+          data-testid="address-banner"
+          className="rounded-md border border-harbour/40 bg-harbour/10 px-3 py-2 text-xs leading-snug text-ink/85"
+        >
+          <span className="font-medium">{pin.label}</span> sits in {suburb.name}. Everything below
+          describes the area, not the property.
+        </p>
+      )}
       {/* Header */}
       <div>
         <div className="flex items-start justify-between gap-2">

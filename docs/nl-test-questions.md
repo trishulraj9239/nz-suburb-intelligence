@@ -103,3 +103,19 @@ curl -s localhost:3000/api/ask -H 'content-type: application/json' \
 The app's own **"How this was matched"** disclosure shows the planner's reading
 of each question — intent, metrics, places — which is usually enough to tell a
 bad answer from a bad *question* without reading the server logs.
+
+## Address search (TRI-122) — manual checks
+
+The search box accepts a street address (anything with a digit, or three or
+more words). The profile that opens is always the **containing SA2's**; the
+address is a pin and a banner only.
+
+| Type | Expect |
+|---|---|
+| `42 Ponsonby Rd` | one confident hit "42 Ponsonby Road, Ponsonby, Auckland → Ponsonby East"; profile opens with the banner "42 Ponsonby Road… sits in Ponsonby East. Everything below describes the area, not the property."; map flies to street level with a pin |
+| `3/22 Cardiff Road Pakuranga` | unit-number form resolves (loaded by the TRI-138 changeset) → Pakuranga Central |
+| `42 Ponsonbee Road` | misspelled road: either a confident fuzzy hit or a "Did you mean" list — never a silent wrong pick |
+| `1 Lambton Quay Wellington` | "No Auckland address confidently matches … Auckland addresses only." |
+| pick an address, then pick `Takapuna Central` by name | banner and pin disappear; a pin never claims an address sits in the wrong area |
+
+Automated: `node scripts/test/tri122-verify.mjs` (dev server on :3000).
