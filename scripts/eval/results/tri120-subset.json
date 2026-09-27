@@ -1,0 +1,155 @@
+{
+  "base": "http://localhost:3000",
+  "judge_model": "claude-opus-4-8",
+  "providers": {
+    "anthropic": {
+      "label": "Claude Sonnet 4.6",
+      "inPerM": 3,
+      "outPerM": 15
+    },
+    "groq": {
+      "label": "Qwen 3.6 27B (Groq)",
+      "inPerM": 0.2,
+      "outPerM": 0.2
+    }
+  },
+  "questions": [
+    {
+      "id": "q37-erp-growth-rank",
+      "intent": "rank",
+      "question": "Which five Auckland suburbs grew fastest in population between 2023 and 2025?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 5011,
+          "tokens_est": 110,
+          "cost_est_usd": 0.001425,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correctly declines because 2025 data is unavailable, explains coverage, invents no figures."
+          },
+          "answer": "I can't answer that with the data I have. Population data for 2025 is not available; coverage is Census 2023/2018/2013 only, so a 2023–2025 growth comparison cannot be made. I cover Auckland suburbs: census demographics and housing, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers.",
+          "sources": []
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 364,
+          "tokens_est": 20,
+          "cost_est_usd": 0.000004,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "Empty response provides no answer or useful decline."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q38-erp-lookup",
+      "intent": "lookup",
+      "question": "What is the estimated population of Ponsonby West in 2025?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 4499,
+          "tokens_est": 53,
+          "cost_est_usd": 0.000615,
+          "n_sources": 1,
+          "n_citations": 1,
+          "values_checked": 1,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Accurately cites the population figure with correct marker and appropriately notes medium confidence in a concise sentence."
+          },
+          "answer": "Ponsonby West has an estimated resident population of approximately 2,347 people {{c1}} as of 30 June 2025, though confidence on this figure is medium.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "Ponsonby West",
+              "sa2_code": "130400",
+              "metric": "population_estimate",
+              "label": "Population estimate (30 June)",
+              "value": 2347,
+              "unit": "people",
+              "source": "Estimated resident population grid (250 m)",
+              "as_of": "2025-06-30",
+              "confidence": "medium"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 252,
+          "tokens_est": 15,
+          "cost_est_usd": 0.000003,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "An empty response fails to decline politely or provide any useful content."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    }
+  ]
+}
