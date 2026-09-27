@@ -81,14 +81,22 @@ async function resolveSuburbGeos(
     .eq("geo_type", "SA2")
     .eq("is_active", true)
     .ilike("name", `%${text}%`)
-    .limit(1);
-  if (geos?.[0]) return [geos[0]];
+    .limit(5);
+  // 1. An SA2 named exactly what was asked wins outright ("Ponsonby West").
+  const exact = (geos ?? []).find((g) => g.name.toLowerCase() === text.trim().toLowerCase());
+  if (exact) return [exact];
+  // 2. A LINZ suburb that matches strongly ("Grey Lynn", "Arch Hill") beats a
+  //    partial SA2 match, because "Grey Lynn" is the whole suburb, not just
+  //    whichever of Grey Lynn West/North/Central/East happens to sort first.
   const { data: hits } = await supabase.rpc("resolve_suburb", { p_query: text, p_limit: 1 });
-  const rows = ((hits ?? []) as { linz_id: number; name: string; sa2_code: string; sa2_name: string; suburb_share: number; sa2_share: number; score: number }[])
+  const all = (hits ?? []) as { linz_id: number; name: string; sa2_code: string; sa2_name: string; suburb_share: number; sa2_share: number; score: number }[];
+  const strong = all[0]?.score >= 0.8;
+  if (!strong && geos?.[0]) return [geos[0]]; // 3. partial SA2 match, as before
+  const rows = all
     .filter((h) => h.score >= 0.35)
     .filter((h) => Number(h.suburb_share) >= 0.15 || Number(h.sa2_share) >= 0.3)
     .slice(0, max);
-  if (!rows.length) return [];
+  if (!rows.length) return geos?.[0] ? [geos[0]] : [];
   const { data: geoRows } = await supabase
     .from("geographies")
     .select("id, sa2_code, name")
