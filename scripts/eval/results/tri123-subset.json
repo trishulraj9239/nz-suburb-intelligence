@@ -1,0 +1,298 @@
+{
+  "base": "http://localhost:3000",
+  "judge_model": "claude-opus-4-8",
+  "providers": {
+    "anthropic": {
+      "label": "Claude Sonnet 4.6",
+      "inPerM": 3,
+      "outPerM": 15
+    },
+    "groq": {
+      "label": "Qwen 3.6 27B (Groq)",
+      "inPerM": 0.2,
+      "outPerM": 0.2
+    }
+  },
+  "questions": [
+    {
+      "id": "q41-address-flood",
+      "intent": "lookup",
+      "question": "Is 42 Ponsonby Road in a flood plain?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 9054,
+          "tokens_est": 193,
+          "cost_est_usd": 0.00279,
+          "n_sources": 6,
+          "n_citations": 6,
+          "values_checked": 2,
+          "values_grounded": false,
+          "value_mismatches": [
+            {
+              "marker": 1,
+              "claimed": 1,
+              "actual": 0,
+              "raw": "1%",
+              "row": "42 Ponsonby Road, Grey Lynn, Auckland — At 42 Ponsonby Road, Grey Lynn, Auckland: flood plain (one-percent annual-exceedance event) (2026 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)"
+            }
+          ],
+          "values_unbound": 4,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "Answers the flood-plain question directly from the point-check row, cites every figure, keeps layers separate rather than combining into a score, and includes the area-level caveat and LIM/Flood Viewer note."
+          },
+          "answer": "At 42 Ponsonby Road, Grey Lynn, the point check shows the property is **outside** the 1% annual-exceedance flood plain {{c1}} and outside coastal inundation zones under both present-day sea level and with one metre of sea-level rise {{c3}}{{c4}}. However, it is **within twenty metres** of an overland flow path {{c2}}, which is worth noting. Liquefaction vulnerability is classed as Very Low {{c5}}. For broader context, the Grey Lynn East area containing this address has approximately 2.69% of land within the 1% AEP flood plain {{c6}}, but the point check for this specific address shows it outside that zone.\n\nArea-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_flood",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: flood plain (one-percent annual-exceedance event) (2026 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 2,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_overland",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: overland flow path (within twenty metres) (2026 council layer) — within twenty metres (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 1,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 3,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_coastal",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: coastal inundation (one-percent annual-exceedance event, present-day sea level) (2025 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 4,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_coastal_slr1m",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: coastal inundation (one-percent annual-exceedance event, plus one metre of sea-level rise) (2025 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 5,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_liquefaction",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: liquefaction vulnerability class (2022 council layer) — Very Low Liquefaction Vulnerability (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 1,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 6,
+              "suburb": "Grey Lynn East (part of the area containing 42 Ponsonby Road, Grey Lynn, Auckland, matched from \"42 Ponsonby Road\")",
+              "sa2_code": "133500",
+              "metric": "flood_plain_pct",
+              "label": "Flood plain (1% AEP) (2026 council layer; area-level model, not a property assessment)",
+              "value": 2.69,
+              "unit": "%",
+              "source": "Flood Plains (1% AEP)",
+              "as_of": "2026-07-31",
+              "confidence": "medium"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 314,
+          "tokens_est": 10,
+          "cost_est_usd": 0.000002,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "A completely empty response provides no answer and does not politely decline, so it fails on every dimension."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q42-address-commute",
+      "intent": "commute",
+      "question": "How long is the drive from 42 Ponsonby Road to Auckland Airport?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 6431,
+          "tokens_est": 68,
+          "cost_est_usd": 0.000828,
+          "n_sources": 1,
+          "n_citations": 2,
+          "values_checked": 1,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 1,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Answer B accurately cites the 24.8 min figure with proper marker, notes medium confidence via the no-traffic caveat, and stays concise."
+          },
+          "answer": "The typical drive from 42 Ponsonby Road, Grey Lynn to Auckland Airport is approximately **24.8 minutes** {{c1}}, based on a routed estimate with no live traffic — actual times may vary with congestion {{c1}}.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "commute_driving-car",
+              "label": "Typical drive time, 42 Ponsonby Road, Grey Lynn, Auckland → Auckland Airport (routed, no live traffic)",
+              "value": 24.8,
+              "unit": "min",
+              "source": "openrouteservice routing (OpenStreetMap)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 259,
+          "tokens_est": 16,
+          "cost_est_usd": 0.0000032000000000000003,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "Answer A is empty and provides no response at all, failing to even politely decline."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q43-address-unresolvable",
+      "intent": "lookup",
+      "question": "Is 999999 Nowhere Street in a flood plain?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 3166,
+          "tokens_est": 30,
+          "cost_est_usd": 0.000333,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correctly declines to resolve a nonsensical address without inventing any figures."
+          },
+          "answer": "I couldn't confidently resolve \"999999 Nowhere Street\" to an Auckland address.",
+          "sources": []
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 536,
+          "tokens_est": 11,
+          "cost_est_usd": 0.0000022,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "An empty response provides no answer, refusal, or hazard caveat at all."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    }
+  ]
+}
