@@ -111,3 +111,14 @@ Note `.env.local` is gitignored — never commit secrets.
 - Phones: `AddressFactsPager` = snap-scrolling full-width `AddressFacts` cards with a `role=tablist`
   pager; desktop keeps the grid. Testids kept: `compare-address-facts`, `compare-address-head`,
   `same-area-note`, one `address-facts` per pin, `Remove … from comparison`.
+
+## "This property" panel on the grammar (TRI-150)
+- `components/address-facts.tsx` re-exports `PropertyPanel` from `components/property/` — one file per
+  epistemic group (records, block-stats, plan-overlays, point-hazards, drive-times, nearby, link-outs)
+  over `lib/property/fetch.ts` (typed responses, the per-pin `cachedJson` memo, `usePointLookup`,
+  `usePointHazards` two-phase, `useDriveFromPin`) and `lib/property/copy.ts` (every fixed string,
+  verbatim — the panel's wording is frozen).
+- Grammar: six `epistemic-*` h4s at 13 px semibold in the same order; point rows carry a `StatusPill`
+  (icon + the council's own status word); every chip names its tested geometry ("address point",
+  "rating unit", "SA1 block"); links on `text-accent`; the area-level caveat still tops and foots
+  the models group. Testids unchanged (tri122–133/141 are the contract).

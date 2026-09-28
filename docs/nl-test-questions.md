@@ -405,3 +405,18 @@ Pin two or three suburbs with "+ Compare" (or answer a compare question) and ope
 
 Automated: the compare section of `node scripts/test/tri-design-verify.mjs`, plus tri83 and tri141.
 
+## "This property" panel on the grammar (TRI-150, design phase E) — manual checks
+
+Search an address (e.g. **42 Ponsonby Rd**) and read the panel above the banner.
+
+| Look at | Expect |
+|---|---|
+| the six group headings | Public records about the land · This block, beside this suburb · Council plan records at this point · Area-level models at this point · Nearby, as the crow flies · Not held by this app — 13 px semibold, in that order |
+| a hazard or overlay row | the layer name, then a pill with an icon and the council's own words (inside ■ · within 20 m ◆ · outside □ · none within 20 m ◇ · not in the assessed area – · unavailable hatched · checking… …) — never a colour verdict |
+| every chip | source · vintage · **geometry** (address point / rating unit / SA1 block) · quality |
+| the models group | the "Area-level model — not a property assessment…" sentence at the top and again at the foot |
+| block rows | label, then "this block" and "this suburb" mono columns; suppression reads as words |
+| phone (390 px) | the same panel, full width, nothing under 12 px, no sideways scroll |
+
+Automated: tri122 / 123 / 126–133 / 141 unchanged, plus the property section of `tri-design-verify.mjs`.
+
