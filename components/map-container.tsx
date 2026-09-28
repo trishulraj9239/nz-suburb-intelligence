@@ -21,6 +21,8 @@ import {
 } from "@/lib/suburb-data";
 import { createClient } from "@/lib/supabase/client";
 import { confidenceLabel, shortSource } from "./provenance";
+import { MapOverlayDock } from "./map-overlay-dock";
+import { TOKENS } from "@/lib/tokens";
 
 /**
  * Auckland map (TRI-23 base + TRI-35 v2): LINZ topolite vector base, SA2
@@ -47,7 +49,7 @@ function token(name: string, fallback: string) {
 }
 
 function harbourRgb(): [number, number, number] {
-  const hex = token("--harbour", "#0e6e73").replace("#", "");
+  const hex = token("--harbour", TOKENS.color.light.harbour).replace("#", "");
   return [
     parseInt(hex.slice(0, 2), 16),
     parseInt(hex.slice(2, 4), 16),
@@ -180,13 +182,13 @@ function overlayLayers(): StyleSpecification["layers"] {
     {
       id: "dim-veil",
       type: "background",
-      paint: { "background-color": "#0a0e12", "background-opacity": 0 },
+      paint: { "background-color": TOKENS.color.dark.canvas, "background-opacity": 0 },
     },
     {
       id: "sa2-fill",
       type: "fill",
       source: "sa2",
-      paint: { "fill-color": token("--harbour", "#0e6e73"), "fill-opacity": 0.04 },
+      paint: { "fill-color": token("--harbour", TOKENS.color.light.harbour), "fill-opacity": 0.04 },
     },
     // Hazards sit above the choropleth fill but below suburb borders and
     // selection, so boundaries stay legible with overlays on.
@@ -196,7 +198,7 @@ function overlayLayers(): StyleSpecification["layers"] {
       type: "line",
       source: "sa2",
       paint: {
-        "line-color": token("--harbour", "#0e6e73"),
+        "line-color": token("--harbour", TOKENS.color.light.harbour),
         "line-width": ["interpolate", ["linear"], ["zoom"], 8, 0.4, 13, 1.4],
         "line-opacity": 0.55,
       },
@@ -209,7 +211,7 @@ function overlayLayers(): StyleSpecification["layers"] {
       source: "coverage",
       layout: { "line-join": "round", "line-cap": "round" },
       paint: {
-        "line-color": token("--ink", "#13212e"),
+        "line-color": token("--ink", TOKENS.color.light.ink),
         "line-width": ["interpolate", ["linear"], ["zoom"], 7, 1.2, 11, 2.2, 14, 3],
         "line-opacity": 0.85,
       },
@@ -222,7 +224,7 @@ function overlayLayers(): StyleSpecification["layers"] {
       source: "sa2",
       filter: ["==", ["get", "SA22023_V1_00"], ""],
       paint: {
-        "line-color": token("--ink", "#13212e"),
+        "line-color": token("--ink", TOKENS.color.light.ink),
         "line-width": 2,
         "line-opacity": 0.75,
       },
@@ -234,7 +236,7 @@ function overlayLayers(): StyleSpecification["layers"] {
       type: "fill",
       source: "sa2",
       filter: ["in", ["get", "SA22023_V1_00"], ["literal", []]],
-      paint: { "fill-color": token("--harbour", "#0e6e73"), "fill-opacity": 0.1 },
+      paint: { "fill-color": token("--harbour", TOKENS.color.light.harbour), "fill-opacity": 0.1 },
     },
     {
       id: "sa2-compare-line",
@@ -242,7 +244,7 @@ function overlayLayers(): StyleSpecification["layers"] {
       source: "sa2",
       filter: ["in", ["get", "SA22023_V1_00"], ["literal", []]],
       paint: {
-        "line-color": token("--harbour", "#0e6e73"),
+        "line-color": token("--harbour", TOKENS.color.light.harbour),
         "line-width": 2,
         "line-opacity": 0.9,
       },
@@ -258,7 +260,7 @@ function overlayLayers(): StyleSpecification["layers"] {
       source: "compare-links",
       layout: { "line-join": "round", "line-cap": "round" },
       paint: {
-        "line-color": token("--harbour", "#0e6e73"),
+        "line-color": token("--harbour", TOKENS.color.light.harbour),
         "line-width": 2.5,
         "line-opacity": 0.9,
         // Long dashes: unmistakably a drawn link, never mistakable for a road.
@@ -277,9 +279,9 @@ function overlayLayers(): StyleSpecification["layers"] {
         "text-letter-spacing": 0.04,
       },
       paint: {
-        "text-color": token("--ink", "#13212e"),
+        "text-color": token("--ink", TOKENS.color.light.ink),
         "text-opacity": 0.55,
-        "text-halo-color": token("--canvas", "#f4f6f5"),
+        "text-halo-color": token("--canvas", TOKENS.color.light.canvas),
         "text-halo-width": 1.5,
       },
     },
@@ -288,14 +290,14 @@ function overlayLayers(): StyleSpecification["layers"] {
       type: "fill",
       source: "sa2",
       filter: ["==", ["get", "SA22023_V1_00"], ""],
-      paint: { "fill-color": token("--harbour", "#0e6e73"), "fill-opacity": 0.18 },
+      paint: { "fill-color": token("--harbour", TOKENS.color.light.harbour), "fill-opacity": 0.18 },
     },
     {
       id: "sa2-selected-line",
       type: "line",
       source: "sa2",
       filter: ["==", ["get", "SA22023_V1_00"], ""],
-      paint: { "line-color": token("--harbour", "#0e6e73"), "line-width": 2.5 },
+      paint: { "line-color": token("--harbour", TOKENS.color.light.harbour), "line-width": 2.5 },
     },
     {
       // TRI-121 — LINZ suburb/locality names at mid zoom (the basemap's own
@@ -312,9 +314,9 @@ function overlayLayers(): StyleSpecification["layers"] {
         "text-padding": 6,
       },
       paint: {
-        "text-color": token("--ink", "#13212e"),
+        "text-color": token("--ink", TOKENS.color.light.ink),
         "text-opacity": 0.72,
-        "text-halo-color": token("--canvas", "#f4f6f5"),
+        "text-halo-color": token("--canvas", TOKENS.color.light.canvas),
         "text-halo-width": 1.3,
       },
     },
@@ -326,8 +328,8 @@ function overlayLayers(): StyleSpecification["layers"] {
       source: "address-pin",
       paint: {
         "circle-radius": 7,
-        "circle-color": token("--amber", "#d99a2b"),
-        "circle-stroke-color": token("--surface", "#ffffff"),
+        "circle-color": token("--amber", TOKENS.color.light.amber),
+        "circle-stroke-color": token("--surface", TOKENS.color.light.surface),
         "circle-stroke-width": 2,
       },
     },
@@ -348,8 +350,8 @@ function overlayLayers(): StyleSpecification["layers"] {
         "text-optional": true,
       },
       paint: {
-        "text-color": token("--ink", "#13212e"),
-        "text-halo-color": token("--canvas", "#f4f6f5"),
+        "text-color": token("--ink", TOKENS.color.light.ink),
+        "text-halo-color": token("--canvas", TOKENS.color.light.canvas),
         "text-halo-width": 1.6,
       },
     },
@@ -384,11 +386,11 @@ const SUBURB_LABELS_SOURCE = {
 // harbour choropleth ramp. Liquefaction shows only the elevated class
 // ("damage possible"); the full 5-class breakdown lives in the profile.
 const HAZARD_LAYERS = [
-  { key: "flood", label: "Flood plains (1% AEP)", vintage: "2026", color: "#2f6db6" },
-  { key: "coastal", label: "Coastal inundation (1% AEP)", vintage: "2025", color: "#6d5bb8" },
-  { key: "coastal_slr1m", label: "Coastal inundation, +1 m sea level", vintage: "2025", color: "#9b8ed6" },
-  { key: "liquefaction", label: "Liquefaction — damage possible", vintage: "2022", color: "#b0803a" },
-  { key: "heritage", label: "Heritage overlay", vintage: "2026", color: "#7a5c3e" },
+  { key: "flood", label: "Flood plains (1% AEP)", vintage: "2026", color: TOKENS.layer.flood },
+  { key: "coastal", label: "Coastal inundation (1% AEP)", vintage: "2025", color: TOKENS.layer.coastal },
+  { key: "coastal_slr1m", label: "Coastal inundation, +1 m sea level", vintage: "2025", color: TOKENS.layer.coastal_slr1m },
+  { key: "liquefaction", label: "Liquefaction — damage possible", vintage: "2022", color: TOKENS.layer.liquefaction },
+  { key: "heritage", label: "Heritage overlay", vintage: "2026", color: TOKENS.layer.heritage },
 ] as const;
 
 const EMPTY_FC: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
@@ -439,7 +441,7 @@ async function buildStyle(): Promise<StyleSpecification> {
       {
         id: "background",
         type: "background",
-        paint: { "background-color": token("--canvas", "#f4f6f5") },
+        paint: { "background-color": token("--canvas", TOKENS.color.light.canvas) },
       },
       ...overlayLayers(),
     ],
@@ -454,7 +456,7 @@ interface ShadeState {
 
 function applyThemePaint(map: MapLibreMap, dark: boolean) {
   if (map.getLayer("background")) {
-    map.setPaintProperty("background", "background-color", token("--canvas", dark ? "#0e1822" : "#f4f6f5"));
+    map.setPaintProperty("background", "background-color", token("--canvas", dark ? TOKENS.color.dark.canvas : TOKENS.color.light.canvas));
   }
   if (map.getLayer("dim-veil")) {
     // Light veil only — enough to seat the choropleth, but kept low (was 0.42)
@@ -466,13 +468,13 @@ function applyThemePaint(map: MapLibreMap, dark: boolean) {
     ["sa2-selected-fill", "fill-color"],
     ["sa2-selected-line", "line-color"],
   ] as const) {
-    if (map.getLayer(layer)) map.setPaintProperty(layer, prop, token("--harbour", "#0e6e73"));
+    if (map.getLayer(layer)) map.setPaintProperty(layer, prop, token("--harbour", TOKENS.color.light.harbour));
   }
   if (map.getLayer("sa2-line")) {
     map.setPaintProperty("sa2-line", "line-opacity", dark ? 0.7 : 0.55);
   }
   if (map.getLayer("coverage-line")) {
-    map.setPaintProperty("coverage-line", "line-color", token("--ink", dark ? "#e6ecee" : "#13212e"));
+    map.setPaintProperty("coverage-line", "line-color", token("--ink", dark ? TOKENS.color.dark.ink : TOKENS.color.light.ink));
   }
   // Hazard overlays: flat hues stay fixed, opacity lifts against the dark
   // basemap veil — without this they wash out after a theme swap.
@@ -489,7 +491,7 @@ function applyThemePaint(map: MapLibreMap, dark: boolean) {
 function applyShadePaint(map: MapLibreMap, shade: ShadeState | null) {
   if (!map.getLayer("sa2-fill")) return;
   if (!shade) {
-    map.setPaintProperty("sa2-fill", "fill-color", token("--harbour", "#0e6e73"));
+    map.setPaintProperty("sa2-fill", "fill-color", token("--harbour", TOKENS.color.light.harbour));
     map.setPaintProperty("sa2-fill", "fill-opacity", 0.04);
     return;
   }
@@ -544,7 +546,6 @@ export function MapContainer() {
 
   const [defs, setDefs] = useState<MetricDef[]>([]);
   const [shadeKey, setShadeKey] = useState<string>("");
-  const [hazardsOpen, setHazardsOpen] = useState(false);
   const [hazardOn, setHazardOn] = useState<ReadonlySet<string>>(new Set());
   const hazardLoadedRef = useRef<Set<string>>(new Set());
 
@@ -933,102 +934,36 @@ export function MapContainer() {
       {geoNotice && (
         <div
           role="status"
-          className="absolute inset-x-2 bottom-10 z-20 mx-auto flex max-w-md items-start gap-2 rounded-lg border border-hairline bg-surface px-3 py-2 text-xs text-ink/80 shadow-lg"
+          className="absolute left-14 right-2 top-2 z-20 flex max-w-md items-start gap-2 rounded-control border border-hairline bg-surface px-3 py-2 text-label text-ink/80 shadow-pop"
         >
           <span className="flex-1">{geoNotice}</span>
           <button
             type="button"
             onClick={() => setGeoNotice(null)}
             aria-label="Dismiss message"
-            className="shrink-0 text-ink/40 hover:text-ink"
+            className="-m-1 flex h-8 w-8 shrink-0 items-center justify-center text-ink/45 hover:text-ink"
           >
             ✕
           </button>
         </div>
       )}
 
-      {/* Shade picker + legend — stacked top-right so the position is identical
-          on mobile and web; the legend only appears once a metric is chosen. */}
-      <div className="absolute right-2 top-2 z-10 flex max-w-[calc(100%-1rem)] flex-col items-end gap-2">
-        <select
-          value={shadeKey}
-          onChange={(e) => {
-            userPickedRef.current = true;
-            changeShade(e.target.value);
-          }}
-          aria-label="Shade map by metric"
-          className="h-8 max-w-full rounded-md border border-hairline bg-surface px-2 text-xs text-ink shadow-sm focus:border-harbour focus:outline-none"
-        >
-          <option value="">No shading</option>
-          {defs.map((d) => (
-            <option key={d.metric_key} value={d.metric_key}>
-              {d.label}
-            </option>
-          ))}
-        </select>
-
-        {/* Hazard layer toggles (TRI-69) — collapsed by default, all layers
-            off by default. Exposure is information, never a verdict. */}
-        <div className="w-52 max-w-full rounded-md border border-hairline bg-surface/95 shadow-sm">
-          <button
-            type="button"
-            onClick={() => setHazardsOpen((o) => !o)}
-            aria-expanded={hazardsOpen}
-            className="flex h-8 w-full items-center justify-between px-2.5 text-xs text-ink"
-          >
-            <span>
-              Hazard layers
-              {hazardOn.size > 0 && <span className="ml-1 text-ink/45">({hazardOn.size} on)</span>}
-            </span>
-            <span aria-hidden className="font-mono text-ink/50">{hazardsOpen ? "−" : "+"}</span>
-          </button>
-          {hazardsOpen && (
-            <div className="border-t border-hairline px-2.5 py-1.5">
-              {HAZARD_LAYERS.map((h) => (
-                <label
-                  key={h.key}
-                  className="flex cursor-pointer items-center gap-1.5 py-1 text-[11px] leading-tight text-ink/80"
-                >
-                  <input
-                    type="checkbox"
-                    checked={hazardOn.has(h.key)}
-                    onChange={() => toggleHazard(h.key)}
-                  />
-                  <span
-                    aria-hidden
-                    className="inline-block h-2 w-2 shrink-0 rounded-[2px]"
-                    style={{ background: h.color }}
-                  />
-                  <span>
-                    {h.label} <span className="font-mono text-[10px] text-ink/40">{h.vintage}</span>
-                  </span>
-                </label>
-              ))}
-              <p className="mt-1.5 border-t border-hairline/60 pt-1.5 text-[9px] leading-snug text-ink/50">
-                Area-level model — not a property assessment. Check the council Flood
-                Viewer and a LIM report for any specific property.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {legend && (
-          <div className="rounded-md border border-hairline bg-surface/95 px-2.5 py-1.5 shadow-sm">
-            <p className="text-[10px] font-medium text-ink/80">{legend.label}</p>
-            <div className="mt-1 flex h-2 w-36 overflow-hidden rounded-sm">
-              {RAMP_ALPHAS.map((a) => (
-                <span key={a} className="h-full flex-1" style={{ background: `rgba(${r},${g},${b},${a})` }} />
-              ))}
-            </div>
-            <div className="mt-0.5 flex justify-between font-mono text-[9px] text-ink/55">
-              <span>{legend.min}</span>
-              <span>{legend.max}</span>
-            </div>
-            <p className="mt-0.5 text-[9px] text-ink/45">quintiles · darker = higher · unshaded = no data</p>
-            <p className="mt-0.5 font-mono text-[9px] text-ink/45">{legend.source}</p>
-          </div>
-        )}
-      </div>
+      {/* Shade picker, hazard layers and legend — the top-right stack on desktop,
+          a single "Layers" dock above the sheet on phones (TRI-145). */}
+      <MapOverlayDock
+        defs={defs}
+        shadeKey={shadeKey}
+        onShade={(k) => {
+          userPickedRef.current = true;
+          changeShade(k);
+        }}
+        hazardLayers={HAZARD_LAYERS}
+        hazardOn={hazardOn}
+        onToggleHazard={toggleHazard}
+        legend={legend}
+        rampAlphas={RAMP_ALPHAS}
+        rampRgb={[r, g, b]}
+      />
     </div>
   );
 }

@@ -45,7 +45,7 @@ export function KpiTiles({
             key={s.def.metric_key}
             className="flex min-w-0 flex-col gap-0.5 rounded-lg border border-hairline bg-canvas px-2.5 py-2"
           >
-            <span className="truncate font-display text-[10px] font-semibold uppercase tracking-wider text-ink/45">
+            <span className="truncate font-display text-micro font-semibold uppercase tracking-wider text-ink/45">
               {s.def.label}
             </span>
             <span className="flex items-baseline gap-1.5">
@@ -54,7 +54,7 @@ export function KpiTiles({
               </span>
               {s.def.unit === "$/week" && <BudgetChip rent={s.value} />}
             </span>
-            {note && <span className="truncate font-mono text-[10px] text-ink/45">{note}</span>}
+            {note && <span className="truncate font-mono text-micro text-ink/45">{note}</span>}
           </div>
         );
       })}

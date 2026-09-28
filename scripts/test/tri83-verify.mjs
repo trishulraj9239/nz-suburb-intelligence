@@ -95,7 +95,7 @@ if (await page.locator('section[aria-label="Answer"]').count())
   fail("desktop strip still mounted below lg — both frames co-mounted");
 console.log("strip unmounted below lg ✓");
 
-const answerTab = page.getByRole("button", { name: "Answer", exact: true });
+const answerTab = page.getByRole("tab", { name: "Answer", exact: true });
 if (!(await answerTab.count())) fail("mobile Answer tab missing");
 
 // A compare question lands on the Compare tab by design (intent auto-tab), so

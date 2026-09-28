@@ -42,13 +42,13 @@ export function AuthButton() {
   }
 
   // Reserve layout space pre-mount to avoid a top-bar shift.
-  if (!mounted) return <span className="h-8 w-16" aria-hidden />;
+  if (!mounted) return <span className="h-10 w-16" aria-hidden />;
 
   if (!user) {
     return (
       <Link
         href="/login"
-        className="inline-flex h-8 items-center rounded-md border border-hairline bg-surface px-3 text-xs font-medium text-ink transition-colors hover:border-harbour"
+        className="inline-flex h-10 items-center rounded-control border border-hairline bg-surface px-3 text-label font-medium text-ink transition-colors hover:border-harbour"
       >
         Sign in
       </Link>
@@ -57,13 +57,13 @@ export function AuthButton() {
 
   return (
     <span className="flex items-center gap-2">
-      <span className="hidden max-w-40 truncate font-mono text-[11px] text-ink/70 md:inline">
+      <span className="hidden max-w-40 truncate font-mono text-micro text-ink/70 md:inline">
         {user.email}
       </span>
       <button
         type="button"
         onClick={signOut}
-        className="inline-flex h-8 items-center rounded-md border border-hairline bg-surface px-3 text-xs font-medium text-ink transition-colors hover:border-harbour"
+        className="inline-flex h-10 items-center rounded-control border border-hairline bg-surface px-3 text-label font-medium text-ink transition-colors hover:border-harbour"
       >
         Sign out
       </button>

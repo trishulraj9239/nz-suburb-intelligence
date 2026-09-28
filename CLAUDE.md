@@ -52,3 +52,16 @@ Decision records live in each migration's header — read before changing schema
 `main`, remote `origin` → `trishulraj9239/nz-suburb-intelligence`. Commits reference **Linear tickets**
 (`TRI-XX`) — keep that convention. Branch before non-trivial work; let me write commit messages.
 Note `.env.local` is gitignored — never commit secrets.
+
+## Design tokens & type scale (TRI-145)
+- `lib/tokens.ts` is the single source of truth; `npm run tokens` regenerates `app/tokens.css`
+  (committed). `npm run test:unit` fails if the CSS is stale, if any `text-[9|10|11px]` appears,
+  or if a hex colour sits outside `lib/tokens.ts` / `app/tokens.css`.
+- Type scale utilities: `text-micro` (12 px, the floor — chips, axes) · `text-label` (13) ·
+  `text-body` (14) · `text-value` (15) · `text-h3` (16) · `text-h2` (20) · `text-kpi` (22).
+- Radii `rounded-control|card|sheet|chip`; shadows `shadow-card|pop|sheet`; colours
+  `bg-canvas` … `text-accent`, categorical `cat-a…g` (Okabe-Ito, compare/modes only), hazard
+  neutral ramp `hz-1…5` (never red–green), map layer hues `layer-*`, section icon hues `section-*`.
+- Shell primitives: `components/popover.tsx`, `tabs.tsx` (`role=tab`), `sheet.tsx`
+  (phone bottom sheet, `role=slider` handle), `you-menu.tsx` (phone fold), `map-overlay-dock.tsx`.
+  Touch targets ≥ 40 px; `:focus-visible` ring; `motion-reduce` on transitions.

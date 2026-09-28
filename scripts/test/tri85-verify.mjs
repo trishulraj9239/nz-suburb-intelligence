@@ -36,7 +36,7 @@ console.log("panel resize affordance visible ✓");
 
 // ---- TRI-85 compare union fit ---------------------------------------------
 // Pin two far-apart suburbs and check the map ends up framing both.
-await page.getByPlaceholder("Find a suburb…").fill("Ponsonby West");
+await page.getByLabel("Find a suburb or address").fill("Ponsonby West");
 await page.waitForTimeout(900);
 await page.keyboard.press("Enter");
 await page.waitForTimeout(2000);

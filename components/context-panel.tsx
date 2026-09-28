@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useWorkspace } from "@/lib/workspace";
 import { useIsLg } from "@/lib/use-is-lg";
 import { SuburbSearch } from "./suburb-search";
@@ -8,6 +8,9 @@ import { ProfilePanel } from "./profile-panel";
 import { ComparePanel } from "./compare-panel";
 import { AnswerThread } from "./answer-thread";
 import { ResultsPanel, rankedRows } from "./results-panel";
+import { QuestionChips } from "./question-chips";
+import { BottomSheet, type Snap } from "./sheet";
+import { SegmentedTabs, TabPanel } from "./tabs";
 
 const EXAMPLES: { sa2: string; name: string }[] = [
   { sa2: "130400", name: "Ponsonby West" },
@@ -18,28 +21,19 @@ const EXAMPLES: { sa2: string; name: string }[] = [
 const PANEL_MIN = 320;
 const panelMax = () => Math.round(window.innerWidth * 0.6); // keep ≥40% map
 
-// Mobile bottom-sheet snap points (heights). "peek" is a fixed strip showing the
-// grab handle + search; "half"/"full" are fractions of the available map area.
 /** Right-pane views. "answer" exists only below lg — on desktop the answer is
  *  the full-width strip (TRI-83), so the tab set differs by frame. */
 type Tab = "answer" | "profile" | "compare" | "results";
-
-type Snap = "peek" | "half" | "full";
-const SNAP_ORDER: Snap[] = ["peek", "half", "full"];
-const PEEK_PX = 104;
-const HALF_FRAC = 0.5;
-const FULL_FRAC = 0.92;
-const TAP_SLOP = 6; // px of travel below which a pointer gesture counts as a tap
 
 /**
  * Right pane. Desktop (≥lg): an <aside> in the row, user-resizable via the
  * left-edge handle (drag, clamped to 60vw; double-click resets). Compare mode
  * auto-widens when no manual width is set.
  *
- * Mobile (<lg): a draggable bottom sheet over the full-screen map (TRI-37).
- * Drag the grab handle to snap between peek / half / full, or tap it to cycle
- * up. Everything (search, answer, tabs, profile) scrolls together inside the
- * sheet, so nothing gets shoved out of reach and the map is always a swipe away.
+ * Mobile (<lg): the BottomSheet (TRI-145) over the full-screen map — a pinned
+ * header (handle, search, tabs) and a scrolling body, snapping between
+ * peek / half / full. The one-frame invariant (M16) is unchanged: exactly one
+ * of {desktop aside, sheet} is mounted, chosen by useIsLg.
  */
 export function ContextPanel() {
   const { selected, select, compare, question, currentTurn } = useWorkspace();
@@ -73,47 +67,8 @@ export function ContextPanel() {
     }
   }, []);
 
-  // --- Mobile sheet state --------------------------------------------------
+  // --- Mobile sheet snap ---------------------------------------------------
   const [snap, setSnap] = useState<Snap>("half");
-  const [dragH, setDragH] = useState<number | null>(null); // live height while dragging
-  const [areaH, setAreaH] = useState(0); // measured height of the map/sheet area
-  const sheetDrag = useRef<{ startY: number; startH: number; moved: boolean } | null>(null);
-  const areaRO = useRef<ResizeObserver | null>(null);
-
-  // Measure the sheet's parent (the <main> content box) so snap heights track
-  // the real available space (topbar can wrap to two rows on phones).
-  const sheetRef = useCallback((el: HTMLElement | null) => {
-    areaRO.current?.disconnect();
-    const parent = el?.parentElement;
-    if (!parent) return;
-    const measure = () => setAreaH(parent.clientHeight);
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(parent);
-    areaRO.current = ro;
-  }, []);
-  useEffect(() => () => areaRO.current?.disconnect(), []);
-
-  const snapHeight = useCallback(
-    (s: Snap) => {
-      // TRI-79 — server and FIRST client render must agree or hydration
-      // warns: the old client fallback read window.innerHeight (315) against
-      // the server's constant (300). Constant until the parent is measured
-      // post-mount; the sheet's height transition covers the adjustment.
-      const ph = areaH || 600;
-      if (s === "peek") return PEEK_PX;
-      return Math.round(ph * (s === "half" ? HALF_FRAC : FULL_FRAC));
-    },
-    [areaH],
-  );
-
-  const nearestSnap = useCallback(
-    (h: number): Snap =>
-      SNAP_ORDER.reduce((best, s) =>
-        Math.abs(snapHeight(s) - h) < Math.abs(snapHeight(best) - h) ? s : best,
-      ),
-    [snapHeight],
-  );
 
   // Surfacing a result shouldn't leave the reader stuck at "peek". Adjust during
   // render on change (React's "store previous value" pattern) rather than in an
@@ -124,54 +79,6 @@ export function ContextPanel() {
     setPrevSurfacedKey(surfacedKey);
     if (surfacedKey && snap === "peek") setSnap("half");
   }
-
-  const onSheetPointerDown = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
-      sheetDrag.current = {
-        startY: e.clientY,
-        startH: dragH ?? snapHeight(snap),
-        moved: false,
-      };
-      try {
-        e.currentTarget.setPointerCapture(e.pointerId);
-      } catch {
-        // window-level move still works
-      }
-      e.preventDefault();
-    },
-    [dragH, snap, snapHeight],
-  );
-  const onSheetPointerMove = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
-      const d = sheetDrag.current;
-      if (!d) return;
-      const delta = d.startY - e.clientY; // up = grow
-      if (Math.abs(delta) > TAP_SLOP) d.moved = true;
-      const h = Math.min(Math.max(d.startH + delta, PEEK_PX), snapHeight("full"));
-      setDragH(h);
-    },
-    [snapHeight],
-  );
-  const onSheetPointerUp = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
-      const d = sheetDrag.current;
-      sheetDrag.current = null;
-      try {
-        e.currentTarget.releasePointerCapture(e.pointerId);
-      } catch {
-        // no capture held
-      }
-      if (!d) return;
-      if (!d.moved) {
-        // tap → cycle up to the next snap (wraps full → peek)
-        setSnap((s) => SNAP_ORDER[(SNAP_ORDER.indexOf(s) + 1) % SNAP_ORDER.length]);
-      } else if (dragH !== null) {
-        setSnap(nearestSnap(dragH));
-      }
-      setDragH(null);
-    },
-    [dragH, nearestSnap],
-  );
 
   // --- Shared content ------------------------------------------------------
   const showCompareTab = compare.length >= 2;
@@ -205,99 +112,77 @@ export function ContextPanel() {
   const activeTab: Tab = available.includes(tab) ? tab : "profile";
 
   const tabLabel = (t: Tab) =>
-    t === "answer"
-      ? "Answer"
-      : t === "profile"
-        ? "Profile"
-        : t === "results"
-          ? "Results"
-          : `Compare (${compare.length})`;
+    t === "answer" ? "Answer" : t === "profile" ? "Profile" : t === "results" ? "Results" : `Compare (${compare.length})`;
 
-  const tabsEl = available.length > 1 ? (
-    <div className="flex gap-1 rounded-lg border border-hairline bg-canvas p-0.5">
-      {available.map((t) => (
-        <button
-          key={t}
-          type="button"
-          onClick={() => setTab(t)}
-          className={`flex-1 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
-            activeTab === t ? "bg-surface text-ink shadow-sm" : "text-ink/55 hover:text-ink"
-          }`}
-        >
-          {tabLabel(t)}
-        </button>
-      ))}
-    </div>
-  ) : null;
+  const idPrefix = isLg ? "panel" : "sheet";
+  const tabsEl =
+    available.length > 1 ? (
+      <SegmentedTabs
+        items={available.map((t) => ({ id: t, label: tabLabel(t) }))}
+        value={activeTab}
+        onChange={setTab}
+        label="Panel views"
+        idPrefix={idPrefix}
+      />
+    ) : null;
 
-  const bodyEl =
-    activeTab === "answer" ? (
-      // Same body as the desktop strip; only the cap number differs — it comes
-      // from the sheet's live snap height rather than a viewport fraction.
-      <AnswerThread maxHeight={`${Math.max(140, (dragH ?? snapHeight(snap)) - 210)}px`} />
-    ) : activeTab === "results" ? (
-      <ResultsPanel />
-    ) : activeTab === "compare" ? (
-      <ComparePanel />
-    ) : selected ? (
-      <ProfilePanel sa2={selected} />
-    ) : (
-      <div className="flex flex-col gap-3">
-        <p className="text-sm text-ink/60">
-          Click a suburb on the map or search above to open its profile.
-        </p>
-        <div className="rounded-lg border border-hairline bg-canvas p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-ink/50">Try one</p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {EXAMPLES.map((e) => (
-              <button
-                key={e.sa2}
-                type="button"
-                onClick={() => select(e.sa2)}
-                className="rounded-full border border-hairline bg-surface px-3 py-1 text-xs text-ink transition-colors hover:border-harbour"
-              >
-                {e.name}
-              </button>
-            ))}
+  const body = (answerMaxHeight: string) => (
+    <TabPanel idPrefix={idPrefix} id={activeTab} className="flex min-h-0 flex-col gap-4">
+      {activeTab === "answer" ? (
+        // Same body as the desktop strip; only the cap number differs — it comes
+        // from the sheet's live height rather than a viewport fraction.
+        <AnswerThread maxHeight={answerMaxHeight} />
+      ) : activeTab === "results" ? (
+        <ResultsPanel />
+      ) : activeTab === "compare" ? (
+        <ComparePanel />
+      ) : selected ? (
+        <ProfilePanel sa2={selected} />
+      ) : (
+        <div className="flex flex-col gap-3">
+          <p className="text-body text-ink/65">Tap a suburb on the map or search above to open its profile.</p>
+          <div className="rounded-card border border-hairline bg-canvas p-4">
+            <p className="text-micro font-semibold uppercase tracking-wider text-ink/55">Try one</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {EXAMPLES.map((e) => (
+                <button
+                  key={e.sa2}
+                  type="button"
+                  onClick={() => select(e.sa2)}
+                  className="min-h-10 rounded-chip border border-hairline bg-surface px-3 text-label text-ink transition-colors hover:border-harbour"
+                >
+                  {e.name}
+                </button>
+              ))}
+            </div>
+            {/* Phones: the starter questions live here instead of over the map. */}
+            <div className="mt-3 lg:hidden">
+              <QuestionChips variant="starter-inline" />
+            </div>
           </div>
         </div>
-      </div>
-    );
+      )}
+    </TabPanel>
+  );
 
   // --- Mobile: bottom sheet ------------------------------------------------
   if (!isLg) {
-    const height = dragH ?? snapHeight(snap);
     return (
-      <aside
-        ref={sheetRef}
-        // Marks this as covering the map: fitPadding() measures the real box
-        // (TRI-85) instead of guessing a viewport fraction, so map fits stay
-        // correct at every snap and mid-drag.
-        data-nzsi-occludes=""
-        style={{ height }}
-        className={`absolute inset-x-0 bottom-0 z-30 flex flex-col overflow-hidden rounded-t-2xl border-t border-hairline bg-surface shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.35)] ${
-          dragH === null ? "transition-[height] duration-200 ease-out" : ""
-        }`}
+      <BottomSheet
+        snap={snap}
+        onSnap={setSnap}
+        label="Suburb panel"
+        header={
+          <>
+            {/* Opening results at "peek" would clip the list under the sheet edge;
+                the search asks the sheet to grow first. */}
+            <SuburbSearch onOpen={() => setSnap((s) => (s === "peek" ? "half" : s))} />
+            {tabsEl}
+          </>
+        }
       >
-        {/* Grab handle — drag to snap, tap to cycle up */}
-        <div
-          role="button"
-          aria-label={`Resize panel (currently ${snap}) — drag up or down, or tap to expand`}
-          tabIndex={0}
-          onPointerDown={onSheetPointerDown}
-          onPointerMove={onSheetPointerMove}
-          onPointerUp={onSheetPointerUp}
-          className="flex shrink-0 cursor-grab touch-none justify-center pt-2 pb-1 active:cursor-grabbing"
-        >
-          <span className="h-1.5 w-10 rounded-full bg-ink/20" />
-        </div>
-
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 pb-4">
-          <SuburbSearch />
-          {tabsEl}
-          {bodyEl}
-        </div>
-      </aside>
+        {(height) => body(`${Math.max(140, height - 190)}px`)}
+      </BottomSheet>
     );
   }
 
@@ -308,14 +193,12 @@ export function ContextPanel() {
   // panel's own horizontal scroll rather than crushing the map).
   const compareWidthClass = compare.length >= 3 ? "lg:w-[60rem]" : "lg:w-[46rem]";
 
-  const sizeStyle =
-    userWidth !== null
-      ? { width: userWidth, maxWidth: "60vw", flex: "none" as const }
-      : undefined;
+  const sizeStyle = userWidth !== null ? { width: userWidth, maxWidth: "60vw", flex: "none" as const } : undefined;
 
   return (
     <aside
       style={sizeStyle}
+      aria-label="Suburb panel"
       className={`relative flex min-h-0 w-full flex-1 flex-col gap-4 bg-surface p-4 lg:flex-none lg:p-5 ${
         activeTab === "compare" ? `${compareWidthClass} lg:max-w-[60vw]` : "lg:w-full lg:max-w-md"
       }`}
@@ -337,14 +220,14 @@ export function ContextPanel() {
       >
         <span
           aria-hidden="true"
-          className="pointer-events-none -ml-[3px] flex h-10 w-2 items-center justify-center rounded-full border border-hairline bg-surface shadow-sm transition-colors group-hover:border-harbour"
+          className="pointer-events-none -ml-[3px] flex h-10 w-2 items-center justify-center rounded-full border border-hairline bg-surface shadow-card transition-colors group-hover:border-harbour"
         >
           <span className="h-4 w-px bg-ink/25 transition-colors group-hover:bg-harbour" />
         </span>
       </div>
       <SuburbSearch />
       {tabsEl}
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1">{bodyEl}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1">{body("min(46vh, 480px)")}</div>
     </aside>
   );
 }

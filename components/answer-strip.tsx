@@ -30,7 +30,7 @@ export function AnswerStrip() {
       className="shrink-0 border-b border-hairline bg-surface px-4 py-2"
     >
       <div className="flex items-baseline gap-2">
-        <span className="font-display text-[10px] font-semibold uppercase tracking-wider text-ink/45">
+        <span className="font-display text-micro font-semibold uppercase tracking-wider text-ink/45">
           Answer
         </span>
         <p className="min-w-0 flex-1 truncate text-xs italic text-ink/50">“{question}”</p>

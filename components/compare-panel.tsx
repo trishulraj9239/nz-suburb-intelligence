@@ -29,7 +29,7 @@ function BestChip() {
   return (
     <span
       title="Best of your compared set on this metric, per the registry's higher/lower-is-better direction"
-      className="inline-flex items-center rounded-full border border-harbour/40 bg-harbour/10 px-1.5 font-mono text-[9px] leading-[14px] text-harbour"
+      className="inline-flex items-center rounded-full border border-harbour/40 bg-harbour/10 px-1.5 font-mono text-micro leading-4 text-harbour"
     >
       best
     </span>
@@ -40,7 +40,7 @@ function UnjudgedMark({ long = false }: { long?: boolean }) {
   return (
     <span
       title="This metric carries no better/worse direction — deprivation, consents and hazard are information, not verdicts, so no best is marked."
-      className="font-mono text-[9px] text-ink/40"
+      className="font-mono text-micro text-ink/40"
     >
       {long ? "unjudged — no best" : "unjudged"}
     </span>
@@ -143,14 +143,14 @@ function CompareColumn({
           type="button"
           onClick={onRemove}
           aria-label={`Remove ${p.suburb.name} from comparison`}
-          className="font-mono text-[10px] text-ink/40 hover:text-ink"
+          className="font-mono text-micro text-ink/40 hover:text-ink"
         >
           ✕
         </button>
       </div>
       {p.cbdKm != null && (
         <p
-          className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] text-ink/50"
+          className="mt-0.5 flex items-center gap-1.5 font-mono text-micro text-ink/50"
           title={
             p.cbdMethod === "road"
               ? "Driving distance to the CBD via openrouteservice/OSM — typical route"
@@ -179,7 +179,7 @@ function CompareColumn({
             <div key={k} className="py-1.5">
               <div className="flex items-baseline justify-between gap-1">
                 <span className="flex min-w-0 items-baseline gap-1.5">
-                  <span className="truncate text-[11px] text-ink/65">{s.def.label}</span>
+                  <span className="truncate text-label text-ink/65">{s.def.label}</span>
                   {s.def.higher_is_better === null && <UnjudgedMark />}
                 </span>
                 <span className="flex shrink-0 items-center gap-1.5">
@@ -214,7 +214,7 @@ function CompareColumn({
         })}
         <div className="py-1.5">
           <div className="flex items-baseline justify-between">
-            <span className="text-[11px] text-ink/65">Own their home</span>
+            <span className="text-label text-ink/65">Own their home</span>
             <span className="font-mono text-xs text-ink">{owned != null ? `${owned.pct.toFixed(0)}%` : "—"}</span>
           </div>
           {owned && (
@@ -225,7 +225,7 @@ function CompareColumn({
         </div>
         <div className="py-1.5">
           <div className="flex items-baseline justify-between">
-            <span className="text-[11px] text-ink/65">Separate houses</span>
+            <span className="text-label text-ink/65">Separate houses</span>
             <span className="font-mono text-xs text-ink">{houses != null ? `${houses.pct.toFixed(0)}%` : "—"}</span>
           </div>
           {houses && (
@@ -236,7 +236,7 @@ function CompareColumn({
         </div>
         <div className="py-1.5">
           <div className="flex items-baseline justify-between">
-            <span className="text-[11px] text-ink/65">Schools in area</span>
+            <span className="text-label text-ink/65">Schools in area</span>
             <span className="font-mono text-xs text-ink">{p.schools.length}</span>
           </div>
           <div className="mt-1 flex justify-end">
@@ -262,9 +262,9 @@ function AddressHead({ addresses, suburb }: { addresses: AddressPin[]; suburb: s
           {a.label}
         </span>
       ))}
-      <span className="mt-0.5 block font-mono text-[10px] font-normal text-ink/50">area: {suburb}</span>
+      <span className="mt-0.5 block font-mono text-micro font-normal text-ink/50">area: {suburb}</span>
       {addresses.length > 1 && (
-        <span className="mt-0.5 block font-mono text-[10px] font-normal normal-case text-ink/60" data-testid="same-area-note">
+        <span className="mt-0.5 block font-mono text-micro font-normal normal-case text-ink/60" data-testid="same-area-note">
           both addresses are in the same statistical area, so area figures are identical
         </span>
       )}
@@ -375,7 +375,7 @@ export function ComparePanel() {
         />
         Only differences
         {onlyDiff && hiddenCount > 0 && (
-          <span className="font-mono text-[10px] text-ink/45">
+          <span className="font-mono text-micro text-ink/45">
             {hiddenCount} identical {hiddenCount === 1 ? "row" : "rows"} hidden
           </span>
         )}
@@ -386,9 +386,9 @@ export function ComparePanel() {
           records for each pinned address, not area figures. */}
       {profiles.some((p) => pinsFor(p.suburb.sa2_code).length > 0) && (
         <div className="mb-3" data-testid="compare-address-facts">
-          <p className="mb-1 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/60">
+          <p className="mb-1 font-display text-label font-semibold uppercase tracking-wider text-ink/60">
             At each address
-            <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">public records &amp; point checks · not area figures</span>
+            <span className="ml-1.5 font-mono text-micro font-normal normal-case tracking-normal text-ink/40">public records &amp; point checks · not area figures</span>
           </p>
           <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${profiles.length}, minmax(0, 1fr))` }}>
             {profiles.map((p) => (
@@ -439,7 +439,7 @@ export function ComparePanel() {
                 <button
                   type="button"
                   onClick={() => toggleCompare(p.suburb.sa2_code)}
-                  className="mt-0.5 font-mono text-[10px] text-ink/40 hover:text-ink"
+                  className="mt-0.5 font-mono text-micro text-ink/40 hover:text-ink"
                 >
                   remove ✕
                 </button>
@@ -527,7 +527,7 @@ export function ComparePanel() {
       {/* Verbatim hazard caveat (TRI-70) — shown whenever any compared suburb
           carries a hazard-dimension row, on both layouts. */}
       {profiles.some((p) => p.scalars.some((s) => s.def.dimension === "hazard")) && (
-        <p className="text-[10px] leading-snug text-ink/50">
+        <p className="text-micro leading-snug text-ink/50">
           Hazard rows: {HAZARD_CAVEAT}
         </p>
       )}

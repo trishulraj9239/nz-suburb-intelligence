@@ -35,7 +35,7 @@ export function StackedBar({ b }: { b: BreakdownValue }) {
       </div>
       <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
         {cats.map((c, i) => (
-          <span key={c.label} className="flex items-center gap-1 text-[10px] text-ink/60">
+          <span key={c.label} className="flex items-center gap-1 text-micro text-ink/60">
             <span
               aria-hidden
               className="inline-block h-2 w-2 rounded-[2px]"

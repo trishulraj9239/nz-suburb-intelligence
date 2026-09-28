@@ -57,7 +57,7 @@ export function AerialThumb({ lng, lat, caption }: { lng: number; lat: number; c
           style={{ left: SIZE / 2, top: SIZE / 2 }}
         />
       </div>
-      <figcaption className="mt-1 font-mono text-[10px] leading-snug text-ink/50">{caption}</figcaption>
+      <figcaption className="mt-1 font-mono text-micro leading-snug text-ink/50">{caption}</figcaption>
     </figure>
   );
 }

@@ -48,7 +48,7 @@ await page.screenshot({ path: "shots/tri133-desktop.png", fullPage: true });
 await page.setViewportSize({ width: 390, height: 844 });
 await page.waitForTimeout(800);
 if (await page.locator('section[aria-label="Answer"]').count()) fail("desktop answer strip still mounted below lg");
-const profileTab = page.getByRole("button", { name: "Profile", exact: true });
+const profileTab = page.getByRole("tab", { name: "Profile", exact: true });
 if (await profileTab.count()) await profileTab.first().click();
 await page.waitForTimeout(500);
 await checkFrame("mobile");
