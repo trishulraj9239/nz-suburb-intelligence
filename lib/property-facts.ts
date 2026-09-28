@@ -122,6 +122,41 @@ export async function propertyFacts(lng: number, lat: number): Promise<PropertyF
   }
 }
 
+/**
+ * TRI-156 — the rating-unit polygon at a point (LINZ NZ Property Boundaries,
+ * layer-122657), as ArcGIS-style rings in WGS84, for testing a whole section
+ * against the council hazard layers rather than one address point. null when
+ * no unit contains the point (roads, reserves, unformed land) or LINZ is
+ * unreachable. Cached an hour like the facts.
+ */
+export type Rings = number[][][];
+const unitCache = new Map<string, { at: number; rings: Rings | null }>();
+export async function unitPolygon(lng: number, lat: number): Promise<Rings | null> {
+  const key = `${lng.toFixed(5)},${lat.toFixed(5)}`;
+  const hit = unitCache.get(key);
+  if (hit && Date.now() - hit.at < TTL_MS && hit.rings) return hit.rings;
+  if (!KEY) return null;
+  try {
+    const url =
+      `${WFS};key=${KEY}/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=layer-122657` +
+      `&outputFormat=json&srsName=EPSG:4326&count=1&cql_filter=${encodeURIComponent(`INTERSECTS(geom, SRID=4326;POINT(${lng} ${lat}))`)}`;
+    const r = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!r.ok) throw new Error(`LINZ WFS ${r.status}`);
+    const j = (await r.json()) as { features?: { geometry?: { type: string; coordinates: unknown } }[] };
+    const g = j.features?.[0]?.geometry;
+    let rings: Rings | null = null;
+    if (g?.type === "Polygon") rings = g.coordinates as Rings;
+    else if (g?.type === "MultiPolygon") rings = (g.coordinates as Rings[]).flat();
+    // Round to ~1 m so the query stays small; the test is intersect-or-not.
+    if (rings) rings = rings.map((ring) => ring.map(([x, y]) => [Number(x.toFixed(5)), Number(y.toFixed(5))]));
+    if (unitCache.size >= CACHE_MAX) unitCache.delete(unitCache.keys().next().value as string);
+    unitCache.set(key, { at: Date.now(), rings });
+    return rings;
+  } catch {
+    return null;
+  }
+}
+
 /** One-line neutral explainer per title type (never advice). */
 export const TITLE_TYPE_NOTE: Record<string, string> = {
   Freehold: "Fee simple: the owner holds the land and buildings outright.",

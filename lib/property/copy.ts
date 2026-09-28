@@ -33,7 +33,16 @@ export const STATUS_WORDS: Record<string, string> = {
   unavailable: "council service unavailable — not checked",
   "not assessed": "not in the assessed area",
   pending: "checking… (slow council layer)",
+  // TRI-156 — the rating-unit test.
+  touches: "touches the rating unit",
+  "clear-unit": "clear of the rating unit",
+  "unit-untested": "rating unit not tested (slow council layer)",
 };
+
+/** TRI-156 — what the rating-unit column means, and does not mean. */
+export const UNIT_TEST_NOTE =
+  "Rating-unit test: whether the council layer touches any part of the LINZ rating unit at this address. It says nothing about where on the section, or whether the house itself sits in it — a mapped hazard clipping the back fence reads the same as one under the roof.";
+export const UNIT_NONE_NOTE = "No LINZ rating unit contains this point, so the layers were tested at the address point only.";
 
 /** Plan-overlay status words (TRI-128). */
 export const OVERLAY_STATUS: Record<string, string> = {

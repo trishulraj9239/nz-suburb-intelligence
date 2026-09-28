@@ -24,6 +24,10 @@ export interface PointHazardResponse {
   caveat: string;
   source: string;
   retrieved_at: string;
+  /** TRI-156 — what the layers were tested against. */
+  geometry?: "address point" | "rating unit";
+  /** true = a LINZ rating unit was found and tested; false = none at this point; null = point test. */
+  unit_found?: boolean | null;
 }
 export interface CommuteResponse {
   duration_s: number | null;
@@ -182,12 +186,12 @@ export const cachedJson = <T,>(url: string) =>
 export type Lookup<T> = T | null | "error";
 
 /** One point lookup for a pin, keyed so a new pin never shows the old answer. */
-export function usePointLookup<T>(pin: AddressPin, path: string): Lookup<T> {
+export function usePointLookup<T>(pin: AddressPin, path: string, extra = ""): Lookup<T> {
   const key = `${pin.lng},${pin.lat}`;
   const [state, setState] = useState<{ key: string; r: Lookup<T> }>({ key: "", r: null });
   useEffect(() => {
     let stale = false;
-    cachedJson<T>(`${path}?lng=${pin.lng}&lat=${pin.lat}`)
+    cachedJson<T>(`${path}?lng=${pin.lng}&lat=${pin.lat}${extra}`)
       .then((r) => {
         if (!stale) setState({ key, r });
       })
@@ -197,8 +201,13 @@ export function usePointLookup<T>(pin: AddressPin, path: string): Lookup<T> {
     return () => {
       stale = true;
     };
-  }, [key, path, pin.lng, pin.lat]);
+  }, [key, path, extra, pin.lng, pin.lat]);
   return state.key === key ? state.r : null;
+}
+
+/** TRI-156 — the same layers tested against the whole rating unit (fast layers only; one call). */
+export function usePointHazardsUnit(pin: AddressPin): Lookup<PointHazardResponse> {
+  return usePointLookup<PointHazardResponse>(pin, "/api/point-hazards", "&mode=fast&geometry=unit");
 }
 
 /**
