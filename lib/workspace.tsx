@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { getAnchors, getPersona, getRentBudget, getWorkplace } from "./preferences";
+import { hasUrlState, parseUrlState, writeUrlState } from "./url-state";
 
 export const COMPARE_LIMIT = 3;
 
@@ -224,6 +225,33 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     setHovered(null);
     setResetSeq((s) => s + 1);
   }, []);
+
+  // ---- URL state (TRI-97) ---------------------------------------------------
+  // Read once after hydration (the server renders an empty workspace, so a
+  // lazy initialiser would mismatch), restore selection + compare directly and
+  // re-run the question through the ONE ask path — exactly one /api/ask.
+  // Scheduled as a task so the restore is not a synchronous setState in an
+  // effect. Writes start only after the restore has been applied, so an empty
+  // first render never wipes the link the reader arrived with.
+  const urlReadyRef = useRef(false);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const s = parseUrlState(window.location.search);
+      if (hasUrlState(s)) {
+        if (s.sa2) setSelected(s.sa2);
+        if (s.compare.length >= 2) setCompare(s.compare);
+        if (s.q) ask(s.q);
+      }
+      urlReadyRef.current = true;
+    }, 0);
+    return () => clearTimeout(t);
+    // ask is stable (useCallback with no deps); this runs once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!urlReadyRef.current) return;
+    writeUrlState({ sa2: selected, compare: compare.length >= 2 ? compare : [], q: question });
+  }, [selected, compare, question]);
 
   const patchTurn = useCallback((key: number, patch: Partial<AnswerTurn>) => {
     setTurns((prev) => prev.map((t) => (t.key === key ? { ...t, ...patch } : t)));

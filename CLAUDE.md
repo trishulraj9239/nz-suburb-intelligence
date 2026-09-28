@@ -131,3 +131,10 @@ Note `.env.local` is gitignored — never commit secrets.
 - Phone regression: `scripts/test/_viewport.mjs` reads `NZSI_VIEWPORT=390x844`; `npm run test:phone`
   (`run-phone.mjs`) replays tri122/123/126–132/141 at phone width, 20 s apart. `npm run test:design`
   runs the whole design verify (gallery → profile → compare → property → answer).
+
+## URL state & share links (TRI-97)
+- `lib/url-state.ts`: `?sa2=` (open suburb) · `&compare=a,b,c` · `&q=` (question). Written with
+  `history.replaceState` from `lib/workspace.tsx` after the one-time restore; a link with `q` re-runs
+  the question through the SAME ask path — still exactly one `/api/ask` (tri97 asserts it).
+- **Privacy rule:** persona, budget, saved places and address pins never go in the URL. `ShareLink`
+  (top bar / You menu) copies `location.href` and nothing else.

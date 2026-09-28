@@ -449,3 +449,16 @@ inside, so colour is never the only cue.
 
 Automated: `npm run test:design` (dev server on :3000) and `npm run test:phone`.
 
+## URL state & share links (TRI-97) — manual checks
+
+| Do | Expect |
+|---|---|
+| open a suburb, add one to Compare, ask a question | the address bar reads `?sa2=…&compare=…,…&q=…` without a reload; Back does not step through each change |
+| press **Share** (top bar; inside You on phones) | "Link copied"; the clipboard holds the current URL |
+| paste that link in a fresh tab | the same suburb opens, Compare (N) is there, the question is asked ONCE and answered |
+| set a persona, budget or saved place, then look at the URL | none of them appear — ever |
+| press Home | the URL is bare again |
+| open `/?sa2=abc&compare=1,2,3,4,5` | nothing selected, no error |
+
+Automated: `node scripts/test/tri97-verify.mjs` (six checks incl. exactly one `/api/ask` on restore).
+

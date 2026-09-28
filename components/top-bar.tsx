@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useWorkspace } from "@/lib/workspace";
 import { ThemeToggle } from "./theme-toggle";
 import { AuthButton } from "./auth-button";
+import { ShareLink } from "./share-link";
 import { BudgetControl } from "./budget-control";
 import { AnchorsControl } from "./anchors-control";
 import { PersonaToggle } from "./persona-toggle";
@@ -86,6 +87,7 @@ export function TopBar() {
         <PersonaToggle />
         <AnchorsControl />
         <BudgetControl />
+        <ShareLink />
         <AuthButton />
         <ThemeToggle />
       </div>
