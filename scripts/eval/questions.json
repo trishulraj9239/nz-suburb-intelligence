@@ -465,5 +465,23 @@
       "unsupported": false,
       "minSources": 0
     }
+  },
+  {
+    "id": "q44-compare-two-addresses",
+    "question": "Compare 42 Ponsonby Road and 22 Cardiff Road Pakuranga on median rent and population.",
+    "intent": "compare",
+    "expect": {
+      "unsupported": false,
+      "minSources": 2
+    }
+  },
+  {
+    "id": "q45-compare-same-area-addresses",
+    "question": "Compare 1/22 Cardiff Road Pakuranga and 3/22 Cardiff Road Pakuranga on population.",
+    "intent": "compare",
+    "expect": {
+      "unsupported": false,
+      "minSources": 1
+    }
   }
 ]

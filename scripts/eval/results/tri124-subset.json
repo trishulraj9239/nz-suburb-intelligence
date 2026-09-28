@@ -1,0 +1,204 @@
+{
+  "base": "http://localhost:3000",
+  "judge_model": "claude-opus-4-8",
+  "providers": {
+    "anthropic": {
+      "label": "Claude Sonnet 4.6",
+      "inPerM": 3,
+      "outPerM": 15
+    },
+    "groq": {
+      "label": "Qwen 3.6 27B (Groq)",
+      "inPerM": 0.2,
+      "outPerM": 0.2
+    }
+  },
+  "questions": [
+    {
+      "id": "q44-compare-two-addresses",
+      "intent": "compare",
+      "question": "Compare 42 Ponsonby Road and 22 Cardiff Road Pakuranga on median rent and population.",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 8167,
+          "tokens_est": 176,
+          "cost_est_usd": 0.002391,
+          "n_sources": 4,
+          "n_citations": 4,
+          "values_checked": 4,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "All four figures are grounded in the rows with correct citations, and the answer includes the area-level caveat while comparing rent and population accurately."
+          },
+          "answer": "The area around 42 Ponsonby Road sits within Grey Lynn East, which has a population of 1,800 {{c1}} and a median weekly rent of $660 {{c2}} across all dwelling types. The area around 22 Cardiff Road falls within Pakuranga Central, a larger area with a population of 3,474 {{c3}} and a median weekly rent of $600 {{c4}} across all dwelling types.\n\nFrom a **Renting mode** perspective (which weights rent more heavily), Pakuranga Central's area comes in $60/week lower — a meaningful difference for a renter's budget — though these are area-level Census 2023 figures, not figures for the specific properties themselves.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "Grey Lynn East (the statistical area containing 42 Ponsonby Road, Grey Lynn, Auckland)",
+              "sa2_code": "133500",
+              "metric": "population",
+              "label": "Population",
+              "value": 1800,
+              "unit": "count",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 2,
+              "suburb": "Grey Lynn East (the statistical area containing 42 Ponsonby Road, Grey Lynn, Auckland)",
+              "sa2_code": "133500",
+              "metric": "median_rent_weekly",
+              "label": "Median weekly rent",
+              "value": 660,
+              "unit": "$/week",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 3,
+              "suburb": "Pakuranga Central (the statistical area containing 1/22 Cardiff Road, Pakuranga, Auckland)",
+              "sa2_code": "149800",
+              "metric": "population",
+              "label": "Population",
+              "value": 3474,
+              "unit": "count",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            },
+            {
+              "n": 4,
+              "suburb": "Pakuranga Central (the statistical area containing 1/22 Cardiff Road, Pakuranga, Auckland)",
+              "sa2_code": "149800",
+              "metric": "median_rent_weekly",
+              "label": "Median weekly rent",
+              "value": 600,
+              "unit": "$/week",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": true,
+          "latency_ms": 2521,
+          "tokens_est": 22,
+          "cost_est_usd": 0.0000044,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "An empty response provides no useful answer or refusal despite being given no rows."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q45-compare-same-area-addresses",
+      "intent": "compare",
+      "question": "Compare 1/22 Cardiff Road Pakuranga and 3/22 Cardiff Road Pakuranga on population.",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 6788,
+          "tokens_est": 124,
+          "cost_est_usd": 0.001623,
+          "n_sources": 1,
+          "n_citations": 1,
+          "values_checked": 1,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correctly notes both addresses share the same statistical area, cites the population with a marker, and explains no comparison is possible."
+          },
+          "answer": "Both addresses fall within the same statistical area — Pakuranga Central — so their population figures are identical. The area around both 1/22 Cardiff Road and 3/22 Cardiff Road, Pakuranga Central, has a population of 3,474 {{c1}} (Census 2023, high confidence). There is no meaningful population comparison to draw between the two addresses, as both sit within the same area and share the same area-level figure.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "Pakuranga Central (the statistical area containing 1/22 Cardiff Road, Pakuranga, Auckland)",
+              "sa2_code": "149800",
+              "metric": "population",
+              "label": "Population",
+              "value": 3474,
+              "unit": "count",
+              "source": "Census 2023",
+              "as_of": "2023-03-07",
+              "confidence": "high"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": true,
+          "latency_ms": 272,
+          "tokens_est": 21,
+          "cost_est_usd": 0.0000042000000000000004,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "An empty response provides no answer or polite decline and is unhelpful."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    }
+  ]
+}
