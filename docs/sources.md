@@ -265,6 +265,26 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
 - **Licence / attribution:** **CC BY 4.0**, attribute Toitū Te Whenua LINZ.
   - UI source-chip strings: **"NZ Building Outlines · 2026"**, **"NZ Property Boundaries · 2026"**
 
+## Address-level lookups read live (TRI-123, TRI-126) — nothing ingested
+
+- **Council hazard layers at a point** (`lib/point-hazards.ts`): one point
+  query per Auckland Council ArcGIS service (flood plain 1% AEP, overland
+  flow within 20 m, coastal inundation now/+1 m, liquefaction class), keyless,
+  CC BY 4.0, memory-cached by rounded coordinate for an hour. A failed
+  service reports "unavailable — not checked", never "outside".
+- **LINZ title & land at a point** (`lib/property-facts.ts`): NZ Property
+  Boundaries (122657) by `INTERSECTS(geom, SRID=4326;POINT(lng lat))` — note
+  the `SRID=4326;` prefix; a bare `POINT(lng lat)` is read lat-first and
+  matches nothing — then the **no-ownership** NZ Property Titles layer
+  (50804) by `title_no IN (…)`. Key `LINZ_LDS_API_KEY` server-side; ~50–300 ms
+  per call; cached an hour. Owner names live in a restricted dataset and are
+  never requested. Decision: live lookup instead of loading ~725k Auckland
+  properties into the 500 MB Supabase tier.
+- **Licence / attribution:** council layers CC BY 4.0 (Auckland Council);
+  LINZ layers CC BY 4.0 (Toitū Te Whenua LINZ). Point results are public
+  records / area-level models, never a valuation or inspection — the copy
+  says so on every surface.
+
 ## Existing sources (for completeness)
 
 | Source | Used for | Licence |

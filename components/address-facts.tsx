@@ -41,6 +41,36 @@ interface CommuteResponse {
   source: { name: string };
   retrieved_at: string;
 }
+// TRI-126 — public land records at the point (LINZ, live).
+interface PropertyUnit {
+  source_id: string;
+  title_type: string | null;
+  area_m2: number | null;
+  legal_description: string | null;
+  valuation_reference: string | null;
+  title_nos: string[];
+}
+interface PropertyTitle {
+  title_no: string;
+  type: string | null;
+  status: string | null;
+  issue_date: string | null;
+  estate_description: string | null;
+}
+interface PropertyFactsResponse {
+  units: PropertyUnit[];
+  titles: PropertyTitle[];
+  source: string;
+  licence: string;
+  retrieved_at: string;
+  unavailable?: string;
+}
+const TITLE_TYPE_NOTE: Record<string, string> = {
+  Freehold: "Fee simple: the owner holds the land and buildings outright.",
+  "Cross lease": "Owners jointly own the land and lease their own flat's footprint from each other; changes to the building can need the other lessees' consent.",
+  "Unit Title": "Ownership of a unit within a body corporate development, with shared common property and body corporate rules and levies.",
+  Leasehold: "The land is leased from a separate owner for a term; ground rent applies and the lease has an expiry.",
+};
 
 const STATUS_WORDS: Record<string, string> = {
   inside: "inside",
@@ -127,12 +157,90 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
 
   const hazards = hz.key === key ? hz.r : null;
 
+  // TRI-126 — title & land from LINZ (live, cached server-side).
+  const [pf, setPf] = useState<{ key: string; r: PropertyFactsResponse | null | "error" }>({ key: "", r: null });
+  useEffect(() => {
+    let stale = false;
+    setPf({ key, r: null });
+    fetch(`/api/property-facts?lng=${pin.lng}&lat=${pin.lat}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+      .then((r: PropertyFactsResponse) => {
+        if (!stale) setPf({ key, r });
+      })
+      .catch(() => {
+        if (!stale) setPf({ key, r: "error" });
+      });
+    return () => {
+      stale = true;
+    };
+  }, [key, pin.lng, pin.lat]);
+  const property = pf.key === key ? pf.r : null;
+
   return (
     <section data-testid="address-facts" className="rounded-md border border-hairline bg-canvas/60 p-3">
       <h3 className="font-display text-xs font-semibold uppercase tracking-wider text-ink/60">
         At this address
         <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">point checks · not a property assessment</span>
       </h3>
+
+      <h4 className="mt-2 text-[11px] font-medium uppercase tracking-wider text-ink/45">Title &amp; land — LINZ public records</h4>
+      {property === null && <p className="py-1 text-xs text-ink/50">Reading the LINZ land records…</p>}
+      {(property === "error" || (property && property.unavailable)) && (
+        <p className="py-1 text-xs text-ink/60" data-testid="property-unavailable">
+          LINZ could not be reached — the title was not checked.
+        </p>
+      )}
+      {property && property !== "error" && !property.unavailable && property.units.length === 0 && (
+        <p className="py-1 text-xs text-ink/60" data-testid="property-none">
+          No rating unit or title is linked to this point in LINZ&apos;s public records.
+        </p>
+      )}
+      {property && property !== "error" && !property.unavailable && property.units.length > 0 && (
+        <div data-testid="property-facts">
+          {property.units.map((u) => (
+            <div key={u.source_id} className="border-b border-hairline/60 py-1.5 last:border-b-0">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-sm text-ink/80">Title type</span>
+                <span className="font-mono text-sm font-medium text-ink" data-testid="title-type">{u.title_type ?? "—"}</span>
+              </div>
+              {u.title_type && TITLE_TYPE_NOTE[u.title_type] && (
+                <p className="mt-0.5 text-[10px] leading-snug text-ink/50">{TITLE_TYPE_NOTE[u.title_type]}</p>
+              )}
+              {u.area_m2 != null && (
+                <div className="mt-1 flex items-baseline justify-between gap-2">
+                  <span className="text-sm text-ink/80">Rating unit land area</span>
+                  <span className="font-mono text-sm font-medium text-ink">{u.area_m2.toLocaleString()} m²</span>
+                </div>
+              )}
+              {u.legal_description && (
+                <p className="mt-1 text-[11px] leading-snug text-ink/60">
+                  <span className="text-ink/45">Legal description</span> {u.legal_description}
+                </p>
+              )}
+            </div>
+          ))}
+          {property.titles.map((t) => (
+            <div key={t.title_no} className="py-1.5 text-[11px] leading-snug text-ink/65">
+              <span className="font-mono text-ink/80">Title {t.title_no}</span>
+              {t.type ? ` · ${t.type}` : ""}
+              {t.issue_date ? ` · issued ${t.issue_date}` : ""}
+              {t.status && t.status !== "LIVE" ? ` · ${t.status.toLowerCase()}` : ""}
+              {t.estate_description &&
+                t.estate_description.split(/\r?\n/).map((line, i) => (
+                  <span key={i} className="block text-ink/55">
+                    {line}
+                  </span>
+                ))}
+            </div>
+          ))}
+          <p className="mt-1 text-[10px] leading-snug text-ink/50">
+            Public records about the land, not a valuation or an inspection. Ownership is not public data — a lawyer can obtain the full title.
+          </p>
+          <div className="mt-1 flex justify-end">
+            <Provenance source="LINZ Property Boundaries + Titles" asOf={property.retrieved_at.slice(0, 10)} confidence="high" />
+          </div>
+        </div>
+      )}
 
       <h4 className="mt-2 text-[11px] font-medium uppercase tracking-wider text-ink/45">Council hazard layers at this point</h4>
       {hazards === null && <p className="py-1 text-xs text-ink/50">Checking the council layers…</p>}

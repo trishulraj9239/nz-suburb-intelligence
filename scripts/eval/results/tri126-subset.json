@@ -1,0 +1,239 @@
+{
+  "base": "http://localhost:3000",
+  "judge_model": "claude-opus-4-8",
+  "providers": {
+    "anthropic": {
+      "label": "Claude Sonnet 4.6",
+      "inPerM": 3,
+      "outPerM": 15
+    },
+    "groq": {
+      "label": "Qwen 3.6 27B (Groq)",
+      "inPerM": 0.2,
+      "outPerM": 0.2
+    }
+  },
+  "questions": [
+    {
+      "id": "q46-address-title",
+      "intent": "lookup",
+      "question": "What type of title does 42 Ponsonby Road have, and how big is the section?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 7547,
+          "tokens_est": 179,
+          "cost_est_usd": 0.002457,
+          "n_sources": 8,
+          "n_citations": 5,
+          "values_checked": 1,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 4,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 4,
+            "concise": 4,
+            "overall": 5,
+            "note": "Accurately reports freehold title and both land-area figures with correct citations, sensibly noting the minor discrepancy and ownership caveat; the hazard caveat is superfluous but harmless."
+          },
+          "answer": "According to LINZ public records, 42 Ponsonby Road, Grey Lynn holds a **Freehold** (Fee Simple) title {{c6}}, with title number 932002 issued on 26 February 2020 {{c8}}. The legal description covers three lots — Lot 13, Lot 14, and Lot 15, Section 1, Deposited Plan 242 {{c6}}. The title records a land area of 1,341 m² {{c8}}, while the rating unit land area is recorded as 1,362 m² {{c7}} — a minor difference likely reflecting different measurement methods. Ownership is not part of the public LINZ data used here.\n\nArea-level model — not a property assessment. Check the council Flood Viewer and a LIM report for any specific property.",
+          "sources": [
+            {
+              "n": 1,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_flood",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: flood plain (one-percent annual-exceedance event) (2026 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 2,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_overland",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: overland flow path (within twenty metres) (2026 council layer) — within twenty metres (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 1,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 3,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_coastal",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: coastal inundation (one-percent annual-exceedance event, present-day sea level) (2025 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 4,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_coastal_slr1m",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: coastal inundation (one-percent annual-exceedance event, plus one metre of sea-level rise) (2025 council layer) — outside (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 0,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 5,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "point_liquefaction",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: liquefaction vulnerability class (2022 council layer) — Very Low Liquefaction Vulnerability (point check on the council's own layer; area-level model, not a property assessment)",
+              "value": 1,
+              "unit": null,
+              "source": "Auckland Council open data (CC BY 4.0)",
+              "as_of": "2026-09-27",
+              "confidence": "medium"
+            },
+            {
+              "n": 6,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "record_title_type",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: title type Freehold, legal description Lot 13 Sec 1 DP 242, Lot 14 Sec 1 DP 242, Lot 15 Sec 1 DP 242 (LINZ public record about the land, not a valuation)",
+              "value": 0,
+              "unit": null,
+              "source": "Toitū Te Whenua LINZ · NZ Property Boundaries + NZ Property Titles (no ownership)",
+              "as_of": "2026-09-27",
+              "confidence": "high"
+            },
+            {
+              "n": 7,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "record_area",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: rating unit land area (LINZ public record)",
+              "value": 1362,
+              "unit": "m²",
+              "source": "Toitū Te Whenua LINZ · NZ Property Boundaries + NZ Property Titles (no ownership)",
+              "as_of": "2026-09-27",
+              "confidence": "high"
+            },
+            {
+              "n": 8,
+              "suburb": "42 Ponsonby Road, Grey Lynn, Auckland",
+              "sa2_code": "133500",
+              "metric": "record_title",
+              "label": "At 42 Ponsonby Road, Grey Lynn, Auckland: title 932002 — Freehold, issued 2020-02-26; estate: Fee Simple, 1/1, Lot 13-15 Section 1 Deposited Plan 242, 1,341 m2 (LINZ public record; ownership not public)",
+              "value": 0,
+              "unit": null,
+              "source": "Toitū Te Whenua LINZ · NZ Property Boundaries + NZ Property Titles (no ownership)",
+              "as_of": "2026-09-27",
+              "confidence": "high"
+            }
+          ]
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": false,
+          "source_match": false,
+          "latency_ms": 349,
+          "tokens_est": 19,
+          "cost_est_usd": 0.0000038000000000000005,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "An empty response provides no answer at all, failing to decline politely or convey any information."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q47-address-value-trap",
+      "intent": "unsupported",
+      "question": "What is 42 Ponsonby Road worth?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 2285,
+          "tokens_est": 89,
+          "cost_est_usd": 0.001239,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correctly declines a per-property valuation it cannot provide and clearly states its supported data domains."
+          },
+          "answer": "I can't answer that with the data I have. House valuations and sale prices are not supported. I cover Auckland suburbs: census demographics and housing, annual population estimates to June 2025, NZDep deprivation, schools, typical drive/cycle/walk times (no public transport times yet), and council hazard and zoning layers.",
+          "sources": []
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 221,
+          "tokens_est": 8,
+          "cost_est_usd": 0.0000016000000000000001,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "An empty response provides no answer, decline, or useful information at all."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    }
+  ]
+}

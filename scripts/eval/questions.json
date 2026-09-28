@@ -483,5 +483,24 @@
       "unsupported": false,
       "minSources": 1
     }
+  },
+  {
+    "id": "q46-address-title",
+    "question": "What type of title does 42 Ponsonby Road have, and how big is the section?",
+    "intent": "lookup",
+    "expect": {
+      "unsupported": false,
+      "minSources": 1,
+      "sourceIncludes": "LINZ"
+    }
+  },
+  {
+    "id": "q47-address-value-trap",
+    "question": "What is 42 Ponsonby Road worth?",
+    "intent": "unsupported",
+    "expect": {
+      "unsupported": true,
+      "minSources": 0
+    }
   }
 ]
