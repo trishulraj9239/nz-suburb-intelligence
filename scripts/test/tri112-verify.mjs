@@ -1,8 +1,9 @@
 import { chromium } from "playwright-core";
+import { BASE_URL, launchOptions } from "./_harness.mjs";
 const fail=(m)=>{throw new Error("FAIL: "+m)};
-const b=await chromium.launch({channel:"msedge",headless:true});
+const b=await chromium.launch(launchOptions());
 const p=await b.newPage({viewport:{width:1440,height:900}});
-await p.goto("http://localhost:3000",{waitUntil:"networkidle"});
+await p.goto(BASE_URL,{waitUntil:"networkidle"});
 await p.waitForTimeout(2500);
 await p.getByRole("button",{name:"Ponsonby West",exact:true}).first().click();
 const panel=p.locator("aside").last();

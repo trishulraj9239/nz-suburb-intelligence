@@ -1,11 +1,11 @@
 /** TRI-128 — Unitary Plan overlays at the pin: one row per overlay, decoded
  *  council names on hits, chapter link, descriptive wording only. */
 import { chromium } from "playwright-core";
-import { viewport } from "./_viewport.mjs";
+import { BASE_URL, launchOptions, viewport } from "./_harness.mjs";
 const fail = (m) => { throw new Error("FAIL: " + m); };
-const b = await chromium.launch({ channel: "msedge", headless: true });
+const b = await chromium.launch(launchOptions());
 const page = await b.newPage({ viewport: viewport() });
-await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+await page.goto(BASE_URL, { waitUntil: "networkidle" });
 await page.waitForTimeout(2500);
 
 await page.getByLabel("Find a suburb or address").fill("42 Ponsonby Rd");

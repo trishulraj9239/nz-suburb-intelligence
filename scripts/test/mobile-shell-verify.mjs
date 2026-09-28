@@ -2,13 +2,14 @@
  *  ARIA tabs, keyboard sheet, Layers dock, unclipped search, no overlay
  *  collisions, no horizontal scroll, starter chips inside the sheet. */
 import { chromium } from "playwright-core";
+import { BASE_URL, launchOptions } from "./_harness.mjs";
 const fail = (m) => { throw new Error("FAIL: " + m); };
-const b = await chromium.launch({ channel: process.env.PW_CHANNEL || "msedge", headless: true });
+const b = await chromium.launch(launchOptions());
 
 for (const scheme of ["light", "dark"]) {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, colorScheme: scheme, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
-  await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+  await page.goto(BASE_URL, { waitUntil: "networkidle" });
   await page.waitForTimeout(2500);
 
   // Theme follows the OS.

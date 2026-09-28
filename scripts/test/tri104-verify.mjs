@@ -1,9 +1,10 @@
 /** TRI-104 Results tab + TRI-89 intent-driven map choreography. */
 import { chromium } from "playwright-core";
+import { BASE_URL, launchOptions } from "./_harness.mjs";
 const fail = (m) => { throw new Error(`FAIL: ${m}`); };
-const browser = await chromium.launch({ channel: "msedge", headless: true });
+const browser = await chromium.launch(launchOptions());
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+await page.goto(BASE_URL, { waitUntil: "networkidle" });
 await page.waitForTimeout(2500);
 const askBox = page.getByLabel("Ask about Auckland suburbs");
 
