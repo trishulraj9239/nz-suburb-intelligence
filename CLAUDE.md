@@ -82,3 +82,17 @@ Note `.env.local` is gitignored — never commit secrets.
   and a median tick (`lib/viz/scale.ts`); `judged` picks harbour vs ink for the marker, never good/bad.
 - Gallery at `/dev/primitives` (404 in production); `node scripts/test/tri-design-verify.mjs`
   asserts labels, hatch, outlines, 4.5:1 text / 3:1 marks in both themes, and the 12 px floor.
+
+## Profile on the kit (TRI-148)
+- `components/profile-panel.tsx` is composition only: AddressFacts → banner → `ProfileHeader` →
+  `KpiCards` → six `SectionCard`s in persona order → `SchoolsCard`. `lib/sections.ts` maps registry
+  dimensions onto cards (People absorbs Deprivation; unclaimed dimensions render as a `GenericCard`,
+  never hidden) and lists `EXPECTED_ROWS` that draw a hatched track when the source suppressed them.
+- `components/profile/rows.tsx`: `ScalarRow` (bullet on the regional axis + trend + percentile note +
+  chip), `Trend` (Sparkline past the history gate, SlopeChart for census vintages, words for NZDep),
+  `BreakdownBlock` (Stacked100 with the Auckland reference from `fetchRegionalBreakdown()`, MultiBars
+  for ethnicity). Chips hoist to the card header when every row shares a source (`hoistChip`).
+- Getting around = one DotPlot (CBD / Airport / saved places via `lib/use-anchor-commute.ts`, one hook
+  for the list); no places → hatched row + "Add a place" (dispatches `nzsi:open-places`).
+- Hazards keep the countable badge sentence, per-row "Auckland median X", the verbatim caveat, and the
+  neutral ramp. Verify: the profile section of `tri-design-verify.mjs` + tri106/112/122–133/141.

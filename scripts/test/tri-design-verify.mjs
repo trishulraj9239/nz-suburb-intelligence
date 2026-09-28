@@ -1,6 +1,7 @@
 /** TRI-147 — the primitives gallery at 390 and 1440: every primitive labelled
  *  with its status, hatched full-length empty states, outlined estimates,
- *  3:1 marks / 4.5:1 text in both themes, nothing under 12 px. */
+ *  3:1 marks / 4.5:1 text in both themes, nothing under 12 px.
+ *  TRI-148 — then the Profile on the kit (six persona-ordered cards). */
 import { chromium } from "playwright-core";
 const fail = (m) => { throw new Error("FAIL: " + m); };
 const b = await chromium.launch({ channel: process.env.PW_CHANNEL || "msedge", headless: true });
@@ -139,4 +140,65 @@ for (const width of [390, 1440]) {
 }
 
 console.log("\nPASS — primitives gallery");
+
+// ---------------------------------------------------------------------------
+// TRI-148 — the Profile on the kit: six cards in persona order, each with a
+// hidden sr-table; every drawn row is a labelled role=img; the hazard badge
+// and "Auckland median" facts survive; screenshots at 1440 and 390 (sheet
+// full), both themes.
+// ---------------------------------------------------------------------------
+const RENTER_ORDER = ["card-housing", "card-commute", "card-people", "card-hazards", "card-planning", "card-schools"];
+const BUYER_ORDER = ["card-housing", "card-planning", "card-hazards", "card-people", "card-commute", "card-schools"];
+for (const [width, theme] of [[1440, "light"], [1440, "dark"], [390, "light"], [390, "dark"]]) {
+  const ctx = await b.newContext({ viewport: { width, height: width === 390 ? 844 : 900 } });
+  await ctx.addInitScript((t) => localStorage.setItem("theme", t), theme);
+  const page = await ctx.newPage();
+  await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+  await page.waitForTimeout(1500);
+  await page.getByRole("button", { name: "Ponsonby West", exact: true }).first().click();
+  const panel = page.locator("aside").last();
+  for (let i = 0; i < 40; i++) { if ((await panel.locator("[data-testid=card-schools]").count()) > 0) break; await page.waitForTimeout(500); }
+  await page.waitForTimeout(1200);
+  if (width === 390) { await page.getByRole("slider").first().focus(); await page.keyboard.press("End"); await page.waitForTimeout(600); }
+
+  const cards = await panel.locator("[data-testid^=card-]").evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
+  if (cards.join() !== RENTER_ORDER.join()) fail(`[${width} ${theme}] renter card order ${cards.join(",")}`);
+  const srTables = await panel.locator("[data-testid^=card-] [data-testid=sr-table]").count();
+  if (srTables < 5) fail(`[${width} ${theme}] expected an sr-table on each metric card, got ${srTables}`);
+  // Every drawn row carries exactly one labelled role=img (the kpi cards and breakdown blocks too).
+  const rowImgs = await panel.locator("[data-testid^=row-]").evaluateAll((els) => els.map((e) => ({ id: e.getAttribute("data-testid"), imgs: e.querySelectorAll("[role=img]").length, labelled: [...e.querySelectorAll("[role=img]")].every((i) => (i.getAttribute("aria-label") || "").length > 4) })));
+  if (rowImgs.length < 12) fail(`[${width} ${theme}] too few metric rows: ${rowImgs.length}`);
+  for (const r of rowImgs) { if (r.imgs < 1) fail(`[${width} ${theme}] ${r.id} draws nothing`); if (!r.labelled) fail(`[${width} ${theme}] ${r.id} has an unlabelled primitive`); }
+  const text = await panel.innerText();
+  if (!/\d+ of \d+ layers? above the Auckland median/.test(text)) fail(`[${width} ${theme}] hazard countable fact missing`);
+  if ((text.match(/Auckland median/g) || []).length < 8) fail(`[${width} ${theme}] too few Auckland-median references`);
+  if (!/Area-level model — not a property assessment/.test(text)) fail(`[${width} ${theme}] hazard caveat missing`);
+  if (!/percentile of Auckland/.test(text)) fail(`[${width} ${theme}] no percentile headline`);
+  if (!/typical · no live traffic/.test(text)) fail(`[${width} ${theme}] commute framing missing`);
+  if ((await panel.locator("[title^='Confidence:']").count()) < 6) fail(`[${width} ${theme}] quality marks missing`);
+  // Phone: nothing under 12 px, and the sheet body never scrolls sideways.
+  if (width === 390) {
+    const small = await panel.evaluate((el) => [...el.querySelectorAll("*")].filter((n) => [...n.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim()) && parseFloat(getComputedStyle(n).fontSize) < 12 && !n.closest("svg")).length);
+    if (small > 0) fail(`[390 ${theme}] ${small} text nodes under 12px in the profile`);
+    const wide = await panel.evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+    if (wide) fail(`[390 ${theme}] profile scrolls horizontally`);
+  }
+  await page.screenshot({ path: `shots/profile-${width}-${theme}.png` });
+  await panel.locator("[data-testid=card-hazards]").evaluate((el) => el.scrollIntoView());
+  await page.screenshot({ path: `shots/profile-${width}-${theme}-hazards.png` });
+  console.log(`[${width} ${theme}] profile: 6 cards in renter order · ${srTables} sr-tables · ${rowImgs.length} rows drawn+labelled · badge + caveat + medians ✓`);
+
+  // Buyer persona re-orders the cards (desktop only — the toggle lives in the You menu on phones).
+  if (width === 1440 && theme === "light") {
+    await page.getByText("Buying", { exact: true }).click();
+    await page.waitForTimeout(1500);
+    const after = await panel.locator("[data-testid^=card-]").evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
+    if (after.join() !== BUYER_ORDER.join()) fail(`buyer card order ${after.join(",")}`);
+    console.log("[1440 light] buyer persona re-orders the cards ✓");
+    await page.getByText("Renting", { exact: true }).click();
+  }
+  await ctx.close();
+}
+console.log("\nPASS — profile on the kit");
+
 await b.close();

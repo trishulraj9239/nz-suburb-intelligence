@@ -46,7 +46,7 @@ export function shortSource(source: string): string {
 }
 
 /** Quarter-start dates (the MBIE bond series) label as "2026 Q1"; all other vintages stay year-only. */
-function asOfLabel(asOf: string): string {
+export function asOfLabel(asOf: string): string {
   const m = asOf.match(/^(\d{4})-(01|04|07|10)-01$/);
   return m ? `${m[1]} Q${{ "01": 1, "04": 2, "07": 3, "10": 4 }[m[2]]}` : asOf.slice(0, 4);
 }
@@ -61,18 +61,21 @@ export function SourceChip({
   asOf,
   quality,
   geometry,
+  asOfText,
   className = "",
 }: {
   source: string;
   asOf: string;
   quality?: Quality | Status;
   geometry?: Geometry;
+  /** Override the vintage text, e.g. a range "2025–2026" when a hoisted chip spans several layer dates. */
+  asOfText?: string;
   className?: string;
 }) {
   return (
-    <span className={`inline-flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-mono text-micro text-ink/55 ${className}`}>
-      <span>
-        {shortSource(source)} · {asOfLabel(asOf)}
+    <span className={`inline-flex min-w-0 max-w-full flex-wrap items-center justify-end gap-x-1.5 gap-y-0.5 font-mono text-micro text-ink/55 ${className}`}>
+      <span className="min-w-0 text-right">
+        {shortSource(source)} · {asOfText ?? asOfLabel(asOf)}
         {geometry && <span className="text-ink/70"> · {geometry}</span>}
       </span>
       {quality && <QualityMark status={quality} />}

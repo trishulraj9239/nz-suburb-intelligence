@@ -28,8 +28,8 @@ export function LayerBullets({
   });
   return (
     <div className={className}>
-      <p className="mb-1.5 inline-flex items-center gap-1.5 rounded-chip border border-hairline bg-canvas px-2 py-0.5 font-mono text-micro text-ink/80" data-testid="hazard-count">
-        <span className="font-semibold text-ink">{above}</span> of {judged.length} layers above the Auckland median
+      <p className="mb-1.5 inline-block rounded-chip border border-hairline bg-canvas px-2 py-0.5 font-mono text-micro font-medium text-ink/85" data-testid="hazard-count">
+        {`${above} of ${judged.length} ${judged.length === 1 ? "layer" : "layers"} above the Auckland median`}
       </p>
       <div role="img" aria-label={aria} className="flex flex-col gap-1.5">
         {layers.map((l) => (

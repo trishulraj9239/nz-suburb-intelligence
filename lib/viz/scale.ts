@@ -48,6 +48,7 @@ export function percentilePosition(v: number, stat: RegionalStat): number {
  */
 export function axisDomain(stat: RegionalStat): [number, number] {
   const iqr = stat.p75 - stat.p25;
+  if (iqr <= 0) return stat.max > stat.min ? [stat.min, stat.max] : [stat.min, stat.min + 1];
   return [Math.max(stat.min, stat.p25 - 1.5 * iqr), Math.min(stat.max, stat.p75 + 1.5 * iqr)];
 }
 

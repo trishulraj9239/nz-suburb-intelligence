@@ -16,6 +16,8 @@ export const COMPOSITION_ORDER: Record<string, string[]> = {
   dwelling_type: ["Separate house", "Joined dwelling", "Other private dwelling"],
   bedrooms: ["One bedroom", "Two bedrooms", "Three bedrooms", "Four bedrooms", "Five or more bedrooms"],
   zoning_share: [],
+  // Calibrated 5-class liquefaction vulnerability (TRI-68), least to most vulnerable.
+  liquefaction_share: ["Very low", "Low", "Medium", "High", "Very high", "Undetermined", "Unclassified"],
 };
 
 export function orderCategories<T extends { label: string }>(key: string, cats: T[]): T[] {

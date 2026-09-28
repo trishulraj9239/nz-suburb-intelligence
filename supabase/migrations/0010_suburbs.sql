@@ -44,6 +44,9 @@ alter table suburbs    enable row level security;
 alter table suburb_sa2 enable row level security;
 create policy "public read" on suburbs    for select to anon, authenticated using (true);
 create policy "public read" on suburb_sa2 for select to anon, authenticated using (true);
+-- RLS gates rows but PostgREST also needs the role GRANT (the 0001 gotcha):
+-- without it anon reads fail 42501 → HTTP 401. Applied live 2026-09-28 (TRI-148).
+grant select on suburbs, suburb_sa2 to anon, authenticated;
 
 -- --------------------------------------------------------------------------
 -- resolve_suburb — name or alias → the SA2s it covers, best suburb first,

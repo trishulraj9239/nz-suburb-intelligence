@@ -37,6 +37,8 @@ export function DotPlot({
     tag?: string;
     status?: Status;
     reason?: string;
+    /** Still routing — a plain track and an ellipsis, never a misleading empty state. */
+    pending?: boolean;
     dots: { mode: Mode; min: number | null; status: Status; medianMin?: number }[];
   }[];
   maxMin?: number;
@@ -70,7 +72,12 @@ export function DotPlot({
                 </span>
               )}
             </span>
-            {empty ? (
+            {r.pending ? (
+              <div role="img" aria-label={`${r.label}, loading`} className="flex items-center gap-2">
+                <span className="block h-px min-w-0 flex-1 bg-hairline" />
+                <span className="font-mono text-micro text-ink/45">…</span>
+              </div>
+            ) : empty ? (
               <EmptyTrack status={r.status!} reason={r.reason} label={r.label} />
             ) : (
               <div className="flex items-center gap-2">

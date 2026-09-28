@@ -381,3 +381,66 @@ export function formatValue(def: MetricDef, v: number): string {
   if (def.unit === "score") return `${Math.round(v)}`;
   return Math.round(v).toLocaleString();
 }
+
+/**
+ * TRI-148 — the Auckland-wide composition of one breakdown metric (tenure,
+ * dwelling types, bedrooms, ethnicity, zoning), for the thin reference bar
+ * under a suburb's Stacked100 / the tick on MultiBars. Category counts are
+ * summed across every active SA2 at the latest vintage and expressed as a
+ * share of the summed "Total stated" — the same arithmetic the suburb bar
+ * uses, so the two bars are comparable. Read-only, paginated (PostgREST caps
+ * a page at 1,000 rows), cached for the session.
+ */
+export interface RegionalBreakdown {
+  metric_key: string;
+  asOf: string;
+  categories: { label: string; pct: number }[];
+}
+
+const breakdownRefCache = new Map<string, Promise<RegionalBreakdown | null>>();
+export function fetchRegionalBreakdown(metricKey: string): Promise<RegionalBreakdown | null> {
+  const hit = breakdownRefCache.get(metricKey);
+  if (hit) return hit;
+  const p = (async () => {
+    const supabase = createClient();
+    const { data: latestRows, error: e0 } = await supabase
+      .from("metric_values")
+      .select("as_of_date, metric_definitions!inner(metric_key)")
+      .eq("metric_definitions.metric_key", metricKey)
+      .not("category", "is", null)
+      .order("as_of_date", { ascending: false })
+      .limit(1);
+    if (e0) throw e0;
+    const latest = latestRows?.[0]?.as_of_date as string | undefined;
+    if (!latest) return null;
+    const sums = new Map<string, number>();
+    let total = 0;
+    const PAGE = 1000;
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase
+        .from("metric_values")
+        .select("category, value_num, geographies!inner(is_active), metric_definitions!inner(metric_key)")
+        .eq("metric_definitions.metric_key", metricKey)
+        .eq("geographies.is_active", true)
+        .eq("as_of_date", latest)
+        .not("category", "is", null)
+        .not("value_num", "is", null)
+        .range(from, from + PAGE - 1);
+      if (error) throw error;
+      for (const r of data ?? []) {
+        const v = Number(r.value_num);
+        if (r.category === "Total stated" || r.category === "Total") total += v;
+        else sums.set(r.category!, (sums.get(r.category!) ?? 0) + v);
+      }
+      if (!data || data.length < PAGE) break;
+    }
+    if (!total) return null;
+    return {
+      metric_key: metricKey,
+      asOf: latest,
+      categories: [...sums].map(([label, count]) => ({ label, pct: (count / total) * 100 })).sort((a, b) => b.pct - a.pct),
+    };
+  })();
+  breakdownRefCache.set(metricKey, p);
+  return p;
+}

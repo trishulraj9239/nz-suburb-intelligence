@@ -57,8 +57,14 @@ body {
 /* A data table that exists for assistive tech only (each section card ships
    one beside its charts). */
 .sr-only-table {
+  /* display:block so the 1px width applies to a <table> too (tables otherwise
+     expand to content width and stretch a scroll container sideways). */
+  display: block;
   position: absolute;
+  left: 0;
+  top: 0;
   width: 1px;
+  max-width: 1px;
   height: 1px;
   padding: 0;
   margin: -1px;
