@@ -4,6 +4,38 @@ import { ContextPanel } from "@/components/context-panel";
 import { AnswerStrip } from "@/components/answer-strip";
 import { QuestionChips } from "@/components/question-chips";
 import { WorkspaceProvider } from "@/lib/workspace";
+import type { Metadata } from "next";
+import { buildSearch, hasUrlState, parseUrlState } from "@/lib/url-state";
+import { shareCard } from "@/lib/share-card";
+
+/**
+ * TRI-153 — a pasted link previews honestly: the title, description and OG
+ * image come from the URL state (suburb / compare / question) and from the
+ * same public rows the profile shows. Preferences are not in the URL, so they
+ * cannot reach a preview. No state → the plain product card.
+ */
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }): Promise<Metadata> {
+  const sp = await searchParams;
+  const qs = new URLSearchParams();
+  for (const k of ["sa2", "compare", "q"]) {
+    const v = sp[k];
+    if (typeof v === "string") qs.set(k, v);
+  }
+  const state = parseUrlState(`?${qs.toString()}`);
+  const image = `/api/og${buildSearch(state)}`;
+  if (!hasUrlState(state)) {
+    return { openGraph: { images: [{ url: image, width: 1200, height: 630 }] }, twitter: { card: "summary_large_image", images: [image] } };
+  }
+  const card = await shareCard(state).catch(() => null);
+  const title = card ? (card.kind === "question" ? `“${card.title}” — NZ Suburb Intelligence` : `${card.title} — NZ Suburb Intelligence`) : "NZ Suburb Intelligence";
+  const description = card?.subtitle ?? "Natural-language suburb comparison over New Zealand open government data.";
+  return {
+    title,
+    description,
+    openGraph: { title, description, images: [{ url: image, width: 1200, height: 630, alt: title }] },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
+  };
+}
 
 /**
  * Single-workspace layout (UI spec decision #1). Desktop: persistent map left,

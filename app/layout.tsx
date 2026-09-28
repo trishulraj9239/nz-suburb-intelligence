@@ -28,6 +28,8 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  // TRI-153 — absolute URLs for OG images; override per deployment with NEXT_PUBLIC_SITE_URL.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "https://nz-suburb-intelligence.vercel.app")),
   title: "NZ Suburb Intelligence",
   description: "Natural-language suburb comparison over New Zealand open government data.",
   manifest: "/manifest.webmanifest",
