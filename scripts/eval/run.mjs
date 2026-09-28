@@ -32,7 +32,7 @@ const PROVIDERS = ["anthropic", "groq"];
 // placeholder — verify against Groq's current pricing (free tier ≈ $0).
 const PRICING = {
   anthropic: { label: "Claude Sonnet 4.6", inPerM: 3, outPerM: 15 },
-  groq: { label: "Qwen 3.6 27B (Groq)", inPerM: 0.2, outPerM: 0.2 },
+  groq: { label: "Qwen 3.8 27B (Groq)", inPerM: 0.2, outPerM: 0.2 },
 };
 
 const CITE = /\{\{c(\d+)\}\}/g;
