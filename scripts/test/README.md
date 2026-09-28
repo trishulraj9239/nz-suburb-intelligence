@@ -23,6 +23,7 @@ node scripts/test/tri128-verify.mjs     # Unitary Plan overlays at the pin: ten 
 node scripts/test/tri129-verify.mjs     # extended hazards at the pin: flood prone depth, landslide susceptibility wording, ASCIE lines, tsunami zone, HAIL gap + map links
 node scripts/test/tri130-verify.mjs     # this block (SA1) beside this suburb: Census 2023 + NZDep2023, suppression as 'not published', no verdicts
 node scripts/test/tri131-verify.mjs     # nearby from the pin: nearest park, RTN stop, schools by level — straight-line, 'not necessarily zoned', derived
+node scripts/test/tri100-verify.mjs     # polish: '/' focuses the ask box, legend quintile breaks + no-data hatch layer, Compare CSV with provenance, reduced motion = no map animation
 node scripts/test/tri141-verify.mjs     # shortlist UI: several pins on the map, address-headed compare columns, same-area note, per-address facts side by side
 node scripts/test/mobile-shell-verify.mjs  # TRI-145 A: phone shell at 390×844 in light + dark — one-row header, You menu, slider sheet, tablist, Layers dock, combobox, 12px floor
 node scripts/test/tri-design-verify.mjs    # TRI-147..151: primitives gallery, Profile, Compare, property panel, answer surfaces — 390 + 1440, light + dark (`npm run test:design`)

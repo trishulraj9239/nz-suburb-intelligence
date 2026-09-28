@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWorkspace } from "@/lib/workspace";
 import { ThemeToggle } from "./theme-toggle";
 import { AuthButton } from "./auth-button";
@@ -21,6 +21,20 @@ const DEFAULT_QUERY = "Cheapest rent near Takapuna?";
 export function TopBar() {
   const { ask, reset } = useWorkspace();
   const [query, setQuery] = useState(DEFAULT_QUERY);
+  // TRI-100 — "/" focuses the ask box from anywhere that isn't already a field.
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      e.preventDefault();
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
     <header className="flex min-h-14 shrink-0 items-center gap-2 border-b border-hairline bg-surface px-3 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] sm:gap-3 sm:px-4">
@@ -58,12 +72,13 @@ export function TopBar() {
       >
         <div className="relative w-full">
           <input
+            ref={inputRef}
             type="text"
             name="q"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Ask about Auckland suburbs"
-            placeholder="Ask about a suburb…  e.g. “cheapest rent near Takapuna?”"
+            placeholder="Ask about a suburb…  e.g. “cheapest rent near Takapuna?”  (press / to focus)"
             maxLength={500}
             className="h-10 w-full rounded-control border border-hairline bg-canvas pl-3 pr-10 text-body text-ink placeholder:text-ink/40 focus:border-harbour focus:outline-none"
           />

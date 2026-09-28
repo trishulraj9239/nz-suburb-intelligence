@@ -21,6 +21,32 @@ import { AddressFactsPager } from "./address-facts-pager";
 
 const TRAVEL_KEYS = new Set(["commute_cbd_drive_min", "commute_cbd_cycle_min", "commute_cbd_walk_min", "commute_airport_drive_min"]);
 
+/**
+ * TRI-100 — the comparison as CSV, provenance travelling with every row:
+ * metric, unit, one value column per suburb, then source · as-of · confidence
+ * per suburb. Never a computed score; never a preference. Client-side only.
+ */
+function downloadCsv(profiles: SuburbProfile[], defs: MetricDef[]) {
+  const q = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const names = profiles.map((p) => p.suburb.name);
+  const head = ["metric", "unit", ...names, ...names.flatMap((n) => [`${n} source`, `${n} as_of`, `${n} confidence`])];
+  const lines = [head.map(q).join(",")];
+  for (const d of [...defs].sort((a, b) => a.display_order - b.display_order)) {
+    const cells = profiles.map((p) => p.scalars.find((s) => s.def.metric_key === d.metric_key));
+    lines.push([d.label, d.unit ?? "", ...cells.map((s) => (s ? s.value : "")), ...cells.flatMap((s) => (s ? [s.source, s.asOf, s.confidence] : ["", "", ""]))].map(q).join(","));
+  }
+  lines.push(["Hazard rows", "", ...profiles.map(() => HAZARD_CAVEAT)].map(q).join(","));
+  const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `nzsi-compare-${profiles.map((p) => p.suburb.sa2_code).join("-")}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 /** A share pulled from a breakdown (tenure / dwelling type) as a compare row on a 0–100 % domain. */
 function shareEntries(profiles: SuburbProfile[], key: string, label: string): Entry[] {
   return profiles.map((p, i) => {
@@ -131,6 +157,15 @@ export function ComparePanel() {
         <input type="checkbox" checked={onlyDiff} onChange={(e) => setOnlyDiff(e.target.checked)} className="h-4 w-4 accent-[var(--harbour)]" />
         Only differences
         <span className="font-mono text-micro text-ink/45">{onlyDiff ? (hiddenCount > 0 ? `${hiddenCount} similar ${hiddenCount === 1 ? "row" : "rows"} hidden` : "nothing hidden") : "hides rows within 10 percentile points"}</span>
+        <button
+          type="button"
+          onClick={() => downloadCsv(profiles, [...defs.values()])}
+          data-testid="compare-export"
+          title="Download this comparison as CSV — every row carries its source, vintage and confidence"
+          className="ml-auto inline-flex h-8 items-center rounded-control border border-hairline bg-surface px-2.5 text-micro font-medium text-ink hover:border-harbour"
+        >
+          Export CSV
+        </button>
       </label>
 
       {cards.map((card) => {
