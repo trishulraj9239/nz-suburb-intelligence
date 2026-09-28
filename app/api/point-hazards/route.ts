@@ -17,7 +17,7 @@ export const maxDuration = 60; // TRI-129 — the slow shallow-landslide phase
 const AKL = { minLng: 173.8, maxLng: 175.8, minLat: -37.4, maxLat: -35.9 };
 
 export async function GET(req: NextRequest) {
-  if (!allowRequest(clientIp(req))) {
+  if (!allowRequest(clientIp(req), "point")) {
     return Response.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
   }
   const lng = Number(req.nextUrl.searchParams.get("lng"));
