@@ -96,3 +96,29 @@ Note `.env.local` is gitignored — never commit secrets.
   for the list); no places → hatched row + "Add a place" (dispatches `nzsi:open-places`).
 - Hazards keep the countable badge sentence, per-row "Auckland median X", the verbatim caveat, and the
   neutral ramp. Verify: the profile section of `tri-design-verify.mjs` + tri106/112/122–133/141.
+
+## Compare on the kit (TRI-149)
+- `components/compare/*` (`compare-panel.tsx` re-exports): a header legend (letter A/B/C + Okabe-Ito hue
+  per suburb, address heads, remove controls), then ONE row per metric — `CompareRow` = label | `DotStrip`
+  on the shared Auckland axis | a value per suburb with its letter and best/budget badges | provenance —
+  grouped into the same persona-ordered `SectionCard`s as the Profile. No desktop/mobile co-mount.
+- `lib/compare.ts`: `entriesFor`, `bestSet` (registry direction only, never among ties), `differs`
+  (≥ 10 percentile points; travel ≥ 10 min drive / 15 min cycle-walk; a missing value always differs),
+  `sharedProvenance` (one chip when source · vintage · confidence agree, else per-suburb quality marks).
+- Getting around is flipped: rows are trips (CBD × mode, Airport, saved places via
+  `useAnchorCommutesMulti`), dots are suburbs on a 0–120 min domain. The percentile `Heatmap` is a
+  collapsed "Percentile overview" of judged metrics only — hazards, deprivation, consents never ranked.
+- Phones: `AddressFactsPager` = snap-scrolling full-width `AddressFacts` cards with a `role=tablist`
+  pager; desktop keeps the grid. Testids kept: `compare-address-facts`, `compare-address-head`,
+  `same-area-note`, one `address-facts` per pin, `Remove … from comparison`.
+
+## "This property" panel on the grammar (TRI-150)
+- `components/address-facts.tsx` re-exports `PropertyPanel` from `components/property/` — one file per
+  epistemic group (records, block-stats, plan-overlays, point-hazards, drive-times, nearby, link-outs)
+  over `lib/property/fetch.ts` (typed responses, the per-pin `cachedJson` memo, `usePointLookup`,
+  `usePointHazards` two-phase, `useDriveFromPin`) and `lib/property/copy.ts` (every fixed string,
+  verbatim — the panel's wording is frozen).
+- Grammar: six `epistemic-*` h4s at 13 px semibold in the same order; point rows carry a `StatusPill`
+  (icon + the council's own status word); every chip names its tested geometry ("address point",
+  "rating unit", "SA1 block"); links on `text-accent`; the area-level caveat still tops and foots
+  the models group. Testids unchanged (tri122–133/141 are the contract).

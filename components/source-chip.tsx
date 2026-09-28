@@ -106,8 +106,8 @@ export function ConfidenceLegend() {
 }
 
 /** Point-check status words with an icon so meaning never rests on colour (TRI-147). */
-export type PillStatus = "inside" | "within" | "outside" | "clear" | "not assessed" | "unavailable" | "pending";
-const PILL_ICON: Record<PillStatus, string> = { inside: "■", within: "◆", outside: "□", clear: "◇", "not assessed": "–", unavailable: "⋯", pending: "…" };
+export type PillStatus = "inside" | "within" | "outside" | "clear" | "not assessed" | "unavailable" | "pending" | "info";
+const PILL_ICON: Record<PillStatus, string> = { inside: "■", within: "◆", outside: "□", clear: "◇", "not assessed": "–", unavailable: "⋯", pending: "…", info: "" };
 export function StatusPill({ status, text }: { status: PillStatus; text: string }) {
   const muted = status === "unavailable" || status === "pending" || status === "not assessed";
   return (

@@ -388,3 +388,35 @@ Open a suburb (e.g. **Ponsonby West**) and read the Profile tab top to bottom.
 Automated: the profile section of `node scripts/test/tri-design-verify.mjs` (both widths, both themes,
 buyer re-order) plus tri106 / tri112 / tri122–133 / tri141.
 
+## Compare on the kit (TRI-149, design phase D) — manual checks
+
+Pin two or three suburbs with "+ Compare" (or answer a compare question) and open **Compare (N)**.
+
+| Look at | Expect |
+|---|---|
+| header | one card per suburb with its letter (A/B/C) and hue, the address head where one is pinned, CBD distance, and ✕ to remove |
+| any row | the metric label, lettered dots on the Auckland axis (grey band = interquartile range, tick = median), a value per suburb with its letter; "best" only where the registry has a direction, and never when tied; "unjudged" on deprivation, consents, hazards |
+| an estimated value | its dot is tinted, not solid, and the value carries an est./approx mark |
+| **Only differences** | rows within 10 percentile points (10 min drive / 15 min cycle-walk) disappear and the label says how many; a row where one suburb has no value never disappears |
+| Getting around | rows are trips (Drive/Cycle/Walk to CBD, Drive to Airport, your saved places), dots are suburbs on a 0–120 min axis |
+| Hazard screen | grey dots only, the verbatim caveat under the card title, no "best" |
+| Percentile overview | collapsed by default; judged metrics only, lower-is-better rows say so; hazards / deprivation / consents absent |
+| phone (390 px) | per-address facts as one full-width card at a time with a tab pager; rows stack label → strip → values; no sideways scroll |
+
+Automated: the compare section of `node scripts/test/tri-design-verify.mjs`, plus tri83 and tri141.
+
+## "This property" panel on the grammar (TRI-150, design phase E) — manual checks
+
+Search an address (e.g. **42 Ponsonby Rd**) and read the panel above the banner.
+
+| Look at | Expect |
+|---|---|
+| the six group headings | Public records about the land · This block, beside this suburb · Council plan records at this point · Area-level models at this point · Nearby, as the crow flies · Not held by this app — 13 px semibold, in that order |
+| a hazard or overlay row | the layer name, then a pill with an icon and the council's own words (inside ■ · within 20 m ◆ · outside □ · none within 20 m ◇ · not in the assessed area – · unavailable hatched · checking… …) — never a colour verdict |
+| every chip | source · vintage · **geometry** (address point / rating unit / SA1 block) · quality |
+| the models group | the "Area-level model — not a property assessment…" sentence at the top and again at the foot |
+| block rows | label, then "this block" and "this suburb" mono columns; suppression reads as words |
+| phone (390 px) | the same panel, full width, nothing under 12 px, no sideways scroll |
+
+Automated: tri122 / 123 / 126–133 / 141 unchanged, plus the property section of `tri-design-verify.mjs`.
+
