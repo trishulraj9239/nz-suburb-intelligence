@@ -216,3 +216,23 @@ imagery; not floor area, not a consent record." Confidence `medium`.
 | LINZ down | "LINZ could not be reached — building outlines were not checked" |
 
 Automated: `node scripts/test/tri127-verify.mjs` (dev server on :3000).
+
+## Unitary Plan overlays at the address (TRI-128) — manual checks
+
+A new group **Council plan records at this point** carries **Plan overlays —
+Auckland Unitary Plan**: ten operative overlays checked live against the
+council's own services (special character, heritage extent + scheduled
+place, notable trees + groups, aircraft and port noise, regional + local
+volcanic viewshafts, Waitākere Ranges). Polygon overlays read inside / on or
+near the boundary (≤ 5 m) / outside; point overlays read within 30 m / none.
+Hits show the council's decoded name, schedule item and a chapter link.
+Copy is descriptive only. Confidence `high` (operative record).
+
+| Ask / do | Expect |
+|---|---|
+| pin `42 Ponsonby Rd` | Special Character Areas Overlay: **inside** — "Business Ponsonby Road" with a chapter link; the other nine rows read outside / none |
+| `Is 42 Ponsonby Road in a special character area under the Unitary Plan?` | row "At 42 Ponsonby Road…: special character areas overlay (Unitary Plan chapter D18) — inside: Business Ponsonby Road"; the answer says inside, names it, cites it, and does not say what may or may not be done |
+| `Are there any heritage listings, notable trees or noise overlays affecting 42 Ponsonby Road?` | one row per overlay; each reported in its own words; no verdict |
+| council service down | that row reads "council service unavailable — not checked", never "outside" |
+
+Automated: `node scripts/test/tri128-verify.mjs` (dev server on :3000).
