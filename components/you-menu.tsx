@@ -6,6 +6,7 @@ import { PersonaToggle } from "./persona-toggle";
 import { AnchorsControl } from "./anchors-control";
 import { BudgetControl } from "./budget-control";
 import { AuthButton } from "./auth-button";
+import { ShareLink } from "./share-link";
 import { ThemeToggle } from "./theme-toggle";
 
 /**
@@ -71,6 +72,7 @@ export function YouMenu() {
             </div>
           </section>
           <section className="flex items-center justify-between gap-2 border-t border-hairline pt-3">
+            <ShareLink />
             <AuthButton />
             <ThemeToggle />
           </section>
