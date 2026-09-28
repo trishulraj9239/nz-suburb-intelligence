@@ -2,13 +2,14 @@
  *  ARIA tabs, keyboard sheet, Layers dock, unclipped search, no overlay
  *  collisions, no horizontal scroll, starter chips inside the sheet. */
 import { chromium } from "playwright-core";
+import { BASE_URL, launchOptions } from "./_harness.mjs";
 const fail = (m) => { throw new Error("FAIL: " + m); };
-const b = await chromium.launch({ channel: process.env.PW_CHANNEL || "msedge", headless: true });
+const b = await chromium.launch(launchOptions());
 
 for (const scheme of ["light", "dark"]) {
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, colorScheme: scheme, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
-  await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+  await page.goto(BASE_URL, { waitUntil: "networkidle" });
   await page.waitForTimeout(2500);
 
   // Theme follows the OS.
@@ -76,8 +77,15 @@ for (const scheme of ["light", "dark"]) {
   await search.fill("Takapuna");
   const listbox = sheet.getByRole("listbox");
   await listbox.waitFor({ state: "visible", timeout: 10000 });
-  const lb = await listbox.boundingBox();
-  const first = await listbox.getByRole("option").first().boundingBox();
+  // The sheet grows to half before the list is usable; on a slow CI runner the
+  // transition can still be running at the first measurement, so poll briefly.
+  let lb = null, first = null;
+  for (let i = 0; i < 20; i++) {
+    lb = await listbox.boundingBox();
+    first = await listbox.getByRole("option").first().boundingBox();
+    if (lb && first && first.y + first.height <= 844) break;
+    await page.waitForTimeout(150);
+  }
   if (!lb || !first || first.y + first.height > 844) fail(`[${scheme}] search listbox is clipped by the viewport`);
   if ((await sheet.boundingBox()).height <= hPeek) fail(`[${scheme}] opening search at peek should grow the sheet`);
   await page.keyboard.press("ArrowDown");

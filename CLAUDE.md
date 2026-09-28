@@ -131,3 +131,13 @@ Note `.env.local` is gitignored — never commit secrets.
 - Phone regression: `scripts/test/_viewport.mjs` reads `NZSI_VIEWPORT=390x844`; `npm run test:phone`
   (`run-phone.mjs`) replays tri122/123/126–132/141 at phone width, 20 s apart. `npm run test:design`
   runs the whole design verify (gallery → profile → compare → property → answer).
+
+## CI: verify suite on every preview (TRI-143)
+- `.github/workflows/verify-preview.yml` runs on every successful Vercel **Preview** deployment: unit
+  tests, then `scripts/test/run-all.mjs` against the preview URL (sequential, 20 s pauses, one retry,
+  PASS / AMBER / FAIL per script in the job summary, screenshots uploaded on failure).
+- Scripts read `NZSI_BASE_URL` and `PW_CHANNEL` from `scripts/test/_harness.mjs` — never hardcode
+  `localhost:3000` or `channel: "msedge"` in a verify script. `playwright-core` is a devDependency.
+- `window.__nzsiMap` is dev-only unless the Preview environment sets `NEXT_PUBLIC_NZSI_TEST_HOOKS=1`
+  (then set the repo variable `NZSI_PREVIEW_HAS_TEST_HOOKS=true` so CI stops skipping tri104/122/141).
+  Never set the flag on production. The eval harness stays manual.

@@ -683,7 +683,10 @@ export function MapContainer() {
       mapRef.current = map;
       // Dev-only handle for the verification scripts in shots/ (map choreography
       // can only be asserted from inside the map instance). Never in production.
-      if (process.env.NODE_ENV !== "production") {
+      // Dev-only test hook; TRI-143 also allows it on a preview when the
+      // Vercel Preview environment sets NEXT_PUBLIC_NZSI_TEST_HOOKS=1 (a map
+      // handle, nothing secret). Never set it on production.
+      if (process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_NZSI_TEST_HOOKS === "1") {
         (window as unknown as { __nzsiMap?: MapLibreMap }).__nzsiMap = map;
       }
     })();

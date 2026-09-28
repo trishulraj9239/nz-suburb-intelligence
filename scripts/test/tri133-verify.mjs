@@ -1,10 +1,11 @@
 /** TRI-133 — property panel composition: epistemic headers, panel-above-banner
  *  order, no verdict language, same component in both frames (1440 + 390). */
 import { chromium } from "playwright-core";
+import { BASE_URL, launchOptions } from "./_harness.mjs";
 const fail = (m) => { throw new Error("FAIL: " + m); };
-const b = await chromium.launch({ channel: "msedge", headless: true });
+const b = await chromium.launch(launchOptions());
 const page = await b.newPage({ viewport: { width: 1440, height: 900 } });
-await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+await page.goto(BASE_URL, { waitUntil: "networkidle" });
 await page.waitForTimeout(2500);
 
 await page.getByLabel("Find a suburb or address").fill("42 Ponsonby Rd");

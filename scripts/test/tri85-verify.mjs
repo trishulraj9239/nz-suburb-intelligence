@@ -8,11 +8,12 @@
  * Run: node scripts/test/tri85-verify.mjs   (dev server on :3000)
  */
 import { chromium } from "playwright-core";
+import { BASE_URL, launchOptions } from "./_harness.mjs";
 
-const BASE = "http://localhost:3000";
+const BASE = BASE_URL;
 const fail = (m) => { throw new Error(`FAIL: ${m}`); };
 
-const browser = await chromium.launch({ channel: "msedge", headless: true });
+const browser = await chromium.launch(launchOptions());
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 await page.goto(BASE, { waitUntil: "networkidle" });
 await page.waitForTimeout(2500);

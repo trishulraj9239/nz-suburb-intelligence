@@ -1,11 +1,11 @@
 /** TRI-122 — address search tier 1: an address resolves to its SA2 profile with
  *  a pin and an honesty banner; an out-of-region address gets an honest no-match. */
 import { chromium } from "playwright-core";
-import { viewport } from "./_viewport.mjs";
+import { BASE_URL, launchOptions, viewport } from "./_harness.mjs";
 const fail = (m) => { throw new Error("FAIL: " + m); };
-const b = await chromium.launch({ channel: "msedge", headless: true });
+const b = await chromium.launch(launchOptions());
 const page = await b.newPage({ viewport: viewport() });
-await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+await page.goto(BASE_URL, { waitUntil: "networkidle" });
 await page.waitForTimeout(2500);
 
 const box = page.getByLabel("Find a suburb or address");

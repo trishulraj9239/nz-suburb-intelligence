@@ -4,7 +4,11 @@ Standalone Playwright scripts that assert the M16 shell's acceptance criteria.
 They are **not** `node --test` unit tests (that's `quota-floor.test.mjs`) — each
 drives the real app and throws on the first failed assertion.
 
-They need a dev server on `:3000` and Playwright's msedge channel:
+They need a running app and a browser. Locally that is the dev server on `:3000` and
+Playwright's msedge channel; every script reads `NZSI_BASE_URL` (default localhost:3000)
+and `PW_CHANNEL` (default msedge; empty = the Chromium `npx playwright install` put in the
+cache) from `scripts/test/_harness.mjs`, which is how CI (`.github/workflows/verify-preview.yml`,
+TRI-143) runs the same files against every Vercel preview:
 
 ```bash
 npm run dev                                  # in another shell
@@ -26,6 +30,7 @@ node scripts/test/tri131-verify.mjs     # nearby from the pin: nearest park, RTN
 node scripts/test/tri141-verify.mjs     # shortlist UI: several pins on the map, address-headed compare columns, same-area note, per-address facts side by side
 node scripts/test/mobile-shell-verify.mjs  # TRI-145 A: phone shell at 390×844 in light + dark — one-row header, You menu, slider sheet, tablist, Layers dock, combobox, 12px floor
 node scripts/test/tri-design-verify.mjs    # TRI-147..151: primitives gallery, Profile, Compare, property panel, answer surfaces — 390 + 1440, light + dark (`npm run test:design`)
+node scripts/test/run-all.mjs              # TRI-143: the whole suite in sequence with retries — PASS / AMBER (upstream stall) / FAIL per script, GitHub step summary when in CI
 node scripts/test/run-phone.mjs            # TRI-151: replays tri122/123/126–132/141 at 390×844 via NZSI_VIEWPORT, paced 20 s apart (`npm run test:phone`)
 npm run test:unit                        # node --test: tokens.css in sync with lib/tokens.ts, no sub-12px sizes, no hex outside the token files
 ```

@@ -1,11 +1,11 @@
 /** TRI-130 — this block (SA1) beside this suburb (SA2): Census 2023 + NZDep2023,
  *  suppression shown as "not published", no verdicts. */
 import { chromium } from "playwright-core";
-import { viewport } from "./_viewport.mjs";
+import { BASE_URL, launchOptions, viewport } from "./_harness.mjs";
 const fail = (m) => { throw new Error("FAIL: " + m); };
 
 // API: the Ponsonby Road block.
-const api = await (await fetch("http://localhost:3000/api/block-stats?lng=174.750912&lat=-36.858927")).json();
+const api = await (await fetch(`${BASE_URL}/api/block-stats?lng=174.750912&lat=-36.858927`)).json();
 console.log("block:", JSON.stringify({ sa1: api.sa1_code, sa2: api.sa2_code, pop: api.population, age: api.median_age, rent: api.renting_pct, inc: api.median_household_income, dep: api.nzdep_decile, supp: api.suppressed }));
 if (api.unavailable) fail(`block stats unavailable: ${api.unavailable}`);
 if (!/^\d{7}$/.test(api.sa1_code ?? "")) fail(`sa1_code should be a 7-digit code, got ${api.sa1_code}`);
@@ -17,9 +17,9 @@ if (!(Number.isInteger(api.nzdep_decile) && api.nzdep_decile >= 1 && api.nzdep_d
 if (JSON.stringify(api).includes("-999") || JSON.stringify(api).includes("-997")) fail("a Stats NZ sentinel leaked into the response");
 console.log(`API: SA1 ${api.sa1_code} in ${api.sa2_code}, ${api.population} people, NZDep ${api.nzdep_decile}, suppressed: ${api.suppressed.length} ✓`);
 
-const b = await chromium.launch({ channel: "msedge", headless: true });
+const b = await chromium.launch(launchOptions());
 const page = await b.newPage({ viewport: viewport() });
-await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+await page.goto(BASE_URL, { waitUntil: "networkidle" });
 await page.waitForTimeout(2500);
 await page.getByLabel("Find a suburb or address").fill("42 Ponsonby Rd");
 const hit = page.getByTestId("address-hit").first();

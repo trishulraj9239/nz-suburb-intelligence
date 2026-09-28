@@ -1,0 +1,75 @@
+name: Verify preview
+
+# TRI-143 — every Vercel PREVIEW deployment (i.e. every pushed PR commit) gets
+# the Playwright verify suite run against it: the honesty invariants (one
+# /api/ask per lg crossing, "not checked" never "outside", no verdict language
+# on the property panel, the hazard caveat, the design grammar) fail the check
+# on GitHub before a merge. Unit tests run too. The eval harness stays manual
+# (it spends Anthropic tokens and needs the judge key).
+#
+# Needs on the Vercel PREVIEW environment: NEXT_PUBLIC_NZSI_TEST_HOOKS=1 (exposes
+# window.__nzsiMap for the map-choreography scripts; otherwise those three are
+# skipped via NZSI_SKIP_DEV_HOOKS). Previews must be publicly reachable
+# (deployment protection off), which they are.
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: App URL to verify (a preview or prod URL)
+        required: true
+
+concurrency:
+  group: verify-${{ github.event.deployment.sha || github.event.inputs.base_url || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment_status.environment == 'Preview')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha || github.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install the Chromium that playwright-core expects
+        # Same major.minor as the repo's playwright-core, so the bundled-browser
+        # revision matches; the scripts launch with no channel when PW_CHANNEL is empty.
+        run: |
+          PWV=$(node -p "require('./node_modules/playwright-core/package.json').version")
+          npx --yes "playwright@${PWV}" install --with-deps chromium
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Verify suite against the preview
+        env:
+          NZSI_BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.inputs.base_url }}
+          PW_CHANNEL: ""
+          NZSI_PAUSE_MS: "20000"
+          # Drop this line once NEXT_PUBLIC_NZSI_TEST_HOOKS=1 is set on the Vercel Preview environment.
+          NZSI_SKIP_DEV_HOOKS: ${{ vars.NZSI_PREVIEW_HAS_TEST_HOOKS == 'true' && '' || '1' }}
+        run: |
+          mkdir -p shots
+          node scripts/test/run-all.mjs
+
+      - name: Upload screenshots
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-shots-${{ github.event.deployment.sha || github.sha }}
+          path: shots/*.png
+          if-no-files-found: ignore
+          retention-days: 7

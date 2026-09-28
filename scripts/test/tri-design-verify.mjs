@@ -6,8 +6,9 @@
  *  TRI-150 — then the "This property" panel on the grammar.
  *  TRI-151 — then the answer surfaces (strip / sheet tab / results). */
 import { chromium } from "playwright-core";
+import { BASE_URL, launchOptions } from "./_harness.mjs";
 const fail = (m) => { throw new Error("FAIL: " + m); };
-const b = await chromium.launch({ channel: process.env.PW_CHANNEL || "msedge", headless: true });
+const b = await chromium.launch(launchOptions());
 
 /** Runs in the page. WCAG contrast on computed colours, alpha composited over the real stack. */
 function helpers() {
@@ -89,9 +90,11 @@ function contrastAudit() {
   return out;
 }
 
-for (const width of [390, 1440]) {
+const galleryProbe = await (await b.newPage()).goto(`${BASE_URL}/dev/primitives`).then((r) => r?.status() ?? 0).catch(() => 0);
+if (galleryProbe !== 200) console.log(`gallery /dev/primitives not served here (HTTP ${galleryProbe}: production build without NEXT_PUBLIC_NZSI_TEST_HOOKS) — gallery section skipped`);
+for (const width of galleryProbe === 200 ? [390, 1440] : []) {
   const page = await b.newPage({ viewport: { width, height: width === 390 ? 844 : 900 } });
-  await page.goto("http://localhost:3000/dev/primitives", { waitUntil: "networkidle" });
+  await page.goto(`${BASE_URL}/dev/primitives`, { waitUntil: "networkidle" });
   await page.waitForTimeout(800);
 
   // 1. Every primitive has an accessible label carrying its status word.
@@ -156,7 +159,7 @@ for (const [width, theme] of [[1440, "light"], [1440, "dark"], [390, "light"], [
   const ctx = await b.newContext({ viewport: { width, height: width === 390 ? 844 : 900 } });
   await ctx.addInitScript((t) => localStorage.setItem("theme", t), theme);
   const page = await ctx.newPage();
-  await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+  await page.goto(BASE_URL, { waitUntil: "networkidle" });
   await page.waitForTimeout(1500);
   await page.getByRole("button", { name: "Ponsonby West", exact: true }).first().click();
   const panel = page.locator("aside").last();
@@ -215,7 +218,7 @@ for (const [width, theme] of [[1440, "light"], [390, "light"], [1440, "dark"], [
   const ctx = await b.newContext({ viewport: { width, height: width === 390 ? 844 : 900 } });
   await ctx.addInitScript((t) => localStorage.setItem("theme", t), theme);
   const page = await ctx.newPage();
-  await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+  await page.goto(BASE_URL, { waitUntil: "networkidle" });
   await page.waitForTimeout(1500);
   const panel = page.locator("aside").last();
   const pick = async (name) => {
@@ -280,7 +283,7 @@ for (const [width, theme] of [[1440, "light"], [390, "dark"]]) {
   const ctx = await b.newContext({ viewport: { width, height: width === 390 ? 844 : 900 } });
   await ctx.addInitScript((t) => localStorage.setItem("theme", t), theme);
   const page = await ctx.newPage();
-  await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+  await page.goto(BASE_URL, { waitUntil: "networkidle" });
   await page.waitForTimeout(1500);
   const box = page.getByLabel("Find a suburb or address");
   await box.fill("42 Ponsonby Rd");
@@ -331,7 +334,7 @@ for (const [width, theme] of [[1440, "light"], [390, "dark"]]) {
   const ctx = await b.newContext({ viewport: { width, height: width === 390 ? 844 : 900 } });
   await ctx.addInitScript((t) => localStorage.setItem("theme", t), theme);
   const page = await ctx.newPage();
-  await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+  await page.goto(BASE_URL, { waitUntil: "networkidle" });
   await page.waitForTimeout(1500);
   const box = page.getByLabel("Ask about Auckland suburbs");
   await box.fill("Which suburbs have the lowest median weekly rent?");

@@ -1,10 +1,10 @@
 /** TRI-131 — nearby from the pin: nearest park, rapid-transit stop and schools
  *  by level, straight-line, labelled as such; schools "not necessarily zoned". */
 import { chromium } from "playwright-core";
-import { viewport } from "./_viewport.mjs";
+import { BASE_URL, launchOptions, viewport } from "./_harness.mjs";
 const fail = (m) => { throw new Error("FAIL: " + m); };
 
-const api = await (await fetch("http://localhost:3000/api/nearby?lng=174.750912&lat=-36.858927")).json();
+const api = await (await fetch(`${BASE_URL}/api/nearby?lng=174.750912&lat=-36.858927`)).json();
 console.log("nearby:", JSON.stringify({ park: api.park, station: api.station, schools: Object.fromEntries(Object.entries(api.schools ?? {}).map(([k, v]) => [k, v && { name: v.name, m: v.distance_m }])) }));
 if (!api.park || !(api.park.distance_m >= 0 && api.park.distance_m < 1500)) fail(`nearest park should be within 1.5 km of Ponsonby Road, got ${JSON.stringify(api.park)}`);
 if (!api.station || !(api.station.distance_m > 0 && api.station.distance_m < 5000)) fail(`nearest station should be within 5 km, got ${JSON.stringify(api.station)}`);
@@ -16,9 +16,9 @@ if (!/straight-line|crow flies/i.test(api.note ?? "")) fail("note must say the d
 if (!/not necessarily zoned/i.test(api.note ?? "")) fail("note must say nearest schools are not necessarily zoned");
 console.log(`API: park ${api.park.name} ${api.park.distance_m} m · station ${api.station.name} ${api.station.distance_m} m · primary ${api.schools.primary.name} ${api.schools.primary.distance_m} m ✓`);
 
-const b = await chromium.launch({ channel: "msedge", headless: true });
+const b = await chromium.launch(launchOptions());
 const page = await b.newPage({ viewport: viewport() });
-await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+await page.goto(BASE_URL, { waitUntil: "networkidle" });
 await page.waitForTimeout(2500);
 await page.getByLabel("Find a suburb or address").fill("42 Ponsonby Rd");
 const hit = page.getByTestId("address-hit").first();

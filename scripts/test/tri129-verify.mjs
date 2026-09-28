@@ -1,11 +1,11 @@
 /** TRI-129 — extended hazards at the pin: thirteen council layers, record detail
  *  on hits, susceptibility wording, HAIL gap + map links; Mission Bay via API. */
 import { chromium } from "playwright-core";
-import { viewport } from "./_viewport.mjs";
+import { BASE_URL, launchOptions, viewport } from "./_harness.mjs";
 const fail = (m) => { throw new Error("FAIL: " + m); };
 
 // API first: a coastal point with real hits.
-const api = await (await fetch("http://localhost:3000/api/point-hazards?lng=174.8318&lat=-36.8489")).json();
+const api = await (await fetch(`${BASE_URL}/api/point-hazards?lng=174.8318&lat=-36.8489`)).json();
 const by = Object.fromEntries(api.layers.map((l) => [l.key, l]));
 console.log("Mission Bay layers:", api.layers.map((l) => `${l.key}=${l.status}`).join(", "));
 if (api.layers.length !== 13) fail(`expected 13 layers, got ${api.layers.length}`);
@@ -24,9 +24,9 @@ if (/\brisk\b/i.test(JSON.stringify(api.layers))) fail("the word 'risk' must not
 for (const l of api.layers) if (l.status !== "unavailable" && !/^\d{4}$/.test(l.vintage)) fail(`${l.key} vintage should be a year, got ${l.vintage}`);
 console.log(`Mission Bay: flood prone ${by.flood_prone.detail}; tsunami ${by.tsunami.status}; edited ${by.flood_prone.edited} ✓`);
 
-const b = await chromium.launch({ channel: "msedge", headless: true });
+const b = await chromium.launch(launchOptions());
 const page = await b.newPage({ viewport: viewport() });
-await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+await page.goto(BASE_URL, { waitUntil: "networkidle" });
 await page.waitForTimeout(2500);
 await page.getByLabel("Find a suburb or address").fill("42 Ponsonby Rd");
 const hit = page.getByTestId("address-hit").first();
