@@ -346,3 +346,25 @@ padding, and the theme follows the phone's setting until you toggle it.
 | switch the phone to dark mode | the app follows; the toggle in You still overrides |
 
 Automated: `node scripts/test/mobile-shell-verify.mjs` (dev server on :3000) and `npm run test:unit`.
+
+## Primitives gallery (TRI-147, design phase B) — manual checks
+
+Nothing in the product changes in this phase; the kit lives at
+`http://localhost:3000/dev/primitives` (dev only — 404 in production) and
+shows every primitive × every status, light beside dark.
+
+| Look at | Expect |
+|---|---|
+| Bullet bar rows | the grey band is the Auckland interquartile range, the tick the median, the teal bar the suburb; est./approx are hollow, computed dashed |
+| any "suppressed" / "unavailable" row | a full-length hatched track with the reason in words — never a short or empty bar |
+| Slope chart | dots joined by straight segments with the census years beneath; no curve |
+| Stacked 100 % | the thin bar under it is Auckland in the same category order and colours |
+| Layer bullets | "N of M layers above the Auckland median" badge; grey ramp only, no red |
+| Dot plot | drive ● cycle ■ walk ▲ on one 0–120 min axis; beyond 90 min the row says "cycle/walk > 90 min" or "not walkable" instead of pinning a dot |
+| Dot strip | lettered dots (T / M / C); the estimated one is tinted, "best" has a thin outer ring |
+| Chips | source · vintage · [geometry] · quality; only the quality word is coloured; hover shows "Confidence: …" |
+| the Housing card at the bottom | a headline sentence, one hoisted chip, rows that line up on one axis; on a phone the chart drops under the label/value line |
+
+Automated: `node scripts/test/tri-design-verify.mjs` (dev server on :3000) — 390 and 1440,
+both themes, screenshots in `shots/primitives-*.png`.
+

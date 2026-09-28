@@ -65,3 +65,20 @@ Note `.env.local` is gitignored — never commit secrets.
 - Shell primitives: `components/popover.tsx`, `tabs.tsx` (`role=tab`), `sheet.tsx`
   (phone bottom sheet, `role=slider` handle), `you-menu.tsx` (phone fold), `map-overlay-dock.tsx`.
   Touch targets ≥ 40 px; `:focus-visible` ring; `motion-reduce` on transitions.
+
+## Visual grammar primitives (TRI-147)
+- One primitive per metric class in `components/viz/`: `BulletBar` (value vs region), `RangeBar`
+  (LQ/median/UQ), `Sparkline`, `SlopeChart` (censuses, straight segments), `Stacked100`,
+  `MultiBars` (multi-response), `DecileStrip`, `LayerBullets` (hazard count on the `hz` ramp),
+  `DotPlot` (travel modes), `DotStrip` (compare a/b/c), `Heatmap`; `EmptyTrack` is the shared
+  hatched empty state. Row/card shells: `components/metric-row.tsx`, `section-card.tsx`; provenance:
+  `components/source-chip.tsx` (`SourceChip` with `geometry`, `QualityMark`, `StatusPill`;
+  `provenance.tsx` re-exports it).
+- Every primitive takes `status` (`lib/viz/status.ts`: exact · est. · approx · computed · suppressed ·
+  unavailable) and gets `role="img"` + an aria-label from `lib/viz/aria.ts` that names the status.
+  Suppressed/unavailable draw a full-length hatched track with the reason — never a zero-length bar.
+  est./approx markers are OUTLINED (dots: tinted), computed is dashed; colour never carries quality.
+- The regional axis is the interquartile band p25–p75 with min/max whiskers fenced at Tukey limits
+  and a median tick (`lib/viz/scale.ts`); `judged` picks harbour vs ink for the marker, never good/bad.
+- Gallery at `/dev/primitives` (404 in production); `node scripts/test/tri-design-verify.mjs`
+  asserts labels, hatch, outlines, 4.5:1 text / 3:1 marks in both themes, and the 12 px floor.

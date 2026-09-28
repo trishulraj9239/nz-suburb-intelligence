@@ -28,6 +28,8 @@ export const TOKENS = {
       amber: "#e9a23b",
       /** Links and small interactive text (was referenced as `text-accent` but never defined). */
       accent: "#0c6166",
+      /** Letter inside a filled Okabe-Ito dot — the hues are theme-invariant, so is the ink on them. */
+      "mark-ink": "#13212e",
     },
     dark: {
       canvas: "#0e1822",
@@ -37,6 +39,7 @@ export const TOKENS = {
       harbour: "#169aa0",
       amber: "#f2b65c",
       accent: "#62c9ce",
+      "mark-ink": "#13212e",
     },
   },
 
