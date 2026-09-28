@@ -1,6 +1,7 @@
 /** TRI-129 — extended hazards at the pin: thirteen council layers, record detail
  *  on hits, susceptibility wording, HAIL gap + map links; Mission Bay via API. */
 import { chromium } from "playwright-core";
+import { viewport } from "./_viewport.mjs";
 const fail = (m) => { throw new Error("FAIL: " + m); };
 
 // API first: a coastal point with real hits.
@@ -24,7 +25,7 @@ for (const l of api.layers) if (l.status !== "unavailable" && !/^\d{4}$/.test(l.
 console.log(`Mission Bay: flood prone ${by.flood_prone.detail}; tsunami ${by.tsunami.status}; edited ${by.flood_prone.edited} ✓`);
 
 const b = await chromium.launch({ channel: "msedge", headless: true });
-const page = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const page = await b.newPage({ viewport: viewport() });
 await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
 await page.waitForTimeout(2500);
 await page.getByLabel("Find a suburb or address").fill("42 Ponsonby Rd");

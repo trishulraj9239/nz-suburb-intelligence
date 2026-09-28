@@ -122,3 +122,12 @@ Note `.env.local` is gitignored — never commit secrets.
   (icon + the council's own status word); every chip names its tested geometry ("address point",
   "rating unit", "SA1 block"); links on `text-accent`; the area-level caveat still tops and foots
   the models group. Testids unchanged (tri122–133/141 are the contract).
+
+## Answer surfaces on the grammar + phone harness (TRI-151)
+- `answer-thread.tsx` stays the ONE body (M16): citation chips are ≥ 24 px and still the only amber
+  (`data-testid="citation-chip"`); the Sources footer renders `SourceChip`s (the literal "Sources:"
+  stays); result pills are 40 px on phones / 32 px from `lg` (`data-testid="result-pill"`).
+  `results-panel.tsx`: table `data-testid="results-table"`, 13 px headers, rows ≥ 40 px on phones.
+- Phone regression: `scripts/test/_viewport.mjs` reads `NZSI_VIEWPORT=390x844`; `npm run test:phone`
+  (`run-phone.mjs`) replays tri122/123/126–132/141 at phone width, 20 s apart. `npm run test:design`
+  runs the whole design verify (gallery → profile → compare → property → answer).

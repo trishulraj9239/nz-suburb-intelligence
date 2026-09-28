@@ -1,6 +1,7 @@
 /** TRI-131 — nearby from the pin: nearest park, rapid-transit stop and schools
  *  by level, straight-line, labelled as such; schools "not necessarily zoned". */
 import { chromium } from "playwright-core";
+import { viewport } from "./_viewport.mjs";
 const fail = (m) => { throw new Error("FAIL: " + m); };
 
 const api = await (await fetch("http://localhost:3000/api/nearby?lng=174.750912&lat=-36.858927")).json();
@@ -16,7 +17,7 @@ if (!/not necessarily zoned/i.test(api.note ?? "")) fail("note must say nearest 
 console.log(`API: park ${api.park.name} ${api.park.distance_m} m · station ${api.station.name} ${api.station.distance_m} m · primary ${api.schools.primary.name} ${api.schools.primary.distance_m} m ✓`);
 
 const b = await chromium.launch({ channel: "msedge", headless: true });
-const page = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const page = await b.newPage({ viewport: viewport() });
 await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
 await page.waitForTimeout(2500);
 await page.getByLabel("Find a suburb or address").fill("42 Ponsonby Rd");

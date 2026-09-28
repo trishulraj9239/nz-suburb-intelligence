@@ -1,6 +1,7 @@
 /** TRI-130 — this block (SA1) beside this suburb (SA2): Census 2023 + NZDep2023,
  *  suppression shown as "not published", no verdicts. */
 import { chromium } from "playwright-core";
+import { viewport } from "./_viewport.mjs";
 const fail = (m) => { throw new Error("FAIL: " + m); };
 
 // API: the Ponsonby Road block.
@@ -17,7 +18,7 @@ if (JSON.stringify(api).includes("-999") || JSON.stringify(api).includes("-997")
 console.log(`API: SA1 ${api.sa1_code} in ${api.sa2_code}, ${api.population} people, NZDep ${api.nzdep_decile}, suppressed: ${api.suppressed.length} ✓`);
 
 const b = await chromium.launch({ channel: "msedge", headless: true });
-const page = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const page = await b.newPage({ viewport: viewport() });
 await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
 await page.waitForTimeout(2500);
 await page.getByLabel("Find a suburb or address").fill("42 Ponsonby Rd");

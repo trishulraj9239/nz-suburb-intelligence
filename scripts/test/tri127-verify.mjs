@@ -1,9 +1,10 @@
 /** TRI-127 — built form on the rating unit: count, roof footprint, site coverage,
  *  capture years, aerial thumbnail with an imagery caption. */
 import { chromium } from "playwright-core";
+import { viewport } from "./_viewport.mjs";
 const fail = (m) => { throw new Error("FAIL: " + m); };
 const b = await chromium.launch({ channel: "msedge", headless: true });
-const page = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const page = await b.newPage({ viewport: viewport() });
 await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
 await page.waitForTimeout(2500);
 
