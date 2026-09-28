@@ -138,3 +138,9 @@ Note `.env.local` is gitignored — never commit secrets.
   the question through the SAME ask path — still exactly one `/api/ask` (tri97 asserts it).
 - **Privacy rule:** persona, budget, saved places and address pins never go in the URL. `ShareLink`
   (top bar / You menu) copies `location.href` and nothing else.
+- **Share cards (TRI-153):** `app/page.tsx` `generateMetadata` reads the same URL state and points
+  `og:image` at `/api/og?<same query>`; `app/api/og/route.tsx` renders a 1200×630 card with `next/og`
+  (satori: every box `display:flex`, never an `undefined` style value) from `lib/share-card.ts` — three
+  headline bullets on the Auckland axis with source · vintage · quality, hatched when suppressed; a compare
+  card draws lettered dots; a question card shows the question. `metadataBase` from `NEXT_PUBLIC_SITE_URL`
+  / the Vercel production URL. Verify: `tri153-verify.mjs` (fetch-only).

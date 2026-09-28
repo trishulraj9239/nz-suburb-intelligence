@@ -462,3 +462,15 @@ Automated: `npm run test:design` (dev server on :3000) and `npm run test:phone`.
 
 Automated: `node scripts/test/tri97-verify.mjs` (six checks incl. exactly one `/api/ask` on restore).
 
+## Share cards (TRI-153) — manual checks
+
+| Do | Expect |
+|---|---|
+| open `/api/og?sa2=130400` | a 1200×630 card: "Ponsonby West", three rows (rent, drive to CBD, household income) each with the grey interquartile band, median tick and a teal marker (hollow when estimated), and "Nth percentile of Auckland · median … · source · vintage · quality" beneath |
+| open `/api/og?compare=130400,126801` | "Ponsonby West vs Takapuna Central", lettered A/B dots on one rent axis, a legend with each rent |
+| open `/api/og?q=Cheapest rent near Takapuna?` | the question as the headline |
+| paste a suburb link into Slack / a card debugger | title "Ponsonby West — NZ Suburb Intelligence", the card as the image |
+| add `&budget=650&persona=buyer` to a link | neither word appears in the preview or the card |
+
+Automated: `node scripts/test/tri153-verify.mjs` (no browser needed).
+
