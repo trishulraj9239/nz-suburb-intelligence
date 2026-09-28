@@ -173,7 +173,7 @@ export function scoreGrounding(text, sources) {
     // unmeasured here, not checked.
     // TRI-128 — overlay rows are categorical too (0/1 with chapter codes in
     // the label).
-    if (/^(point_|overlay_|record_(title|none|unavailable))/.test(String(row.metric ?? ""))) continue;
+    if (/^(point_|overlay_|record_(title|none|unavailable))|_none$/.test(String(row.metric ?? ""))) continue;
     // A run of k markers carrying fewer than k citable figures is a
     // collective claim (set membership, a range) — its numbers don't map
     // one-per-row, so it's unmeasured here, not mismatched. Equal counts

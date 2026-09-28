@@ -282,3 +282,23 @@ nothing loaded. No verdict language anywhere.
 | a block with suppressed cells (try a rural pin) | "not published by Stats NZ for this block: …" row; the answer says so and does not substitute the suburb figure |
 
 Automated: `node scripts/test/tri130-verify.mjs` (dev server on :3000).
+
+## Nearby from the address (TRI-131) — manual checks
+
+A new group **Nearby, as the crow flies — straight-line from the address
+point · not a walk or a drive**: nearest council park or reserve (distance
+to the polygon edge, 0 m when the pin is inside one), nearest rapid-transit
+stop (train / busway / ferry, council RTN stops, 2022), and the nearest
+primary, intermediate and secondary school by MOE type. Every row is a
+straight-line distance with the place's name and detail; confidence
+`derived`. Copy: "Nearest school is proximity only: not necessarily zoned".
+Supermarkets, cafés and bus stops are deliberately absent (TRI-19 /
+TRI-102).
+
+| Ask / do | Expect |
+|---|---|
+| pin `42 Ponsonby Rd` | five rows with metres / km and names; the note under them; a "computed" confidence chip |
+| `What's near 42 Ponsonby Road — the nearest park, train or busway station, and primary school?` | rows "At 42 Ponsonby Road…: nearest council park or reserve — <name>, straight-line distance as the crow flies (… m; not a walk or a drive)" etc.; the answer names each, gives the distance, says straight-line, says the school is not necessarily zoned |
+| `How long would it take to walk from 42 Ponsonby Road to Grey Lynn Park?` | still the commute path (a routed walking time, typical, no live traffic) — nearby rows do not replace it |
+
+Automated: `node scripts/test/tri131-verify.mjs` (dev server on :3000).

@@ -655,5 +655,15 @@
    "minSources": 1,
    "sourceIncludes": "NZDep2023"
   }
+ },
+ {
+  "id": "q64-address-nearby",
+  "question": "What's near 42 Ponsonby Road — the nearest park, train or busway station, and primary school?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "straight-line"
+  }
  }
 ]
