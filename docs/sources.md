@@ -272,6 +272,25 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
   flow within 20 m, coastal inundation now/+1 m, liquefaction class), keyless,
   CC BY 4.0, memory-cached by rounded coordinate for an hour. A failed
   service reports "unavailable — not checked", never "outside".
+- **Extended hazard layers at a point** (TRI-129, same helper): `Flood_Prone_Areas`
+  (`Depth100y`, `RecordStatus`; edited 2026-09-25), `Flood_Sensitive_Areas`
+  (2024), `Shallow_Landslide_Susceptibility` (4.87M polygons, sampled at the
+  point by the service — never loaded; classes Very Low … Very High; 2025),
+  `Large_Scale_Landslide_Susceptibility` (+ `Confidence`; 2025),
+  `Susceptible_Areas_ASCIE_2050/2080/2130_RCP85_Regional` (POLYLINES — the
+  mapped landward limit of the susceptible area, so reported as "within
+  20 m of the line", not inside/outside; 2024), `Tsunami_Evacuation_Zones`
+  (`ZONETYPE` Yellow/Orange/Red; 2024). `CoastalInstabilityAndErosion`
+  (2021) is the superseded predecessor of the ASCIE series and is not
+  queried. Vintage per row = the service's `lastEditDate` from its metadata
+  (cached a day). Landslide wording is susceptibility, never "risk".
+  **Two phases:** the shallow-landslide service answers in ~20 s however it
+  is asked (point, envelope, projected — all measured 2026-09-28), so
+  `/api/point-hazards?mode=fast` returns the twelve quick layers with that
+  row `pending`, `?mode=slow` returns it alone (28 s timeout, route
+  `maxDuration` 60), and the panel merges the two. `/api/ask` waits for the
+  slow layer only when the question is about landslides. Results cache per
+  layer, so the phases never repeat a council query.
 - **LINZ title & land at a point** (`lib/property-facts.ts`): NZ Property
   Boundaries (122657) by `INTERSECTS(geom, SRID=4326;POINT(lng lat))` — note
   the `SRID=4326;` prefix; a bare `POINT(lng lat)` is read lat-first and

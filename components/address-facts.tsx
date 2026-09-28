@@ -38,9 +38,14 @@ interface PointHazardLayer {
   key: string;
   label: string;
   vintage: string;
+  edited?: string | null;
   status: string;
   inside: boolean | null;
+  /** TRI-129 — the record's own detail on a hit (depth, model, class wording). */
+  detail?: string | null;
 }
+const FLOOD_VIEWER_URL = "https://experience.arcgis.com/experience/cbde7f2134404f4d90adce5396a0a630";
+const HAIL_NOTE = "Contaminated land (HAIL) status is not openly published — a LIM report is the only source.";
 interface PointHazardResponse {
   layers: PointHazardLayer[];
   caveat: string;
@@ -173,6 +178,7 @@ const STATUS_WORDS: Record<string, string> = {
   clear: "none within 20 m",
   unavailable: "council service unavailable — not checked",
   "not assessed": "not in the assessed area",
+  pending: "checking… (slow council layer)",
 };
 
 // Fixed destinations, identical to the commute anchors the suburb matrix uses
@@ -258,9 +264,28 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
 
   useEffect(() => {
     let stale = false;
-    cachedJson<PointHazardResponse>(`/api/point-hazards?lng=${pin.lng}&lat=${pin.lat}`)
+    // TRI-129 — two phases: the twelve fast layers paint at once (the slow
+    // shallow-landslide row shows "checking"), then the ~20 s layer fills in.
+    cachedJson<PointHazardResponse>(`/api/point-hazards?lng=${pin.lng}&lat=${pin.lat}&mode=fast`)
       .then((r) => {
-        if (!stale) setHz({ key, r });
+        if (stale) return;
+        setHz({ key, r });
+        const merge = (slow: PointHazardResponse | null) =>
+          setHz((prev) => {
+            if (prev.key !== key || !prev.r || prev.r === "error") return prev;
+            const layers = prev.r.layers.map((l) => {
+              if (l.status !== "pending") return l;
+              return slow?.layers.find((s) => s.key === l.key) ?? { ...l, status: "unavailable", inside: null, detail: null };
+            });
+            return { key, r: { ...prev.r, layers } };
+          });
+        cachedJson<PointHazardResponse>(`/api/point-hazards?lng=${pin.lng}&lat=${pin.lat}&mode=slow`)
+          .then((slow) => {
+            if (!stale) merge(slow);
+          })
+          .catch(() => {
+            if (!stale) merge(null);
+          });
       })
       .catch(() => {
         if (!stale) setHz({ key, r: "error" });
@@ -519,18 +544,33 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
         <>
           <ul className="divide-y divide-hairline/60">
             {hazards.layers.map((l) => (
-              <li key={l.key} className="flex items-baseline justify-between gap-2 py-1.5" data-testid="point-hazard">
-                <span className="text-sm text-ink/80">
-                  {l.label}
-                  <span className="ml-1 font-mono text-[10px] text-ink/45">{l.vintage} layer</span>
-                </span>
-                <span className={`shrink-0 font-mono text-sm font-medium ${l.status === "unavailable" ? "text-ink/45" : "text-ink"}`}>
-                  {STATUS_WORDS[l.status] ?? l.status}
-                </span>
+              <li key={l.key} className="py-1.5" data-testid="point-hazard">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-sm text-ink/80">
+                    {l.label}
+                    <span className="ml-1 font-mono text-[10px] text-ink/45" title={l.edited ? `council layer last edited ${l.edited}` : undefined}>
+                      {l.vintage} layer
+                    </span>
+                  </span>
+                  <span className={`shrink-0 font-mono text-sm font-medium ${l.status === "unavailable" ? "text-ink/45" : "text-ink"}`}>
+                    {STATUS_WORDS[l.status] ?? l.status}
+                  </span>
+                </div>
+                {l.detail && <p className="mt-0.5 text-[10px] leading-snug text-ink/55" data-testid="point-hazard-detail">{l.detail}</p>}
               </li>
             ))}
           </ul>
           <p className="mt-1.5 text-[10px] leading-snug text-ink/50">{hazards.caveat || HAZARD_CAVEAT}</p>
+          <p className="mt-1 text-[10px] leading-snug text-ink/50" data-testid="hazard-map-links">
+            {HAIL_NOTE}{" "}
+            <a href={FLOOD_VIEWER_URL} target="_blank" rel="noopener noreferrer" className="font-mono text-accent underline-offset-2 hover:underline">
+              Flood Viewer ↗
+            </a>
+            {" · "}
+            <a href={GEOMAPS_URL} target="_blank" rel="noopener noreferrer" className="font-mono text-accent underline-offset-2 hover:underline">
+              GeoMaps ↗
+            </a>
+          </p>
           <div className="mt-1 flex justify-end">
             <Provenance source={hazards.source} asOf={hazards.retrieved_at.slice(0, 10)} confidence="medium" />
           </div>

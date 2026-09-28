@@ -615,5 +615,25 @@
    "minSources": 1,
    "sourceIncludes": "Unitary Plan"
   }
+ },
+ {
+  "id": "q60-address-landslide",
+  "question": "Is 42 Ponsonby Road prone to landslides?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "Auckland Council"
+  }
+ },
+ {
+  "id": "q61-address-tsunami-floodprone",
+  "question": "Is 42 Ponsonby Road in a tsunami evacuation zone or a flood prone area?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "Auckland Council"
+  }
  }
 ]
