@@ -8,6 +8,17 @@ import { useAnchors } from "@/lib/preferences";
 import type { AddressPin } from "@/lib/workspace";
 
 /**
+ * TRI-133 — "This property (public records)": the address-level surface.
+ * Three groups, each headed by its epistemic level so a reader can never
+ * mistake one for another:
+ *   Public records about the land  — LINZ title & land (TRI-126)
+ *   Area-level models at this point — council hazard layers (verbatim caveat
+ *                                     top and foot) and drive times (TRI-123)
+ *   Not held by this app            — the link-outs, with reasons (TRI-132)
+ * Sections for tickets not yet shipped (built form, overlays, extended
+ * hazards, block stats, nearby, schools) are simply absent — never "N/A".
+ * No aggregate, score, badge or colour implies a verdict on the property.
+ *
  * TRI-123 — "At this address": the two things that are honestly answerable for
  * a POINT rather than an area.
  *
@@ -200,11 +211,14 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
   return (
     <section data-testid="address-facts" className="rounded-md border border-hairline bg-canvas/60 p-3">
       <h3 className="font-display text-xs font-semibold uppercase tracking-wider text-ink/60">
-        At this address
-        <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">point checks · not a property assessment</span>
+        This property
+        <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">public records &amp; point checks · not a property assessment</span>
       </h3>
 
-      <h4 className="mt-2 text-[11px] font-medium uppercase tracking-wider text-ink/45">Title &amp; land — LINZ public records</h4>
+      <h4 data-testid="epistemic-records" className="mt-2 border-t border-hairline pt-2 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/70">
+        Public records about the land
+      </h4>
+      <h5 className="mt-1.5 text-[11px] font-medium uppercase tracking-wider text-ink/45">Title &amp; land — LINZ public records</h5>
       {property === null && <p className="py-1 text-xs text-ink/50">Reading the LINZ land records…</p>}
       {(property === "error" || (property && property.unavailable)) && (
         <p className="py-1 text-xs text-ink/60" data-testid="property-unavailable">
@@ -263,7 +277,11 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
         </div>
       )}
 
-      <h4 className="mt-2 text-[11px] font-medium uppercase tracking-wider text-ink/45">Council hazard layers at this point</h4>
+      <h4 data-testid="epistemic-models" className="mt-3 border-t border-hairline pt-2 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/70">
+        Area-level models at this point
+      </h4>
+      <p className="mt-0.5 text-[10px] leading-snug text-ink/50">{HAZARD_CAVEAT}</p>
+      <h5 className="mt-1.5 text-[11px] font-medium uppercase tracking-wider text-ink/45">Council hazard layers at this point</h5>
       {hazards === null && <p className="py-1 text-xs text-ink/50">Checking the council layers…</p>}
       {hazards === "error" && (
         <p className="py-1 text-xs text-ink/60">The council hazard services could not be reached — nothing was checked.</p>
@@ -290,10 +308,10 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
         </>
       )}
 
-      <h4 className="mt-3 text-[11px] font-medium uppercase tracking-wider text-ink/45">
+      <h5 className="mt-3 text-[11px] font-medium uppercase tracking-wider text-ink/45">
         Drive times from this address
         <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">typical · no live traffic</span>
-      </h4>
+      </h5>
       <div className="divide-y divide-hairline/60">
         {FIXED_DESTINATIONS.map((d) => (
           <DriveFromPin key={d.id} pin={pin} label={d.label} lng={d.lng} lat={d.lat} />
@@ -307,23 +325,26 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
           None of these targets accepts an address in the URL (tested
           2026-09-28), so the block offers a copy button instead of a fake deep
           link. Nothing here is fetched, cached or proxied. */}
-      <h4 className="mt-3 flex items-baseline justify-between gap-2 text-[11px] font-medium uppercase tracking-wider text-ink/45">
+      <h4 data-testid="epistemic-notheld" className="mt-3 border-t border-hairline pt-2 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/70">
+        Not held by this app
+      </h4>
+      <h5 className="mt-1.5 flex items-baseline justify-between gap-2 text-[11px] font-medium uppercase tracking-wider text-ink/45">
         <span>
           Also check
-          <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">not held by this app</span>
+          <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">where each is published, and why it is not here</span>
         </span>
         <CopyAddress label={pin.label} />
-      </h4>
+      </h5>
       <ul className="divide-y divide-hairline/60" data-testid="link-outs">
         {LINK_OUTS.map((l) => (
           <li key={l.key} className="py-1.5" data-testid="link-out">
-            <div className="flex items-baseline justify-between gap-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
               <span className="text-sm text-ink/80">{l.what}</span>
               <a
                 href={l.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 font-mono text-[11px] text-accent underline-offset-2 hover:underline"
+                className="font-mono text-[11px] text-accent underline-offset-2 hover:underline"
               >
                 {l.where} ↗
               </a>

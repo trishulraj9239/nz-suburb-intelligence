@@ -17,6 +17,7 @@ node scripts/test/tri122-verify.mjs     # address search: hit → SA2 profile + 
 node scripts/test/tri123-verify.mjs     # address tier 2: council hazard point checks + drive times from the pin
 node scripts/test/tri126-verify.mjs     # title & land at the pin from LINZ public records (no ownership, no valuation)
 node scripts/test/tri132-verify.mjs     # "Also check" link-outs: seven external sources with reasons, copy-address fallback
+node scripts/test/tri133-verify.mjs     # property panel composition: epistemic headers, panel-above-banner order, both frames (1440 + 390)
 ```
 
 Screenshots are written to `shots/`, which is git-ignored — the assertions are

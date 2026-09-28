@@ -556,5 +556,24 @@
    "unsupported": true,
    "minSources": 0
   }
+ },
+ {
+  "id": "q54-address-good-buy-refusal",
+  "question": "Is 42 Ponsonby Road a good buy?",
+  "intent": "unsupported",
+  "expect": {
+   "unsupported": true,
+   "minSources": 0
+  }
+ },
+ {
+  "id": "q55-address-public-records",
+  "question": "What do the public records say about 42 Ponsonby Road?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "LINZ"
+  }
  }
 ]

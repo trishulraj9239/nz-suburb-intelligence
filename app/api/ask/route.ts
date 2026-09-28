@@ -10,7 +10,7 @@ import { propertyFacts } from "@/lib/property-facts";
 import { linkOutAnswer, matchLinkOut, mentionsAddress } from "@/lib/link-outs";
 
 /** TRI-126 — questions about the land record at an address. */
-const TITLE_QUESTION = /\b(title|freehold|cross.?lease|leasehold|unit title|section (size|area)|land area|lot size|legal description|how big is the (section|site|land)|m2|square metres)\b/i;
+const TITLE_QUESTION = /\b(title|public records?|land records?|freehold|cross.?lease|leasehold|unit title|section (size|area)|land area|lot size|legal description|how big is the (section|site|land)|m2|square metres)\b/i;
 
 const MODE_LABEL: Record<string, string> = {
   "driving-car": "drive",

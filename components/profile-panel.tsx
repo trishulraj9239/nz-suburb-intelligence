@@ -375,18 +375,21 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* TRI-122 — a searched address only ever locates the area; it carries
-          no data of its own, and the copy says so before any figure. */}
+      {/* TRI-133 — the property panel (public records + point checks) comes
+          FIRST; the banner then draws the hard line: everything under it is
+          the area's. TRI-122 — a searched address only ever locates the area;
+          it carries no data of its own, and the copy says so before any figure. */}
+      {pin && pin.sa2_code === sa2 && <AddressFacts pin={pin} />}
       {pin && pin.sa2_code === sa2 && (
         <p
           data-testid="address-banner"
           className="rounded-md border border-harbour/40 bg-harbour/10 px-3 py-2 text-xs leading-snug text-ink/85"
         >
-          <span className="font-medium">{pin.label}</span> sits in {suburb.name}. Everything below
-          describes the area, not the property.
+          <span className="font-medium">{pin.label}</span> sits in {suburb.name}. The panel above holds
+          public records and point checks for that spot; everything below describes the area, not the
+          property.
         </p>
       )}
-      {pin && pin.sa2_code === sa2 && <AddressFacts pin={pin} />}
       {/* Header */}
       <div>
         <div className="flex items-start justify-between gap-2">
