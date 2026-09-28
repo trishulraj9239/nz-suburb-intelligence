@@ -6,6 +6,7 @@ import {
   type ChatRole,
   type CompleteOptions,
   type StreamOptions,
+  type SystemPrompt,
 } from "./types";
 
 /**
@@ -36,6 +37,27 @@ function toMessages(messages: ChatMessageInput[]): Anthropic.MessageParam[] {
   return messages.map((m) => ({ role: m.role, content: m.content }));
 }
 
+/**
+ * TRI-80 — prompt caching. A split system prompt becomes two text blocks with
+ * cache_control on the stable one, so the registry block and the answer rules
+ * (thousands of tokens, identical every request) are read from the cache
+ * after the first call in a 5-minute window; only the persona / preference
+ * tail and the question are billed at full rate. A plain string is passed
+ * through unchanged (Anthropic ignores prefixes under 1,024 tokens anyway).
+ */
+function toSystem(s: SystemPrompt | undefined): string | Anthropic.TextBlockParam[] | undefined {
+  if (s === undefined || typeof s === "string") return s;
+  const blocks: Anthropic.TextBlockParam[] = [{ type: "text", text: s.stable, cache_control: { type: "ephemeral" } }];
+  if (s.variable) blocks.push({ type: "text", text: s.variable });
+  return blocks;
+}
+
+/** NZSI_LLM_LOG=1 prints cache usage per call — the way to verify caching works. */
+function logUsage(label: string, usage: { input_tokens?: number; cache_creation_input_tokens?: number | null; cache_read_input_tokens?: number | null } | undefined) {
+  if (process.env.NZSI_LLM_LOG !== "1" || !usage) return;
+  console.log(`[llm:anthropic] ${label} input=${usage.input_tokens ?? 0} cache_created=${usage.cache_creation_input_tokens ?? 0} cache_read=${usage.cache_read_input_tokens ?? 0}`);
+}
+
 export const anthropicProvider: ChatProvider = {
   name: "anthropic",
 
@@ -48,7 +70,7 @@ export const anthropicProvider: ChatProvider = {
     const response = await client().messages.create({
       model,
       max_tokens: opts.maxTokens ?? 1024,
-      system: opts.system,
+      system: toSystem(opts.system),
       messages: toMessages(opts.messages),
       ...(role === "reasoning"
         ? { output_config: { effort: "low" as const } }
@@ -65,6 +87,7 @@ export const anthropicProvider: ChatProvider = {
           }
         : {}),
     });
+    logUsage(`complete/${role}`, response.usage);
     const text = response.content
       .filter((b): b is Anthropic.TextBlock => b.type === "text")
       .map((b) => b.text)
@@ -80,11 +103,12 @@ export const anthropicProvider: ChatProvider = {
     const stream = client().messages.stream({
       model,
       max_tokens: opts.maxTokens ?? 2048,
-      system: opts.system,
+      system: toSystem(opts.system),
       messages: toMessages(opts.messages),
       output_config: { effort: "low" },
     });
     for await (const event of stream) {
+      if (event.type === "message_start") logUsage(`stream/${role}`, event.message.usage);
       if (
         event.type === "content_block_delta" &&
         event.delta.type === "text_delta"

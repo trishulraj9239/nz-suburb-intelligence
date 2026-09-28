@@ -5,6 +5,7 @@ import {
   type ChatRole,
   type CompleteOptions,
   type StreamOptions,
+  flattenSystem,
 } from "./types";
 
 /**
@@ -103,8 +104,8 @@ export const groqProvider: ChatProvider = {
 
   async complete(role, opts: CompleteOptions) {
     const system = opts.jsonSchema
-      ? withSchema(opts.system, opts.jsonSchema)
-      : opts.system;
+      ? withSchema(flattenSystem(opts.system), opts.jsonSchema)
+      : flattenSystem(opts.system);
     const res = await post({
       model: MODELS[role],
       max_tokens: Math.max(opts.maxTokens ?? 1024, 4096),
@@ -124,7 +125,7 @@ export const groqProvider: ChatProvider = {
     const res = await post({
       model: MODELS[role],
       max_tokens: Math.max(opts.maxTokens ?? 2048, 4096),
-      messages: toMessages(opts.system, opts.messages),
+      messages: toMessages(flattenSystem(opts.system), opts.messages),
       stream: true,
       reasoning_effort: "none", // answer directly — see complete()
     });

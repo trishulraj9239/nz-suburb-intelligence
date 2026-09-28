@@ -180,9 +180,10 @@ Three process rules made that sustainable:
 
 Deviations from the original Phase-3 brief, recorded honestly: map overlays are
 static files in `public/geo/` (the TRI-16 precedent — Supabase Storage stays
-unused), and the brief assumed Anthropic prompt caching in `/api/ask` which was
-never wired up (tracked as an optional follow-up; the plan+answer prompts are
-registry-driven and small enough that it hasn't mattered at portfolio scale).
+unused). The brief's Anthropic prompt caching in `/api/ask` was wired in TRI-80
+(2026-09): the registry block and the answer rules are the stable prefix with a
+`cache_control` breakpoint; only the persona / preference tail and the question
+are billed at full rate on repeat calls (`NZSI_LLM_LOG=1` prints cache reads).
 
 ## The answer surface — one brain, one body, two frames
 
