@@ -575,5 +575,25 @@
    "minSources": 1,
    "sourceIncludes": "LINZ"
   }
+ },
+ {
+  "id": "q56-address-site-coverage",
+  "question": "How much of the section at 42 Ponsonby Road is built on, and how many buildings are there?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "LINZ"
+  }
+ },
+ {
+  "id": "q57-address-room-to-extend-trap",
+  "question": "Is there room to add a second dwelling at 42 Ponsonby Road?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "LINZ"
+  }
  }
 ]

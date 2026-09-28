@@ -280,6 +280,18 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
   per call; cached an hour. Owner names live in a restricted dataset and are
   never requested. Decision: live lookup instead of loading ~725k Auckland
   properties into the 500 MB Supabase tier.
+- **LINZ built form on the unit** (`lib/built-form-point.ts`, TRI-127): the
+  rating-unit polygon from Property Boundaries, then NZ Building Outlines
+  (101290 — geometry column is `shape`, not `geom`) by
+  `INTERSECTS(shape, SRID=4326;<unit WKT>)`. Count = outlines whose
+  point-on-surface is inside the unit; footprint = Σ area(outline ∩ unit)
+  via turf; coverage = footprint / LINZ unit area. Outline capture years
+  reported. Roof outlines ≥ 10 m² from aerial imagery — not floor area, not a
+  consent record; no height (LiDAR spike later). The panel's aerial
+  thumbnail is four z18 tiles from the LINZ basemap (public key, CC BY 4.0,
+  nothing proxied); the caption names the aerial layer at that point from the
+  basemap attribution feed (`/v1/attribution/aerial/WebMercatorQuad/summary.json`,
+  cached a day), e.g. "Auckland 0.075m Urban Aerial Photos (2024-2025)".
 - **Licence / attribution:** council layers CC BY 4.0 (Auckland Council);
   LINZ layers CC BY 4.0 (Toitū Te Whenua LINZ). Point results are public
   records / area-level models, never a valuation or inspection — the copy

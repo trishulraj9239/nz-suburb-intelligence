@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AerialThumb } from "@/components/aerial-thumb";
 import { Provenance } from "@/components/provenance";
 import { HAZARD_CAVEAT } from "@/lib/hazard";
 import { LINK_OUTS } from "@/lib/link-outs";
@@ -77,12 +78,52 @@ interface PropertyFactsResponse {
   retrieved_at: string;
   unavailable?: string;
 }
+// TRI-127 — building outlines on the rating unit (LINZ, live).
+interface BuiltFormResponse {
+  none?: boolean;
+  unit_area_m2: number | null;
+  building_count: number;
+  footprint_m2: number | null;
+  site_coverage_pct: number | null;
+  outlines: { building_id: string; use: string | null; name: string | null; area_m2: number; on_unit_m2: number; capture_from: string | null; capture_to: string | null }[];
+  outlines_captured: string | null;
+  imagery: { title: string; from: string | null; to: string | null } | null;
+  source: string;
+  retrieved_at: string;
+  unavailable?: string;
+}
+const BUILT_FORM_NOTE = "Roof outlines from LINZ aerial imagery; not floor area, not a consent record.";
+const GEOMAPS_URL = "https://geomapspublic.aucklandcouncil.govt.nz/viewer/index.html";
+
 const TITLE_TYPE_NOTE: Record<string, string> = {
   Freehold: "Fee simple: the owner holds the land and buildings outright.",
   "Cross lease": "Owners jointly own the land and lease their own flat's footprint from each other; changes to the building can need the other lessees' consent.",
   "Unit Title": "Ownership of a unit within a body corporate development, with shared common property and body corporate rules and levies.",
   Leasehold: "The land is leased from a separate owner for a term; ground rent applies and the lease has an expiry.",
 };
+
+/**
+ * TRI-127 — one live lookup per pin, per endpoint, for the life of the page.
+ * The panel remounts when the layout crosses the lg breakpoint (desktop panel
+ * ↔ mobile sheet) and every remount used to refire five point lookups, which
+ * tripped the public rate limiter and blanked the chips. A module-level memo
+ * keyed by URL keeps the promise, so a frame swap repaints from the same
+ * answer instead of asking LINZ and the council again.
+ */
+const memo = new Map<string, Promise<unknown>>();
+function cachedFetch<T>(key: string, run: () => Promise<T>): Promise<T> {
+  let p = memo.get(key) as Promise<T> | undefined;
+  if (!p) {
+    p = run().catch((e) => {
+      memo.delete(key);
+      throw e;
+    });
+    memo.set(key, p);
+  }
+  return p;
+}
+const cachedJson = <T,>(url: string) =>
+  cachedFetch<T>(url, () => fetch(url).then((res) => (res.ok ? (res.json() as Promise<T>) : Promise.reject(new Error(String(res.status))))));
 
 const STATUS_WORDS: Record<string, string> = {
   inside: "inside",
@@ -106,13 +147,14 @@ function DriveFromPin({ pin, label, lng, lat }: { pin: AddressPin; label: string
   const [state, setState] = useState<{ key: string; r: CommuteResponse | null } | null>(null);
   useEffect(() => {
     let stale = false;
-    fetch("/api/commute", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ origin: { lng: pin.lng, lat: pin.lat }, destination: { lng, lat }, mode: "driving-car" }),
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((r: CommuteResponse | null) => {
+    cachedFetch<CommuteResponse | null>(`commute:${key}`, () =>
+      fetch("/api/commute", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ origin: { lng: pin.lng, lat: pin.lat }, destination: { lng, lat }, mode: "driving-car" }),
+      }).then((res) => (res.ok ? (res.json() as Promise<CommuteResponse>) : null)),
+    )
+      .then((r) => {
         if (!stale) setState({ key, r });
       })
       .catch(() => {
@@ -175,9 +217,8 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
 
   useEffect(() => {
     let stale = false;
-    fetch(`/api/point-hazards?lng=${pin.lng}&lat=${pin.lat}`)
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
-      .then((r: PointHazardResponse) => {
+    cachedJson<PointHazardResponse>(`/api/point-hazards?lng=${pin.lng}&lat=${pin.lat}`)
+      .then((r) => {
         if (!stale) setHz({ key, r });
       })
       .catch(() => {
@@ -194,9 +235,8 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
   const [pf, setPf] = useState<{ key: string; r: PropertyFactsResponse | null | "error" }>({ key: "", r: null });
   useEffect(() => {
     let stale = false;
-    fetch(`/api/property-facts?lng=${pin.lng}&lat=${pin.lat}`)
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
-      .then((r: PropertyFactsResponse) => {
+    cachedJson<PropertyFactsResponse>(`/api/property-facts?lng=${pin.lng}&lat=${pin.lat}`)
+      .then((r) => {
         if (!stale) setPf({ key, r });
       })
       .catch(() => {
@@ -207,6 +247,26 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
     };
   }, [key, pin.lng, pin.lat]);
   const property = pf.key === key ? pf.r : null;
+
+  // TRI-127 — built form on the unit (LINZ outlines, live).
+  const [bf, setBf] = useState<{ key: string; r: BuiltFormResponse | null | "error" }>({ key: "", r: null });
+  useEffect(() => {
+    let stale = false;
+    cachedJson<BuiltFormResponse>(`/api/built-form?lng=${pin.lng}&lat=${pin.lat}`)
+      .then((r) => {
+        if (!stale) setBf({ key, r });
+      })
+      .catch(() => {
+        if (!stale) setBf({ key, r: "error" });
+      });
+    return () => {
+      stale = true;
+    };
+  }, [key, pin.lng, pin.lat]);
+  const built = bf.key === key ? bf.r : null;
+  const imageryCaption = built && built !== "error" && built.imagery
+    ? `LINZ aerial basemap · ${built.imagery.title} · CC BY 4.0`
+    : "LINZ aerial basemap · CC BY 4.0 · imagery date not reported for this point";
 
   return (
     <section data-testid="address-facts" className="rounded-md border border-hairline bg-canvas/60 p-3">
@@ -273,6 +333,68 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
           </p>
           <div className="mt-1 flex justify-end">
             <Provenance source="LINZ Property Boundaries + Titles" asOf={property.retrieved_at.slice(0, 10)} confidence="high" />
+          </div>
+        </div>
+      )}
+
+      <h5 className="mt-2 text-[11px] font-medium uppercase tracking-wider text-ink/45">Built form — LINZ building outlines</h5>
+      {built === null && <p className="py-1 text-xs text-ink/50">Reading the LINZ building outlines…</p>}
+      {(built === "error" || (built && built.unavailable)) && (
+        <p className="py-1 text-xs text-ink/60" data-testid="built-form-unavailable">
+          LINZ could not be reached — building outlines were not checked.
+        </p>
+      )}
+      {built && built !== "error" && !built.unavailable && built.none && (
+        <p className="py-1 text-xs text-ink/60" data-testid="built-form-none">
+          No rating unit at this point in LINZ&apos;s records, so there is nothing to measure outlines against.
+        </p>
+      )}
+      {built && built !== "error" && !built.unavailable && !built.none && (
+        <div data-testid="built-form" className="flex flex-wrap items-start gap-3">
+          <div className="min-w-[180px] flex-1">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-sm text-ink/80">Buildings on the section</span>
+              <span className="font-mono text-sm font-medium text-ink" data-testid="building-count">{built.building_count}</span>
+            </div>
+            {built.footprint_m2 != null && (
+              <div className="mt-1 flex items-baseline justify-between gap-2">
+                <span className="text-sm text-ink/80">Roof footprint</span>
+                <span className="font-mono text-sm font-medium text-ink">{built.footprint_m2.toLocaleString()} m²</span>
+              </div>
+            )}
+            {built.site_coverage_pct != null && (
+              <div className="mt-1 flex items-baseline justify-between gap-2">
+                <span className="text-sm text-ink/80">Site coverage</span>
+                <span className="font-mono text-sm font-medium text-ink" data-testid="site-coverage">{built.site_coverage_pct}%</span>
+              </div>
+            )}
+            {/* LINZ tags most houses "Unknown"; only a real use or name is worth a line. */}
+            {built.outlines.some((o) => o.name || (o.use && o.use !== "Unknown")) && (
+              <p className="mt-1 text-[11px] leading-snug text-ink/60">
+                {built.outlines
+                  .filter((o) => o.name || (o.use && o.use !== "Unknown"))
+                  .map((o) => [o.name, o.use !== "Unknown" ? o.use : null].filter(Boolean).join(" · "))
+                  .join("; ")}
+              </p>
+            )}
+            <p className="mt-1 text-[10px] leading-snug text-ink/50">
+              {BUILT_FORM_NOTE}
+              {built.outlines_captured ? ` Outlines captured ${built.outlines_captured}.` : ""}
+            </p>
+            <div className="mt-1 flex justify-end">
+              <Provenance source="LINZ Building Outlines" asOf={built.retrieved_at.slice(0, 10)} confidence="medium" />
+            </div>
+          </div>
+          <div>
+            <AerialThumb lng={pin.lng} lat={pin.lat} caption={imageryCaption} />
+            <a
+              href={GEOMAPS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-0.5 inline-block font-mono text-[10px] text-accent underline-offset-2 hover:underline"
+            >
+              Auckland Council GeoMaps ↗
+            </a>
           </div>
         </div>
       )}
