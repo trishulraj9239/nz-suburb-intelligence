@@ -99,6 +99,46 @@ interface BuiltFormResponse {
 }
 const BUILT_FORM_NOTE = "Roof outlines from LINZ aerial imagery; not floor area, not a consent record.";
 
+// TRI-130 — this block (SA1) beside this suburb (SA2).
+interface BlockStatsResponse {
+  none?: boolean;
+  sa1_code: string | null;
+  population: number | null;
+  median_age: number | null;
+  renting_pct: number | null;
+  owned_pct: number | null;
+  one_person_household_pct: number | null;
+  median_household_income: number | null;
+  separate_house_pct: number | null;
+  avg_bedrooms: number | null;
+  overseas_born_pct: number | null;
+  ethnicity: { label: string; pct: number | null }[];
+  nzdep_decile: number | null;
+  suppressed: string[];
+  source: string;
+  nzdep_source: string;
+  retrieved_at: string;
+  unavailable?: string;
+}
+/** The suburb-level figures the profile already holds, for the side-by-side. */
+export interface SuburbStats {
+  name: string;
+  population: number | null;
+  median_age: number | null;
+  renting_pct: number | null;
+  median_household_income: number | null;
+  separate_house_pct: number | null;
+  nzdep_decile: number | null;
+  ethnicity: Record<string, number | null>;
+}
+const BLOCK_NOTE =
+  "Census 2023 counts for the statistical block (SA1) containing the address — an area, not the property. Small-area cells are random-rounded to base 3 and suppressed when small; \"not published for this block\" is Stats NZ's suppression, never a zero. NZDep2023 is the index's native block level: information, not a verdict.";
+const fmtInt = (v: number | null) => (v === null ? null : v.toLocaleString());
+const fmtPct = (v: number | null) => (v === null ? null : `${v}%`);
+const fmtMoney = (v: number | null) => (v === null ? null : `${Math.round(v).toLocaleString()}`);
+const fmtDec = (v: number | null) => (v === null ? null : String(v));
+const fmtNum = (v: number | null, d = 1) => (v === null ? null : v.toFixed(d));
+
 // TRI-128 — Unitary Plan overlays at the point (council services, live).
 interface OverlayHit {
   name: string | null;
@@ -257,7 +297,7 @@ function CopyAddress({ label }: { label: string }) {
   );
 }
 
-export function AddressFacts({ pin }: { pin: AddressPin }) {
+export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: SuburbStats }) {
   const anchors = useAnchors();
   const [hz, setHz] = useState<{ key: string; r: PointHazardResponse | null | "error" }>({ key: "", r: null });
   const key = `${pin.lng},${pin.lat}`;
@@ -347,6 +387,38 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
     };
   }, [key, pin.lng, pin.lat]);
   const overlays = ov.key === key ? ov.r : null;
+
+  // TRI-130 — the block's own census row (SA1), live.
+  const [bs, setBs] = useState<{ key: string; r: BlockStatsResponse | null | "error" }>({ key: "", r: null });
+  useEffect(() => {
+    let stale = false;
+    cachedJson<BlockStatsResponse>(`/api/block-stats?lng=${pin.lng}&lat=${pin.lat}`)
+      .then((r) => {
+        if (!stale) setBs({ key, r });
+      })
+      .catch(() => {
+        if (!stale) setBs({ key, r: "error" });
+      });
+    return () => {
+      stale = true;
+    };
+  }, [key, pin.lng, pin.lat]);
+  const blk = bs.key === key ? bs.r : null;
+  const blockRows: { label: string; block: string | null; suburb: string | null | undefined; nzdep?: boolean }[] =
+    blk && blk !== "error" && !blk.unavailable && !blk.none
+      ? [
+          { label: "People counted", block: fmtInt(blk.population), suburb: fmtInt(suburb?.population ?? null) },
+          { label: "Median age", block: fmtNum(blk.median_age), suburb: fmtNum(suburb?.median_age ?? null) },
+          { label: "Households renting", block: fmtPct(blk.renting_pct), suburb: fmtPct(suburb?.renting_pct ?? null) },
+          { label: "Median household income", block: fmtMoney(blk.median_household_income), suburb: fmtMoney(suburb?.median_household_income ?? null) },
+          { label: "NZDep2023 decile (1 least – 10 most deprived)", block: fmtDec(blk.nzdep_decile), suburb: fmtDec(suburb?.nzdep_decile ?? null), nzdep: true },
+          ...blk.ethnicity.map((e) => ({ label: `${e.label} (ethnicity)`, block: fmtPct(e.pct), suburb: fmtPct(suburb?.ethnicity?.[e.label] ?? null) })),
+          { label: "Overseas-born", block: fmtPct(blk.overseas_born_pct), suburb: undefined },
+          { label: "Separate houses", block: fmtPct(blk.separate_house_pct), suburb: fmtPct(suburb?.separate_house_pct ?? null) },
+          { label: "One-person households", block: fmtPct(blk.one_person_household_pct), suburb: undefined },
+          { label: "Average bedrooms", block: fmtNum(blk.avg_bedrooms), suburb: undefined },
+        ]
+      : [];
   const imageryCaption = built && built !== "error" && built.imagery
     ? `LINZ aerial basemap · ${built.imagery.title} · CC BY 4.0`
     : "LINZ aerial basemap · CC BY 4.0 · imagery date not reported for this point";
@@ -478,6 +550,55 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
             >
               Auckland Council GeoMaps ↗
             </a>
+          </div>
+        </div>
+      )}
+
+      <h4 data-testid="epistemic-block" className="mt-3 border-t border-hairline pt-2 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/70">
+        This block, beside this suburb
+        {blk && blk !== "error" && !blk.unavailable && !blk.none && blk.population !== null && (
+          <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">
+            about the {blk.population.toLocaleString()} people counted in this block at Census 2023
+          </span>
+        )}
+      </h4>
+      {blk === null && <p className="py-1 text-xs text-ink/50">Reading the block&apos;s census row…</p>}
+      {(blk === "error" || (blk && blk.unavailable)) && (
+        <p className="py-1 text-xs text-ink/60">The Stats NZ mirror could not be reached — the block was not checked.</p>
+      )}
+      {blk && blk !== "error" && !blk.unavailable && blk.none && (
+        <p className="py-1 text-xs text-ink/60" data-testid="block-none">
+          No census block (SA1) at this point.
+        </p>
+      )}
+      {blockRows.length > 0 && (
+        <div data-testid="block-stats">
+          <div className="flex items-baseline justify-end gap-3 text-[10px] uppercase tracking-wider text-ink/45">
+            <span className="w-20 text-right">this block</span>
+            <span className="w-20 text-right">this suburb</span>
+          </div>
+          <ul className="divide-y divide-hairline/60">
+            {blockRows.map((r) => (
+              <li key={r.label} className="flex items-baseline justify-between gap-3 py-1" data-testid="block-row">
+                <span className="text-sm text-ink/80">{r.label}</span>
+                <span className="flex shrink-0 items-baseline gap-3">
+                  <span data-col="block" className={`w-20 text-right font-mono text-sm ${r.block === null ? "text-[10px] leading-snug text-ink/45" : "font-medium text-ink"}`}>
+                    {r.block ?? "not published for this block"}
+                  </span>
+                  <span data-col="suburb" className={`w-20 text-right font-mono text-sm ${r.suburb == null ? "text-[10px] leading-snug text-ink/45" : "text-ink/70"}`}>
+                    {r.suburb === undefined ? "not held at suburb level" : r.suburb === null ? "not published" : r.suburb}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1 text-[10px] leading-snug text-ink/50">
+            {BLOCK_NOTE}
+            {suburb ? ` Suburb column: ${suburb.name}.` : ""}
+          </p>
+          <div className="mt-1 flex flex-wrap justify-end gap-2">
+            <Provenance source="Stats NZ 2023 Census (SA1)" asOf="2023-03-07" confidence="high" />
+            <Provenance source="NZDep2023 (SA1)" asOf="2023" confidence="high" />
           </div>
         </div>
       )}
