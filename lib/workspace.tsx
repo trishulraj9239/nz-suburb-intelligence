@@ -95,10 +95,18 @@ interface WorkspaceState {
   /** sa2_code of the suburb shown in the profile panel, if any. */
   selected: string | null;
   select: (sa2: string | null) => void;
-  /** The searched address pinned on the map (TRI-122); null when the
-   *  selection came from a suburb name or a map click. */
+  /** TRI-141 — the shortlist: every address the user picked this session,
+   *  oldest first, capped at COMPARE_LIMIT (the oldest drops off). Pins carry
+   *  no data of their own; Home clears them. */
+  pins: AddressPin[];
+  /** The pin whose SA2 is the selected suburb (TRI-122 banner + facts); null
+   *  when the selection came from a suburb name or a map click. Derived. */
   pin: AddressPin | null;
+  /** Append to the shortlist and select its SA2. With two or more pins the
+   *  SA2s join the compare set, so the Compare panel shows a column per
+   *  address (same-SA2 pins share one column). */
   selectAddress: (pin: AddressPin) => void;
+  removePin: (label: string) => void;
   /** sa2_codes pinned for comparison (max COMPARE_LIMIT). */
   compare: string[];
   toggleCompare: (sa2: string) => void;
@@ -133,17 +141,34 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [resetSeq, setResetSeq] = useState(0);
   const [turns, setTurns] = useState<AnswerTurn[]>([]);
   const [hovered, setHovered] = useState<string | null>(null);
-  const [pin, setPin] = useState<AddressPin | null>(null);
+  const [pins, setPins] = useState<AddressPin[]>([]);
+  // The banner/facts pin is whichever shortlisted address sits in the
+  // selected SA2 (the most recent if several) — so selecting another suburb
+  // never shows an address in an area it isn't in, and the shortlist stays.
+  const pin = useMemo(() => [...pins].reverse().find((p) => p.sa2_code === selected) ?? null, [pins, selected]);
 
-  // Selecting a different suburb drops the pin: the banner must never claim
-  // an address sits in an area it doesn't.
   const select = useCallback((sa2: string | null) => {
     setSelected(sa2);
-    setPin((p) => (p && p.sa2_code === sa2 ? p : null));
   }, []);
   const selectAddress = useCallback((p: AddressPin) => {
-    setPin(p);
+    setPins((prev) => {
+      const rest = prev.filter((x) => x.label !== p.label);
+      const next = [...rest, p];
+      const capped = next.length > COMPARE_LIMIT ? next.slice(next.length - COMPARE_LIMIT) : next;
+      // Two or more pins: their areas become the comparison (one column per
+      // SA2 — two addresses in one SA2 share a column, never two identical ones).
+      if (capped.length >= 2) {
+        setCompare((c) => {
+          const codes = [...new Set([...c, ...capped.map((x) => x.sa2_code)])];
+          return codes.slice(Math.max(0, codes.length - COMPARE_LIMIT));
+        });
+      }
+      return capped;
+    });
     setSelected(p.sa2_code);
+  }, []);
+  const removePin = useCallback((label: string) => {
+    setPins((prev) => prev.filter((x) => x.label !== label));
   }, []);
   const toggleCompare = useCallback((sa2: string) => {
     setCompare((prev) =>
@@ -192,7 +217,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const clearAsk = useCallback(() => setQuestion(null), []);
   const reset = useCallback(() => {
     setSelected(null);
-    setPin(null);
+    setPins([]);
     setCompare([]);
     setQuestion(null);
     setTurns([]);
@@ -321,8 +346,10 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     () => ({
       selected,
       select,
+      pins,
       pin,
       selectAddress,
+      removePin,
       compare,
       toggleCompare,
       clearCompare,
@@ -338,7 +365,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       reset,
       resetSeq,
     }),
-    [selected, select, pin, selectAddress, compare, toggleCompare, clearCompare, setCompareSet, question, askSeq, ask, clearAsk, hovered, turns, currentTurn, reset, resetSeq],
+    [selected, select, pins, pin, selectAddress, removePin, compare, toggleCompare, clearCompare, setCompareSet, question, askSeq, ask, clearAsk, hovered, turns, currentTurn, reset, resetSeq],
   );
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;

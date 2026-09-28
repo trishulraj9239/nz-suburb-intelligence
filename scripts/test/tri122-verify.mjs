@@ -42,14 +42,16 @@ console.log("zoom after fly-to:", zoom?.toFixed(1));
 if (!(zoom >= 14)) fail("expected a street-level zoom after picking an address");
 await page.screenshot({ path: "shots/tri122-pin.png" });
 
-// Selecting a suburb by name drops the pin.
+// Selecting a suburb by name drops the BANNER (no address may be shown for an
+// area it is not in) but keeps the pin on the map: since TRI-141 the pins are
+// a shortlist and only Home clears them.
 await box.fill("Takapuna Central");
 await page.locator("li button", { hasText: /^Takapuna Central/ }).first().click();
 await page.waitForTimeout(1200);
 if (await page.getByTestId("address-banner").count()) fail("banner should disappear when a different suburb is selected");
 const pinAfter = await pinFeatures();
-if (pinAfter !== 0) fail("pin should be cleared when a suburb is selected by name");
-console.log("pin + banner cleared on suburb selection ✓");
+if (pinAfter !== 1) fail(`the shortlist pin should stay on the map when a suburb is selected by name (TRI-141), got ${pinAfter}`);
+console.log("banner cleared on suburb selection, shortlist pin kept ✓");
 
 // Honest no-match for an out-of-region address.
 await box.fill("1 Lambton Quay Wellington");

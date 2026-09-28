@@ -302,3 +302,24 @@ TRI-102).
 | `How long would it take to walk from 42 Ponsonby Road to Grey Lynn Park?` | still the commute path (a routed walking time, typical, no live traffic) — nearby rows do not replace it |
 
 Automated: `node scripts/test/tri131-verify.mjs` (dev server on :3000).
+
+## Address shortlist UI (TRI-141) — manual checks
+
+The workspace now holds a **shortlist of pins** (oldest first, capped at the
+compare limit; Home clears them). Each searched address stays on the map with
+its label. With two or more pins their areas join the Compare set: a column
+per SA2, **headed by the address** and sub-headed "area: <suburb>"; two
+addresses in one SA2 share a column with the note *"both addresses are in
+the same statistical area, so area figures are identical"*. Above the area
+columns, **At each address** shows the full "This property" panel per pin,
+side by side and visibly separate from the area rows. Pins carry no data of
+their own; no per-address score exists anywhere.
+
+| Do | Expect |
+|---|---|
+| search `42 Ponsonby Rd`, then `22 Cardiff Road Pakuranga` | two pins on the map; "Compare (2)" tab; two columns headed by the two addresses with "area: Grey Lynn East" / "area: Pakuranga Central"; two "This property" panels above |
+| then search `1/22 Cardiff Road Pakuranga` | three pins; still two columns; the Pakuranga column lists both addresses and the same-area note |
+| click a different suburb on the map | the profile banner/facts follow the selection (no address shown for an area it isn't in); the pins stay on the map |
+| Home | pins, compare and selection cleared |
+
+Automated: `node scripts/test/tri141-verify.mjs` (dev server on :3000).

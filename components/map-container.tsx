@@ -342,6 +342,10 @@ function overlayLayers(): StyleSpecification["layers"] {
         "text-offset": [0, 1.2],
         "text-anchor": "top",
         "text-max-width": 14,
+        // TRI-141 — several pins can sit on one street; drop a colliding label
+        // rather than draw it over another.
+        "text-allow-overlap": false,
+        "text-optional": true,
       },
       paint: {
         "text-color": token("--ink", "#13212e"),
@@ -511,7 +515,9 @@ export function MapContainer() {
   /** Transient geolocation feedback (TRI-86) — never persisted. */
   const [geoNotice, setGeoNotice] = useState<string | null>(null);
   const { resolvedTheme } = useTheme();
-  const { selected, select, compare, hovered, resetSeq, pin } = useWorkspace();
+  const { selected, select, compare, hovered, resetSeq, pins } = useWorkspace();
+  // TRI-141 — fly only when a NEW pin arrives, not when one is removed.
+  const flownPinRef = useRef<string | null>(null);
 
   // TRI-104 — Results-row hover highlight. Its own effect: hovering is high
   // frequency and must never re-run the fit/connector work below.
@@ -700,23 +706,27 @@ export function MapContainer() {
       if (!m) return;
       const src = m.getSource("address-pin") as GeoJSONSource | undefined;
       if (!src) return;
-      if (!pin) {
+      if (!pins.length) {
         src.setData(EMPTY_FC);
+        flownPinRef.current = null;
         return;
       }
       src.setData({
         type: "FeatureCollection",
-        features: [{ type: "Feature", geometry: { type: "Point", coordinates: [pin.lng, pin.lat] }, properties: { label: pin.label } }],
+        features: pins.map((p) => ({ type: "Feature" as const, geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] }, properties: { label: p.label } })),
       });
+      const newest = pins[pins.length - 1];
+      if (flownPinRef.current === newest.label) return;
+      flownPinRef.current = newest.label;
       skipFlyRef.current = true;
-      m.flyTo({ center: [pin.lng, pin.lat], zoom: Math.max(m.getZoom(), 14.5), duration: 900 });
+      m.flyTo({ center: [newest.lng, newest.lat], zoom: Math.max(m.getZoom(), 14.5), duration: 900 });
     };
     // isStyleLoaded() is false transiently while the map is mid-update (a
     // fly-to or a filter change); "load" has already fired by then and would
     // never call back, so wait for the next idle instead.
     if (map.isStyleLoaded()) apply();
     else map.once("idle", apply);
-  }, [pin]);
+  }, [pins]);
 
   // Theme swap repaints chrome + re-applies the shade ramp in the new hue.
   useEffect(() => {
