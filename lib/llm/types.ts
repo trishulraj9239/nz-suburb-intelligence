@@ -14,8 +14,22 @@ export interface ChatMessageInput {
   content: string;
 }
 
+/**
+ * TRI-80 — a system prompt is either one string or a {stable, variable} pair.
+ * The stable part (registry block, rules) is identical across requests and is
+ * the prompt-cache breakpoint on providers that support one (Anthropic:
+ * cache_control ephemeral); the variable part (persona line, saved places,
+ * budget, plan note) follows it. Providers without a cache join the two.
+ */
+export type SystemPrompt = string | { stable: string; variable: string };
+
+export function flattenSystem(s: SystemPrompt | undefined): string | undefined {
+  if (s === undefined) return undefined;
+  return typeof s === "string" ? s : `${s.stable}${s.variable}`;
+}
+
 export interface CompleteOptions {
-  system?: string;
+  system?: SystemPrompt;
   messages: ChatMessageInput[];
   maxTokens?: number;
   /** JSON Schema — when set, the provider must return schema-valid JSON text. */
@@ -23,7 +37,7 @@ export interface CompleteOptions {
 }
 
 export interface StreamOptions {
-  system?: string;
+  system?: SystemPrompt;
   messages: ChatMessageInput[];
   maxTokens?: number;
 }

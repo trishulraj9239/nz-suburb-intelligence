@@ -23,6 +23,9 @@ client → `{ "ok": true, "geographies": N }`.
 - **Supabase** (Postgres + PostGIS) via `@supabase/ssr` — separate **browser** and **server** clients.
 - **MapLibre GL** — SA2 choropleth map, LINZ topolite vector basemap, hover tooltips, fly-to.
 - **Intelligence layer** — `@anthropic-ai/sdk`: text-to-query, cited answers, RAG over suburb embeddings.
+  Prompt caching (TRI-80): a system prompt is `string | { stable, variable }` (`lib/llm/types.ts`); the
+  Anthropic provider puts `cache_control` on the stable block. Keep per-request text (persona, saved
+  places, budget, plan note) in `variable`, never in `stable`. `NZSI_LLM_LOG=1` prints cache reads.
 - **Answer surface (M16) — one brain, one body, two frames.** `lib/workspace.tsx` is the
   ONLY caller of `/api/ask` (fetch, NDJSON parse, abort/staleness guard, `AnswerTurn[]`);
   `components/answer-thread.tsx` is the only renderer; `answer-strip.tsx` (desktop) and the
