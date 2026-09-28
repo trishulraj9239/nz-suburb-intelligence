@@ -10,13 +10,13 @@ export const maxDuration = 30;
  *
  * Building outlines on the rating unit at the pinned address, read live from
  * LINZ (Building Outlines ∩ Property Boundaries). Point only — no address
- * text accepted or logged; Auckland box only; rate-limited like the geocoder.
+ * text accepted or logged; Auckland box only; rate-limited on the free "point" bucket (TRI-142).
  */
 
 const AKL = { minLng: 173.8, maxLng: 175.8, minLat: -37.4, maxLat: -35.9 };
 
 export async function GET(req: NextRequest) {
-  if (!allowRequest(clientIp(req))) {
+  if (!allowRequest(clientIp(req), "point")) {
     return Response.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
   }
   const lng = Number(req.nextUrl.searchParams.get("lng"));
