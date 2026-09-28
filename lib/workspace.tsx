@@ -79,10 +79,26 @@ export interface AnswerMatch {
   };
 }
 
+/** TRI-122 — an address the user searched for. It is a pin and a banner only:
+ *  the profile shown is the containing SA2's, and no figure ever attaches to
+ *  the address itself. The label is what the geocoder resolved, so a wrong
+ *  interpretation is visible, never silent. */
+export interface AddressPin {
+  label: string;
+  lng: number;
+  lat: number;
+  sa2_code: string;
+  sa2_name: string | null;
+}
+
 interface WorkspaceState {
   /** sa2_code of the suburb shown in the profile panel, if any. */
   selected: string | null;
   select: (sa2: string | null) => void;
+  /** The searched address pinned on the map (TRI-122); null when the
+   *  selection came from a suburb name or a map click. */
+  pin: AddressPin | null;
+  selectAddress: (pin: AddressPin) => void;
   /** sa2_codes pinned for comparison (max COMPARE_LIMIT). */
   compare: string[];
   toggleCompare: (sa2: string) => void;
@@ -117,8 +133,18 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [resetSeq, setResetSeq] = useState(0);
   const [turns, setTurns] = useState<AnswerTurn[]>([]);
   const [hovered, setHovered] = useState<string | null>(null);
+  const [pin, setPin] = useState<AddressPin | null>(null);
 
-  const select = useCallback((sa2: string | null) => setSelected(sa2), []);
+  // Selecting a different suburb drops the pin: the banner must never claim
+  // an address sits in an area it doesn't.
+  const select = useCallback((sa2: string | null) => {
+    setSelected(sa2);
+    setPin((p) => (p && p.sa2_code === sa2 ? p : null));
+  }, []);
+  const selectAddress = useCallback((p: AddressPin) => {
+    setPin(p);
+    setSelected(p.sa2_code);
+  }, []);
   const toggleCompare = useCallback((sa2: string) => {
     setCompare((prev) =>
       prev.includes(sa2)
@@ -166,6 +192,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const clearAsk = useCallback(() => setQuestion(null), []);
   const reset = useCallback(() => {
     setSelected(null);
+    setPin(null);
     setCompare([]);
     setQuestion(null);
     setTurns([]);
@@ -294,6 +321,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     () => ({
       selected,
       select,
+      pin,
+      selectAddress,
       compare,
       toggleCompare,
       clearCompare,
@@ -309,7 +338,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       reset,
       resetSeq,
     }),
-    [selected, select, compare, toggleCompare, clearCompare, setCompareSet, question, askSeq, ask, clearAsk, hovered, turns, currentTurn, reset, resetSeq],
+    [selected, select, pin, selectAddress, compare, toggleCompare, clearCompare, setCompareSet, question, askSeq, ask, clearAsk, hovered, turns, currentTurn, reset, resetSeq],
   );
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
