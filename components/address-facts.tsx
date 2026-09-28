@@ -298,7 +298,7 @@ function CopyAddress({ label }: { label: string }) {
     <button
       type="button"
       data-testid="copy-address"
-      className="rounded border border-hairline px-1.5 py-0.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/70 hover:bg-canvas"
+      className="rounded border border-hairline px-1.5 py-0.5 font-mono text-micro font-normal normal-case tracking-normal text-ink/70 hover:bg-canvas"
       onClick={() => {
         navigator.clipboard?.writeText(label).then(
           () => {
@@ -471,13 +471,13 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
     <section data-testid="address-facts" className="rounded-md border border-hairline bg-canvas/60 p-3">
       <h3 className="font-display text-xs font-semibold uppercase tracking-wider text-ink/60">
         This property
-        <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">public records &amp; point checks · not a property assessment</span>
+        <span className="ml-1.5 font-mono text-micro font-normal normal-case tracking-normal text-ink/40">public records &amp; point checks · not a property assessment</span>
       </h3>
 
-      <h4 data-testid="epistemic-records" className="mt-2 border-t border-hairline pt-2 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/70">
+      <h4 data-testid="epistemic-records" className="mt-2 border-t border-hairline pt-2 font-display text-label font-semibold uppercase tracking-wider text-ink/70">
         Public records about the land
       </h4>
-      <h5 className="mt-1.5 text-[11px] font-medium uppercase tracking-wider text-ink/45">Title &amp; land — LINZ public records</h5>
+      <h5 className="mt-1.5 text-label font-medium uppercase tracking-wider text-ink/45">Title &amp; land — LINZ public records</h5>
       {property === null && <p className="py-1 text-xs text-ink/50">Reading the LINZ land records…</p>}
       {(property === "error" || (property && property.unavailable)) && (
         <p className="py-1 text-xs text-ink/60" data-testid="property-unavailable">
@@ -498,7 +498,7 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
                 <span className="font-mono text-sm font-medium text-ink" data-testid="title-type">{u.title_type ?? "—"}</span>
               </div>
               {u.title_type && TITLE_TYPE_NOTE[u.title_type] && (
-                <p className="mt-0.5 text-[10px] leading-snug text-ink/50">{TITLE_TYPE_NOTE[u.title_type]}</p>
+                <p className="mt-0.5 text-micro leading-snug text-ink/50">{TITLE_TYPE_NOTE[u.title_type]}</p>
               )}
               {u.area_m2 != null && (
                 <div className="mt-1 flex items-baseline justify-between gap-2">
@@ -507,14 +507,14 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
                 </div>
               )}
               {u.legal_description && (
-                <p className="mt-1 text-[11px] leading-snug text-ink/60">
+                <p className="mt-1 text-label leading-snug text-ink/60">
                   <span className="text-ink/45">Legal description</span> {u.legal_description}
                 </p>
               )}
             </div>
           ))}
           {property.titles.map((t) => (
-            <div key={t.title_no} className="py-1.5 text-[11px] leading-snug text-ink/65">
+            <div key={t.title_no} className="py-1.5 text-label leading-snug text-ink/65">
               <span className="font-mono text-ink/80">Title {t.title_no}</span>
               {t.type ? ` · ${t.type}` : ""}
               {t.issue_date ? ` · issued ${t.issue_date}` : ""}
@@ -527,7 +527,7 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
                 ))}
             </div>
           ))}
-          <p className="mt-1 text-[10px] leading-snug text-ink/50">
+          <p className="mt-1 text-micro leading-snug text-ink/50">
             Public records about the land, not a valuation or an inspection. Ownership is not public data — a lawyer can obtain the full title.
           </p>
           <div className="mt-1 flex justify-end">
@@ -536,7 +536,7 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
         </div>
       )}
 
-      <h5 className="mt-2 text-[11px] font-medium uppercase tracking-wider text-ink/45">Built form — LINZ building outlines</h5>
+      <h5 className="mt-2 text-label font-medium uppercase tracking-wider text-ink/45">Built form — LINZ building outlines</h5>
       {built === null && <p className="py-1 text-xs text-ink/50">Reading the LINZ building outlines…</p>}
       {(built === "error" || (built && built.unavailable)) && (
         <p className="py-1 text-xs text-ink/60" data-testid="built-form-unavailable">
@@ -569,14 +569,14 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
             )}
             {/* LINZ tags most houses "Unknown"; only a real use or name is worth a line. */}
             {built.outlines.some((o) => o.name || (o.use && o.use !== "Unknown")) && (
-              <p className="mt-1 text-[11px] leading-snug text-ink/60">
+              <p className="mt-1 text-label leading-snug text-ink/60">
                 {built.outlines
                   .filter((o) => o.name || (o.use && o.use !== "Unknown"))
                   .map((o) => [o.name, o.use !== "Unknown" ? o.use : null].filter(Boolean).join(" · "))
                   .join("; ")}
               </p>
             )}
-            <p className="mt-1 text-[10px] leading-snug text-ink/50">
+            <p className="mt-1 text-micro leading-snug text-ink/50">
               {BUILT_FORM_NOTE}
               {built.outlines_captured ? ` Outlines captured ${built.outlines_captured}.` : ""}
             </p>
@@ -590,7 +590,7 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
               href={GEOMAPS_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-0.5 inline-block font-mono text-[10px] text-accent underline-offset-2 hover:underline"
+              className="mt-0.5 inline-block font-mono text-micro text-accent underline-offset-2 hover:underline"
             >
               Auckland Council GeoMaps ↗
             </a>
@@ -598,10 +598,10 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
         </div>
       )}
 
-      <h4 data-testid="epistemic-block" className="mt-3 border-t border-hairline pt-2 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/70">
+      <h4 data-testid="epistemic-block" className="mt-3 border-t border-hairline pt-2 font-display text-label font-semibold uppercase tracking-wider text-ink/70">
         This block, beside this suburb
         {blk && blk !== "error" && !blk.unavailable && !blk.none && blk.population !== null && (
-          <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">
+          <span className="ml-1.5 font-mono text-micro font-normal normal-case tracking-normal text-ink/40">
             about the {blk.population.toLocaleString()} people counted in this block at Census 2023
           </span>
         )}
@@ -617,7 +617,7 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
       )}
       {blockRows.length > 0 && (
         <div data-testid="block-stats">
-          <div className="flex items-baseline justify-end gap-3 text-[10px] uppercase tracking-wider text-ink/45">
+          <div className="flex items-baseline justify-end gap-3 text-micro uppercase tracking-wider text-ink/45">
             <span className="w-20 text-right">this block</span>
             <span className="w-20 text-right">this suburb</span>
           </div>
@@ -626,17 +626,17 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
               <li key={r.label} className="flex items-baseline justify-between gap-3 py-1" data-testid="block-row">
                 <span className="text-sm text-ink/80">{r.label}</span>
                 <span className="flex shrink-0 items-baseline gap-3">
-                  <span data-col="block" className={`w-20 text-right font-mono text-sm ${r.block === null ? "text-[10px] leading-snug text-ink/45" : "font-medium text-ink"}`}>
+                  <span data-col="block" className={`w-20 text-right font-mono text-sm ${r.block === null ? "text-micro leading-snug text-ink/45" : "font-medium text-ink"}`}>
                     {r.block ?? "not published for this block"}
                   </span>
-                  <span data-col="suburb" className={`w-20 text-right font-mono text-sm ${r.suburb == null ? "text-[10px] leading-snug text-ink/45" : "text-ink/70"}`}>
+                  <span data-col="suburb" className={`w-20 text-right font-mono text-sm ${r.suburb == null ? "text-micro leading-snug text-ink/45" : "text-ink/70"}`}>
                     {r.suburb === undefined ? "not held at suburb level" : r.suburb === null ? "not published" : r.suburb}
                   </span>
                 </span>
               </li>
             ))}
           </ul>
-          <p className="mt-1 text-[10px] leading-snug text-ink/50">
+          <p className="mt-1 text-micro leading-snug text-ink/50">
             {BLOCK_NOTE}
             {suburb ? ` Suburb column: ${suburb.name}.` : ""}
           </p>
@@ -647,10 +647,10 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
         </div>
       )}
 
-      <h4 data-testid="epistemic-plan" className="mt-3 border-t border-hairline pt-2 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/70">
+      <h4 data-testid="epistemic-plan" className="mt-3 border-t border-hairline pt-2 font-display text-label font-semibold uppercase tracking-wider text-ink/70">
         Council plan records at this point
       </h4>
-      <h5 className="mt-1.5 text-[11px] font-medium uppercase tracking-wider text-ink/45">Plan overlays — Auckland Unitary Plan</h5>
+      <h5 className="mt-1.5 text-label font-medium uppercase tracking-wider text-ink/45">Plan overlays — Auckland Unitary Plan</h5>
       {overlays === null && <p className="py-1 text-xs text-ink/50">Checking the Unitary Plan overlays…</p>}
       {overlays === "error" && (
         <p className="py-1 text-xs text-ink/60">The council plan services could not be reached — no overlay was checked.</p>
@@ -663,7 +663,7 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-sm text-ink/80">
                     {l.label}
-                    <span className="ml-1 font-mono text-[10px] text-ink/45">{l.chapter}</span>
+                    <span className="ml-1 font-mono text-micro text-ink/45">{l.chapter}</span>
                   </span>
                   <span className={`shrink-0 font-mono text-sm font-medium ${l.status === "unavailable" ? "text-ink/45" : "text-ink"}`}>
                     {OVERLAY_STATUS[l.status] ?? l.status}
@@ -672,13 +672,13 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
                 {l.hits.length > 0 && (
                   <ul className="mt-0.5">
                     {l.hits.map((h, i) => (
-                      <li key={i} className="text-[11px] leading-snug text-ink/65">
+                      <li key={i} className="text-label leading-snug text-ink/65">
                         {overlayHitText(h)}
                         <a
                           href={h.document_url ?? AUP_HOME}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="ml-1.5 font-mono text-[10px] text-accent underline-offset-2 hover:underline"
+                          className="ml-1.5 font-mono text-micro text-accent underline-offset-2 hover:underline"
                         >
                           {h.document_url ? "chapter ↗" : "AUP ↗"}
                         </a>
@@ -689,18 +689,18 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
               </li>
             ))}
           </ul>
-          <p className="mt-1 text-[10px] leading-snug text-ink/50">{OVERLAY_NOTE}</p>
+          <p className="mt-1 text-micro leading-snug text-ink/50">{OVERLAY_NOTE}</p>
           <div className="mt-1 flex justify-end">
             <Provenance source="Auckland Unitary Plan overlays · Auckland Council" asOf={overlays.updated ?? overlays.retrieved_at.slice(0, 10)} confidence="high" />
           </div>
         </div>
       )}
 
-      <h4 data-testid="epistemic-models" className="mt-3 border-t border-hairline pt-2 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/70">
+      <h4 data-testid="epistemic-models" className="mt-3 border-t border-hairline pt-2 font-display text-label font-semibold uppercase tracking-wider text-ink/70">
         Area-level models at this point
       </h4>
-      <p className="mt-0.5 text-[10px] leading-snug text-ink/50">{HAZARD_CAVEAT}</p>
-      <h5 className="mt-1.5 text-[11px] font-medium uppercase tracking-wider text-ink/45">Council hazard layers at this point</h5>
+      <p className="mt-0.5 text-micro leading-snug text-ink/50">{HAZARD_CAVEAT}</p>
+      <h5 className="mt-1.5 text-label font-medium uppercase tracking-wider text-ink/45">Council hazard layers at this point</h5>
       {hazards === null && <p className="py-1 text-xs text-ink/50">Checking the council layers…</p>}
       {hazards === "error" && (
         <p className="py-1 text-xs text-ink/60">The council hazard services could not be reached — nothing was checked.</p>
@@ -713,7 +713,7 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-sm text-ink/80">
                     {l.label}
-                    <span className="ml-1 font-mono text-[10px] text-ink/45" title={l.edited ? `council layer last edited ${l.edited}` : undefined}>
+                    <span className="ml-1 font-mono text-micro text-ink/45" title={l.edited ? `council layer last edited ${l.edited}` : undefined}>
                       {l.vintage} layer
                     </span>
                   </span>
@@ -721,12 +721,12 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
                     {STATUS_WORDS[l.status] ?? l.status}
                   </span>
                 </div>
-                {l.detail && <p className="mt-0.5 text-[10px] leading-snug text-ink/55" data-testid="point-hazard-detail">{l.detail}</p>}
+                {l.detail && <p className="mt-0.5 text-micro leading-snug text-ink/55" data-testid="point-hazard-detail">{l.detail}</p>}
               </li>
             ))}
           </ul>
-          <p className="mt-1.5 text-[10px] leading-snug text-ink/50">{hazards.caveat || HAZARD_CAVEAT}</p>
-          <p className="mt-1 text-[10px] leading-snug text-ink/50" data-testid="hazard-map-links">
+          <p className="mt-1.5 text-micro leading-snug text-ink/50">{hazards.caveat || HAZARD_CAVEAT}</p>
+          <p className="mt-1 text-micro leading-snug text-ink/50" data-testid="hazard-map-links">
             {HAIL_NOTE}{" "}
             <a href={FLOOD_VIEWER_URL} target="_blank" rel="noopener noreferrer" className="font-mono text-accent underline-offset-2 hover:underline">
               Flood Viewer ↗
@@ -742,9 +742,9 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
         </>
       )}
 
-      <h5 className="mt-3 text-[11px] font-medium uppercase tracking-wider text-ink/45">
+      <h5 className="mt-3 text-label font-medium uppercase tracking-wider text-ink/45">
         Drive times from this address
-        <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">typical · no live traffic</span>
+        <span className="ml-1.5 font-mono text-micro font-normal normal-case tracking-normal text-ink/40">typical · no live traffic</span>
       </h5>
       <div className="divide-y divide-hairline/60">
         {FIXED_DESTINATIONS.map((d) => (
@@ -759,9 +759,9 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
           None of these targets accepts an address in the URL (tested
           2026-09-28), so the block offers a copy button instead of a fake deep
           link. Nothing here is fetched, cached or proxied. */}
-      <h4 data-testid="epistemic-nearby" className="mt-3 border-t border-hairline pt-2 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/70">
+      <h4 data-testid="epistemic-nearby" className="mt-3 border-t border-hairline pt-2 font-display text-label font-semibold uppercase tracking-wider text-ink/70">
         Nearby, as the crow flies
-        <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">straight-line from the address point · not a walk or a drive</span>
+        <span className="ml-1.5 font-mono text-micro font-normal normal-case tracking-normal text-ink/40">straight-line from the address point · not a walk or a drive</span>
       </h4>
       {nearby === null && <p className="py-1 text-xs text-ink/50">Measuring to the nearest park, stop and schools…</p>}
       {nearby === "error" && <p className="py-1 text-xs text-ink/60">The nearby lookup could not be reached — nothing was measured.</p>}
@@ -772,12 +772,12 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
               <li key={r.label} className="py-1.5" data-testid="nearby-row">
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-sm text-ink/80">{r.label}</span>
-                  <span className={`shrink-0 font-mono text-sm font-medium ${r.place ? "text-ink" : "text-[10px] text-ink/45"}`}>
+                  <span className={`shrink-0 font-mono text-sm font-medium ${r.place ? "text-ink" : "text-micro text-ink/45"}`}>
                     {r.place ? fmtDistance(r.place.distance_m) : r.missing}
                   </span>
                 </div>
                 {r.place && (
-                  <p className="mt-0.5 text-[11px] leading-snug text-ink/60">
+                  <p className="mt-0.5 text-label leading-snug text-ink/60">
                     {r.place.name}
                     {r.place.detail ? <span className="text-ink/45"> · {r.place.detail}</span> : null}
                   </p>
@@ -785,20 +785,20 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
               </li>
             ))}
           </ul>
-          <p className="mt-1 text-[10px] leading-snug text-ink/50">{nearby !== "error" && nearby ? nearby.note : ""}</p>
+          <p className="mt-1 text-micro leading-snug text-ink/50">{nearby !== "error" && nearby ? nearby.note : ""}</p>
           <div className="mt-1 flex justify-end">
             <Provenance source="Council parks + RTN stops · MOE schools" asOf={nearby && nearby !== "error" ? nearby.retrieved_at.slice(0, 10) : ""} confidence="derived" />
           </div>
         </div>
       )}
 
-      <h4 data-testid="epistemic-notheld" className="mt-3 border-t border-hairline pt-2 font-display text-[11px] font-semibold uppercase tracking-wider text-ink/70">
+      <h4 data-testid="epistemic-notheld" className="mt-3 border-t border-hairline pt-2 font-display text-label font-semibold uppercase tracking-wider text-ink/70">
         Not held by this app
       </h4>
-      <h5 className="mt-1.5 flex items-baseline justify-between gap-2 text-[11px] font-medium uppercase tracking-wider text-ink/45">
+      <h5 className="mt-1.5 flex items-baseline justify-between gap-2 text-label font-medium uppercase tracking-wider text-ink/45">
         <span>
           Also check
-          <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">where each is published, and why it is not here</span>
+          <span className="ml-1.5 font-mono text-micro font-normal normal-case tracking-normal text-ink/40">where each is published, and why it is not here</span>
         </span>
         <CopyAddress label={pin.label} />
       </h5>
@@ -811,12 +811,12 @@ export function AddressFacts({ pin, suburb }: { pin: AddressPin; suburb?: Suburb
                 href={l.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-[11px] text-accent underline-offset-2 hover:underline"
+                className="font-mono text-label text-accent underline-offset-2 hover:underline"
               >
                 {l.where} ↗
               </a>
             </div>
-            <p className="mt-0.5 text-[10px] leading-snug text-ink/50">{l.reason}</p>
+            <p className="mt-0.5 text-micro leading-snug text-ink/50">{l.reason}</p>
           </li>
         ))}
       </ul>

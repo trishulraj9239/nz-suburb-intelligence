@@ -83,13 +83,13 @@ export function ResultsPanel() {
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-hairline bg-canvas text-left">
-              <th scope="col" className="px-2 py-1.5 font-mono text-[10px] uppercase tracking-wider text-ink/45">
+              <th scope="col" className="px-2 py-1.5 font-mono text-micro uppercase tracking-wider text-ink/45">
                 #
               </th>
-              <th scope="col" className="px-2 py-1.5 font-mono text-[10px] uppercase tracking-wider text-ink/45">
+              <th scope="col" className="px-2 py-1.5 font-mono text-micro uppercase tracking-wider text-ink/45">
                 Suburb
               </th>
-              <th scope="col" className="px-2 py-1.5 text-right font-mono text-[10px] uppercase tracking-wider text-ink/45">
+              <th scope="col" className="px-2 py-1.5 text-right font-mono text-micro uppercase tracking-wider text-ink/45">
                 {head.label}
               </th>
               {isRent && <th scope="col" className="px-2 py-1.5" />}
@@ -105,7 +105,7 @@ export function ResultsPanel() {
                   compare.includes(r.sa2) ? "bg-harbour/6" : ""
                 }`}
               >
-                <td className="px-2 py-1.5 font-mono text-[11px] text-ink/45">{i + 1}</td>
+                <td className="px-2 py-1.5 font-mono text-label text-ink/45">{i + 1}</td>
                 <td className="px-2 py-1.5 font-medium text-ink">{r.suburb}</td>
                 <td className="px-2 py-1.5 text-right font-mono text-ink">
                   {formatValue(r.value, r.unit)}
@@ -121,7 +121,7 @@ export function ResultsPanel() {
         </table>
       </div>
 
-      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] text-ink/45">
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-micro text-ink/45">
         <span>Source:</span>
         {shortSource(head.source)} {head.as_of.slice(0, 4)}
         <ConfidenceChip confidence={head.confidence} />

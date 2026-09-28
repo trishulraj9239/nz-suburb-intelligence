@@ -35,7 +35,7 @@ export function ConfidenceChip({ confidence }: { confidence: string }) {
   return (
     <span
       title={`Confidence: ${CONF_TITLE[key]}`}
-      className={`inline-flex items-center rounded-full border px-1.5 font-mono text-[9px] leading-[14px] ${CONF_STYLE[key]}`}
+      className={`inline-flex items-center rounded-full border px-1.5 font-mono text-micro leading-4 ${CONF_STYLE[key]}`}
     >
       {CONF_LABEL[key]}
     </span>
@@ -73,7 +73,7 @@ export function ConfidenceLegend() {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-hairline pt-2">
       {(["high", "medium", "low", "derived"] as const).map((c) => (
-        <span key={c} className="flex items-center gap-1 text-[10px] text-ink/50" title={CONF_TITLE[c]}>
+        <span key={c} className="flex items-center gap-1 text-micro text-ink/50" title={CONF_TITLE[c]}>
           <ConfidenceChip confidence={c} />
           {LEGEND_TEXT[c]}
         </span>
@@ -84,7 +84,7 @@ export function ConfidenceLegend() {
 
 export function SourceChip({ source, asOf }: { source: string; asOf: string }) {
   return (
-    <span className="font-mono text-[10px] text-ink/45">
+    <span className="font-mono text-micro text-ink/45">
       {shortSource(source)} · {asOfLabel(asOf)}
     </span>
   );

@@ -11,11 +11,15 @@ import { WorkspaceProvider } from "@/lib/workspace";
  * fills the area and the context panel is a draggable bottom sheet that snaps
  * between peek / half / full (see ContextPanel) — so reading never squeezes the
  * map out of reach, and the map stays one swipe away.
+ *
+ * TRI-145: `h-dvh` (not 100vh) so the sheet never sits under a phone browser's
+ * toolbar; the starter chips are desktop-only over the map and live inside the
+ * sheet's empty state on phones.
  */
 export default function Home() {
   return (
     <WorkspaceProvider>
-      <div className="flex h-screen flex-col">
+      <div className="flex h-dvh flex-col">
         <TopBar />
         {/* Desktop answer frame (TRI-83) — self-hides below lg, where the
             answer is a tab inside the bottom sheet instead. */}
@@ -23,7 +27,7 @@ export default function Home() {
         <main className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
           <section className="relative min-h-0 flex-1 lg:border-r lg:border-hairline">
             <MapContainer />
-            {/* Browse-mode empty state (TRI-93) — self-hides once a question exists. */}
+            {/* Browse-mode empty state (TRI-93) — desktop only; self-hides once a question exists. */}
             <QuestionChips variant="starter" />
           </section>
           <ContextPanel />

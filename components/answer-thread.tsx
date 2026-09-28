@@ -26,7 +26,7 @@ function CitationChip({ s, onSelect }: { s: AnswerSource; onSelect: () => void }
       type="button"
       onClick={onSelect}
       title={`${s.suburb} — ${s.label}: ${s.value}${s.unit ? ` ${s.unit}` : ""} · ${s.source} · ${s.as_of.slice(0, 4)}${s.confidence !== "high" ? ` · confidence ${s.confidence}` : ""}`}
-      className="mx-0.5 inline-flex translate-y-[-1px] items-center rounded border border-amber/50 bg-amber/15 px-1 font-mono text-[10px] leading-4 text-ink transition-colors hover:bg-amber/30"
+      className="mx-0.5 inline-flex translate-y-[-1px] items-center rounded border border-amber/50 bg-amber/15 px-1 font-mono text-micro leading-4 text-ink transition-colors hover:bg-amber/30"
     >
       {s.source.replace(/NZDep(\d{4}) Deprivation Index/, "NZDep$1")} ·{" "}
       {s.as_of.slice(0, 4)}
@@ -95,7 +95,7 @@ function ResultPills({ turn }: { turn: AnswerTurn }) {
             key={p.sa2}
             className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-canvas py-0.5 pl-1 pr-1"
           >
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-harbour/15 font-mono text-[10px] text-ink/70">
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-harbour/15 font-mono text-micro text-ink/70">
               {i + 1}
             </span>
             <button
@@ -105,7 +105,7 @@ function ResultPills({ turn }: { turn: AnswerTurn }) {
             >
               {p.suburb}
             </button>
-            <span className="font-mono text-[11px] text-ink/60">{fmt(p.value, p.unit)}</span>
+            <span className="font-mono text-label text-ink/60">{fmt(p.value, p.unit)}</span>
             <button
               type="button"
               disabled={full}
@@ -113,7 +113,7 @@ function ResultPills({ turn }: { turn: AnswerTurn }) {
               title={
                 full ? `Comparison is full (max ${COMPARE_LIMIT})` : undefined
               }
-              className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors ${
+              className={`rounded-full px-2 py-0.5 text-label font-medium transition-colors ${
                 pinned
                   ? "bg-harbour text-white"
                   : full
@@ -145,13 +145,13 @@ function ConstraintChips({ turn }: { turn: AnswerTurn }) {
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <span className="font-display text-[10px] font-semibold uppercase tracking-wider text-ink/45">
+      <span className="font-display text-micro font-semibold uppercase tracking-wider text-ink/45">
         Filters
       </span>
       {turn.constraints.map((c) => (
         <span
           key={c.key}
-          className="inline-flex items-center gap-1 rounded-full border border-hairline bg-canvas py-0.5 pl-2.5 pr-1 text-[11px] text-ink/80"
+          className="inline-flex items-center gap-1 rounded-full border border-hairline bg-canvas py-0.5 pl-2.5 pr-1 text-label text-ink/80"
         >
           {c.label}
           <button
@@ -203,7 +203,7 @@ function HowMatched({ turn }: { turn: AnswerTurn }) {
   if (!lines.length) return null;
 
   return (
-    <div className="text-[11px]">
+    <div className="text-label">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -217,7 +217,7 @@ function HowMatched({ turn }: { turn: AnswerTurn }) {
         <dl className="mt-1.5 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-lg border border-hairline bg-canvas p-2">
           {lines.map(([k, v]) => (
             <Fragment key={k}>
-              <dt className="font-mono text-[10px] uppercase tracking-wider text-ink/45">{k}</dt>
+              <dt className="font-mono text-micro uppercase tracking-wider text-ink/45">{k}</dt>
               <dd className="text-ink/75">{v}</dd>
             </Fragment>
           ))}
@@ -282,7 +282,7 @@ export function AnswerThread({ maxHeight }: { maxHeight?: string }) {
           <QuestionChips variant="follow-up" />
 
           {current.sources.length > 0 && (
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-hairline pt-2 font-mono text-[10px] text-ink/45">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-hairline pt-2 font-mono text-micro text-ink/45">
               <span>Sources:</span>
               {[
                 ...new Map(

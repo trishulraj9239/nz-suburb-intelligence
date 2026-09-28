@@ -11,6 +11,7 @@ import {
   useAnchors,
   type AnchorKind,
 } from "@/lib/preferences";
+import { Popover } from "./popover";
 
 interface GeocodeHit {
   full_address: string;
@@ -37,23 +38,28 @@ interface GeocodeResponse {
  *
  * Everything lives in localStorage — nothing about where you live is sent
  * anywhere except as the destination of a routing call you triggered.
+ *
+ * TRI-145: sits on the shared Popover (Escape, focus return, flips when there
+ * is no room); 40 px controls; `initiallyOpen` lets the phone You menu open
+ * straight onto it, and desktop listens for the same `nzsi:open-places` event
+ * the Getting Around nudge dispatches.
  */
-export function AnchorsControl() {
+export function AnchorsControl({ initiallyOpen = false }: { initiallyOpen?: boolean }) {
   const anchors = useAnchors();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initiallyOpen);
   const [kind, setKind] = useState<AnchorKind>("home");
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [candidates, setCandidates] = useState<GeocodeHit[] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const boxRef = useRef<HTMLDivElement>(null);
+  const anchorRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const close = (e: MouseEvent) => {
-      if (!boxRef.current?.contains(e.target as Node)) setOpen(false);
+    const onOpenPlaces = () => {
+      if (anchorRef.current && getComputedStyle(anchorRef.current).display !== "none") setOpen(true);
     };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
+    window.addEventListener("nzsi:open-places", onOpenPlaces);
+    return () => window.removeEventListener("nzsi:open-places", onOpenPlaces);
   }, []);
 
   const reset = () => {
@@ -105,146 +111,137 @@ export function AnchorsControl() {
   };
 
   const poiCount = anchors.filter((a) => a.kind === "poi").length;
-  const kindTaken = (k: AnchorKind) =>
-    k === "poi" ? poiCount >= MAX_POIS : anchors.some((a) => a.kind === k);
+  const kindTaken = (k: AnchorKind) => (k === "poi" ? poiCount >= MAX_POIS : anchors.some((a) => a.kind === k));
 
   return (
-    <div ref={boxRef} className="relative">
+    <div className="relative">
       <button
+        ref={anchorRef}
         type="button"
+        aria-haspopup="dialog"
+        aria-expanded={open}
         onClick={() => {
           reset();
           setOpen((o) => !o);
         }}
-        title={
-          anchors.length
-            ? anchors.map((a) => `${a.label}: ${a.address}`).join("\n")
-            : "Save the places you travel to"
-        }
-        className={`inline-flex h-8 items-center gap-1 rounded-md border px-2.5 text-xs font-medium transition-colors ${
-          anchors.length
-            ? "border-harbour/60 bg-harbour/10 text-ink"
-            : "border-hairline bg-surface text-ink hover:border-harbour"
+        title={anchors.length ? anchors.map((a) => `${a.label}: ${a.address}`).join("\n") : "Save the places you travel to"}
+        className={`inline-flex h-10 items-center gap-1.5 rounded-control border px-3 text-label font-medium transition-colors ${
+          anchors.length ? "border-harbour/60 bg-harbour/10 text-ink" : "border-hairline bg-surface text-ink hover:border-harbour"
         }`}
       >
         Places
         {anchors.length > 0 && <span className="font-mono">{anchors.length}</span>}
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-10 z-30 w-80 rounded-lg border border-hairline bg-surface p-3 shadow-lg">
-          {anchors.length > 0 && (
-            <ul className="mb-3 flex flex-col gap-1">
-              {anchors.map((a) => (
-                <li
-                  key={a.id}
-                  className="flex items-center justify-between gap-2 rounded-md border border-hairline bg-canvas px-2 py-1.5"
-                >
-                  <span className="min-w-0">
-                    <span className="block text-[11px] font-medium text-ink">{a.label}</span>
-                    <span className="block truncate font-mono text-[10px] text-ink/50" title={a.address}>
-                      {a.address}
-                    </span>
+      <Popover open={open} onClose={() => setOpen(false)} anchorRef={anchorRef} label="Your places" width="w-80">
+        {anchors.length > 0 && (
+          <ul className="mb-3 flex flex-col gap-1">
+            {anchors.map((a) => (
+              <li key={a.id} className="flex items-center justify-between gap-2 rounded-control border border-hairline bg-canvas px-2 py-1.5">
+                <span className="min-w-0">
+                  <span className="block text-label font-medium text-ink">{a.label}</span>
+                  <span className="block truncate font-mono text-micro text-ink/55" title={a.address}>
+                    {a.address}
                   </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeAnchor(a.id)}
+                  aria-label={`Remove ${a.label}`}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center text-label text-ink/45 hover:text-ink"
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void lookup();
+          }}
+        >
+          <label className="text-label font-medium text-ink/80" htmlFor="anchor-kind">
+            Add a place
+          </label>
+          <div className="mt-1.5 flex gap-1.5">
+            <select
+              id="anchor-kind"
+              value={kind}
+              onChange={(e) => {
+                setKind(e.target.value as AnchorKind);
+                reset();
+              }}
+              className="h-10 shrink-0 rounded-control border border-hairline bg-canvas px-1.5 text-label text-ink focus:border-harbour focus:outline-none"
+            >
+              {ANCHOR_KINDS.map((k) => (
+                <option key={k} value={k} disabled={kindTaken(k)}>
+                  {ANCHOR_LABELS[k]}
+                  {k === "poi" ? ` (${poiCount}/${MAX_POIS})` : kindTaken(k) ? " — set" : ""}
+                </option>
+              ))}
+            </select>
+            <input
+              type="text"
+              value={draft}
+              onChange={(e) => {
+                setDraft(e.target.value);
+                reset();
+              }}
+              aria-label="Address in Auckland"
+              placeholder="e.g. 12 Madden Street"
+              className="h-10 min-w-0 flex-1 rounded-control border border-hairline bg-canvas px-2 font-mono text-body text-ink focus:border-harbour focus:outline-none"
+            />
+          </div>
+
+          {notice && <p className="mt-2 text-label leading-snug text-ink/65">{notice}</p>}
+
+          {candidates && (
+            <ul className="mt-2 flex flex-col gap-1">
+              {candidates.map((c) => (
+                <li key={`${c.full_address}${c.lng}`}>
                   <button
                     type="button"
-                    onClick={() => removeAnchor(a.id)}
-                    aria-label={`Remove ${a.label}`}
-                    className="shrink-0 text-xs text-ink/40 hover:text-ink"
+                    onClick={() => save(c)}
+                    className="min-h-10 w-full rounded-control border border-hairline px-2 py-1.5 text-left text-label leading-snug text-ink hover:border-harbour"
                   >
-                    ✕
+                    {c.full_address}
+                    {c.sa2_name && <span className="text-ink/50"> · {c.sa2_name}</span>}
                   </button>
                 </li>
               ))}
             </ul>
           )}
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void lookup();
-            }}
-          >
-            <label className="text-xs font-medium text-ink/75" htmlFor="anchor-kind">
-              Add a place
-            </label>
-            <div className="mt-1.5 flex gap-1.5">
-              <select
-                id="anchor-kind"
-                value={kind}
-                onChange={(e) => {
-                  setKind(e.target.value as AnchorKind);
-                  reset();
-                }}
-                className="h-9 shrink-0 rounded-md border border-hairline bg-canvas px-1.5 text-xs text-ink focus:border-harbour focus:outline-none"
-              >
-                {ANCHOR_KINDS.map((k) => (
-                  <option key={k} value={k} disabled={kindTaken(k)}>
-                    {ANCHOR_LABELS[k]}
-                    {k === "poi" ? ` (${poiCount}/${MAX_POIS})` : kindTaken(k) ? " — set" : ""}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="text"
-                value={draft}
-                onChange={(e) => {
-                  setDraft(e.target.value);
-                  reset();
-                }}
-                aria-label="Address in Auckland"
-                placeholder="e.g. 12 Madden Street"
-                className="h-9 min-w-0 flex-1 rounded-md border border-hairline bg-canvas px-2 font-mono text-sm text-ink focus:border-harbour focus:outline-none"
-              />
-            </div>
+          <div className="mt-2 flex justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                clearAnchors();
+                reset();
+              }}
+              disabled={!anchors.length}
+              className="min-h-10 px-1 text-label text-ink/60 hover:text-ink disabled:opacity-40"
+            >
+              Clear all
+            </button>
+            <button
+              type="submit"
+              disabled={busy || draft.trim().length < 3 || kindTaken(kind)}
+              className="min-h-10 rounded-control bg-harbour px-3 text-label font-medium text-surface hover:opacity-90 disabled:opacity-40"
+            >
+              {busy ? "Looking up…" : "Find address"}
+            </button>
+          </div>
+        </form>
 
-            {notice && <p className="mt-2 text-[11px] leading-snug text-ink/60">{notice}</p>}
-
-            {candidates && (
-              <ul className="mt-2 flex flex-col gap-1">
-                {candidates.map((c) => (
-                  <li key={`${c.full_address}${c.lng}`}>
-                    <button
-                      type="button"
-                      onClick={() => save(c)}
-                      className="w-full rounded-md border border-hairline px-2 py-1.5 text-left text-[11px] leading-snug text-ink hover:border-harbour"
-                    >
-                      {c.full_address}
-                      {c.sa2_name && <span className="text-ink/45"> · {c.sa2_name}</span>}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            <div className="mt-2 flex justify-between gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  clearAnchors();
-                  reset();
-                }}
-                disabled={!anchors.length}
-                className="text-xs text-ink/50 hover:text-ink disabled:opacity-40"
-              >
-                Clear all
-              </button>
-              <button
-                type="submit"
-                disabled={busy || draft.trim().length < 3 || kindTaken(kind)}
-                className="rounded-md bg-harbour px-3 py-1 text-xs font-medium text-surface hover:opacity-90 disabled:opacity-40"
-              >
-                {busy ? "Looking up…" : "Find address"}
-              </button>
-            </div>
-          </form>
-
-          <p className="mt-2 text-[10px] leading-snug text-ink/45">
-            Stored on this device only, and saved only after you confirm a match — profiles then
-            show drive times to each place. Addresses: Toitū Te Whenua LINZ (CC BY 4.0).
-          </p>
-        </div>
-      )}
+        <p className="mt-2 text-micro leading-snug text-ink/55">
+          Stored on this device only, and saved only after you confirm a match — profiles then show drive times to each place.
+          Addresses: Toitū Te Whenua LINZ (CC BY 4.0).
+        </p>
+      </Popover>
     </div>
   );
 }

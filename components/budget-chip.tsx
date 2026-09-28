@@ -21,7 +21,7 @@ export function BudgetChip({ rent }: { rent: number }) {
   return (
     <span
       title={`Your budget: $${budget}/wk · this suburb's median rent: $${Math.round(rent)}/wk`}
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${STYLE[v]}`}
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-micro font-medium ${STYLE[v]}`}
     >
       {LABEL[v]}
     </span>

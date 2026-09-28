@@ -323,3 +323,26 @@ their own; no per-address score exists anywhere.
 | Home | pins, compare and selection cleared |
 
 Automated: `node scripts/test/tri141-verify.mjs` (dev server on :3000).
+
+## Mobile shell (TRI-146, design phase A) — manual checks
+
+The phone shell (below 1024 px) is a one-row top bar — Home · NZSI · the ask
+box · a **"You"** button holding persona, Places, Budget, Sign in and Theme —
+over a full-height map, with the bottom sheet's pinned header (grab handle,
+suburb/address search, tabs) and a scrolling body. The map's shading, hazard
+layers and legend live in one **Layers** button bottom-left above the sheet;
+the starter questions live inside the sheet's empty state. Everything is on
+the token type scale (nothing below 12 px), 40 px touch targets, safe-area
+padding, and the theme follows the phone's setting until you toggle it.
+
+| Do (390 × 844) | Expect |
+|---|---|
+| open the app | one-row header; the sheet at half height with the search box and "Try one" chips plus the "Try asking" questions; no chips over the map |
+| tap **You** | persona toggle, Places, Budget, Sign in, Theme in one dialog; Escape (or tapping outside) closes it and focus returns to the button |
+| focus the grab handle, press ArrowUp / Home / End | the sheet grows / snaps to peek / snaps to full; the handle announces "Panel height, peek/half/full" |
+| type in the search at peek | the sheet grows so the list is never clipped; ArrowDown + Enter picks the highlighted option |
+| tap **Layers** | shade-by select, hazard toggles (44 px rows), the legend and the verbatim hazard caveat; a compact legend pill sits beside the button while shading is on |
+| ask a question | the tabs appear as real tabs (Answer / Profile / …); ArrowLeft/Right moves between them |
+| switch the phone to dark mode | the app follows; the toggle in You still overrides |
+
+Automated: `node scripts/test/mobile-shell-verify.mjs` (dev server on :3000) and `npm run test:unit`.

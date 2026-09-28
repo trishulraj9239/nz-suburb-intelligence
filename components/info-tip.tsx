@@ -1,42 +1,34 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { Popover } from "./popover";
 
 /**
  * Small ⓘ popover for section headings that need context (extracted from
- * profile-panel in TRI-59 so hazard/planning surfaces can reuse it).
- * Positions below the anchor with no collision detection — avoid using it at
- * the very bottom of a scrolling panel or the mobile bottom sheet's last row.
+ * profile-panel in TRI-59). Since TRI-145 it sits on the shared Popover, so it
+ * flips upward at the foot of a scrolling panel, closes on Escape, and returns
+ * focus — and it works on touch (a tap, not a hover).
  */
 export function InfoTip({ text, label }: { text: string; label: string }) {
   const [open, setOpen] = useState(false);
-  const boxRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent) => {
-      if (!boxRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [open]);
+  const anchorRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <span ref={boxRef} className="relative inline-block align-middle">
+    <span className="relative inline-block align-middle">
       <button
+        ref={anchorRef}
         type="button"
         aria-label={`What is ${label}?`}
         aria-expanded={open}
+        aria-haspopup="dialog"
         onClick={() => setOpen((o) => !o)}
-        className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full border border-hairline text-[9px] font-semibold normal-case text-ink/55 transition-colors hover:border-harbour hover:text-harbour"
+        className="ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full border border-hairline text-micro font-semibold normal-case tracking-normal text-ink/60 transition-colors hover:border-harbour hover:text-harbour"
       >
         i
       </button>
-      {open && (
-        <span className="absolute left-0 top-6 z-30 block w-64 rounded-lg border border-hairline bg-surface p-3 text-[11px] font-normal normal-case leading-snug tracking-normal text-ink/85 shadow-lg">
-          {text}
-        </span>
-      )}
+      <Popover open={open} onClose={() => setOpen(false)} anchorRef={anchorRef} label={label} align="start" width="w-72">
+        <p className="text-label font-normal normal-case leading-snug tracking-normal text-ink/85">{text}</p>
+      </Popover>
     </span>
   );
 }

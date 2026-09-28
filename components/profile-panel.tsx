@@ -88,7 +88,7 @@ function Trend({ s }: { s: ScalarValue }) {
   if (s.def.metric_key.startsWith("nzdep")) {
     return (
       <span
-        className="font-mono text-[10px] text-ink/55"
+        className="font-mono text-micro text-ink/55"
         title={`${h.map((p) => `${p.asOf.slice(0, 4)}: ${p.value.toLocaleString()}`).join(" · ")} — relative to all NZ areas`}
       >
         {h[Math.max(h.length - 2, 0)].asOf.slice(0, 4)} {prev.toLocaleString()} → {last.toLocaleString()}
@@ -103,7 +103,7 @@ function Trend({ s }: { s: ScalarValue }) {
       <svg width={W} height={H} aria-hidden className="opacity-70">
         <polyline points={pts} fill="none" stroke="var(--harbour)" strokeWidth="1.5" />
       </svg>
-      <span className="font-mono text-[10px] text-ink/55">
+      <span className="font-mono text-micro text-ink/55">
         {arrow}
         {Math.abs(pct) >= 0.5 ? `${Math.abs(pct).toFixed(0)}%` : ""}
       </span>
@@ -161,7 +161,7 @@ function AnchorCommuteRow({ sa2, anchor }: { sa2: string; anchor: Anchor }) {
       <div className="flex items-baseline justify-between gap-2">
         <span className="min-w-0 text-sm text-ink/80">
           Drive to {anchor.label.toLowerCase()}{" "}
-          <span className="block truncate font-mono text-[10px] text-ink/45" title={anchor.address}>
+          <span className="block truncate font-mono text-micro text-ink/45" title={anchor.address}>
             → {anchor.address}
           </span>
         </span>
@@ -256,7 +256,7 @@ function HazardFactCount({
   return (
     <p className="mt-1.5">
       <span
-        className="inline-flex items-center rounded-full border border-hairline bg-canvas px-2 py-0.5 font-mono text-[11px] text-ink/75"
+        className="inline-flex items-center rounded-full border border-hairline bg-canvas px-2 py-0.5 font-mono text-label text-ink/75"
         title={comparable
           .map(
             (x) =>
@@ -302,7 +302,7 @@ function ScalarRow({ s, stat }: { s: ScalarValue; stat?: RegionalStat }) {
               plain" is unreadable without knowing what's normal, and hazard is
               where a reader is least likely to have a prior. */}
           {HAZARD_METRIC_KEYS.has(s.def.metric_key) && (
-            <p className="mt-0.5 text-right font-mono text-[10px] text-ink/45">
+            <p className="mt-0.5 text-right font-mono text-micro text-ink/45">
               Auckland median {formatValue(s.def, stat.median)}
             </p>
           )}
@@ -430,13 +430,13 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
             {inCompare ? "✓ Comparing" : "+ Compare"}
           </button>
         </div>
-        <p className="mt-0.5 font-mono text-[11px] text-ink/45">
+        <p className="mt-0.5 font-mono text-label text-ink/45">
           SA2 {suburb.sa2_code}
           {suburb.land_area_km2 != null && <> · {suburb.land_area_km2.toFixed(1)} km²</>}
         </p>
         {profile.cbdKm != null && (
           <p
-            className="mt-1 flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-ink/60"
+            className="mt-1 flex flex-wrap items-center gap-1.5 font-mono text-label text-ink/60"
             title={
               profile.cbdMethod === "road"
                 ? "Driving distance to the Auckland CBD (Britomart) via openrouteservice/OSM — typical route, no live traffic. Drive/cycle/walk times are in Getting around below."
@@ -471,7 +471,7 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
                 <InfoTip label={label.toLowerCase()} text={SECTION_EXPLAINERS[dim]} />
               )}
               {dim === "commute" && (
-                <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">
+                <span className="ml-1.5 font-mono text-micro font-normal normal-case tracking-normal text-ink/40">
                   typical · no live traffic
                 </span>
               )}
@@ -479,7 +479,7 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
             {dim === "hazard" && (
               <>
                 <HazardFactCount rows={rows} statFor={statFor} />
-                <p className="mt-1 text-[10px] leading-snug text-ink/50">{HAZARD_CAVEAT}</p>
+                <p className="mt-1 text-micro leading-snug text-ink/50">{HAZARD_CAVEAT}</p>
               </>
             )}
             {(rows.length > 0 || dim === "commute") && (
@@ -492,7 +492,7 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
             )}
             {comps.map((b) => (
               <div key={b.def.metric_key} className="mt-3">
-                <h4 className="text-[11px] font-medium uppercase tracking-wider text-ink/45">
+                <h4 className="text-label font-medium uppercase tracking-wider text-ink/45">
                   {b.def.label}
                 </h4>
                 {STACKED_BREAKDOWNS.has(b.def.metric_key) ? (
@@ -511,7 +511,7 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
                           <div className="h-full rounded-full bg-harbour/70" style={{ width: `${Math.min(c.pct, 100)}%` }} />
                         )}
                       </div>
-                      <span className="w-10 text-right font-mono text-[11px] text-ink">
+                      <span className="w-10 text-right font-mono text-label text-ink">
                         {c.pct != null ? `${c.pct.toFixed(0)}%` : "—"}
                       </span>
                     </div>
@@ -532,7 +532,7 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
       <section>
         <h3 className="border-b border-hairline pb-1 font-display text-xs font-semibold uppercase tracking-wider text-ink/60">
           Schools nearby{" "}
-          <span className="font-mono text-[10px] normal-case text-ink/40">
+          <span className="font-mono text-micro normal-case text-ink/40">
             ({schools.length} within the area)
           </span>
         </h3>
@@ -544,7 +544,7 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
               <li key={sc.name} className="flex items-baseline justify-between gap-2 py-1.5">
                 <div className="min-w-0">
                   <p className="truncate text-sm text-ink/85">{sc.name}</p>
-                  <p className="text-[11px] text-ink/45">
+                  <p className="text-label text-ink/45">
                     {sc.school_type}
                     {sc.authority ? ` · ${sc.authority}` : ""}
                     {sc.roll != null ? ` · roll ${sc.roll.toLocaleString()}` : ""}
@@ -574,7 +574,7 @@ export function ProfilePanel({ sa2 }: { sa2: string }) {
         <div className="mt-1 flex items-center justify-end gap-1.5">
           <SourceChip source="MOE Schools Directory" asOf="2026" />
           <span
-            className="font-mono text-[10px] text-ink/45"
+            className="font-mono text-micro text-ink/45"
             title="Driving distances from the suburb origin via openrouteservice/OSM; straight-line (labelled) where routing is unavailable"
           >
             · distances
