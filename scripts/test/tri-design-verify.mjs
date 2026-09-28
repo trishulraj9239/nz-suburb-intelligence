@@ -1,7 +1,8 @@
 /** TRI-147 — the primitives gallery at 390 and 1440: every primitive labelled
  *  with its status, hatched full-length empty states, outlined estimates,
  *  3:1 marks / 4.5:1 text in both themes, nothing under 12 px.
- *  TRI-148 — then the Profile on the kit (six persona-ordered cards). */
+ *  TRI-148 — then the Profile on the kit (six persona-ordered cards).
+ *  TRI-149 — then Compare on shared-axis dot strips. */
 import { chromium } from "playwright-core";
 const fail = (m) => { throw new Error("FAIL: " + m); };
 const b = await chromium.launch({ channel: process.env.PW_CHANNEL || "msedge", headless: true });
@@ -200,5 +201,71 @@ for (const [width, theme] of [[1440, "light"], [1440, "dark"], [390, "light"], [
   await ctx.close();
 }
 console.log("\nPASS — profile on the kit");
+
+
+// ---------------------------------------------------------------------------
+// TRI-149 — Compare on the kit: one row per metric with lettered dots on the
+// shared axis, persona-ordered cards with sr-tables, "Only differences"
+// actually hides rows, the heatmap ranks judged metrics only, the remove
+// controls keep their names; 1440 and 390 (sheet full), light and dark.
+// ---------------------------------------------------------------------------
+for (const [width, theme] of [[1440, "light"], [390, "light"], [1440, "dark"], [390, "dark"]]) {
+  const ctx = await b.newContext({ viewport: { width, height: width === 390 ? 844 : 900 } });
+  await ctx.addInitScript((t) => localStorage.setItem("theme", t), theme);
+  const page = await ctx.newPage();
+  await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+  await page.waitForTimeout(1500);
+  const panel = page.locator("aside").last();
+  const pick = async (name) => {
+    const box = page.getByLabel("Find a suburb or address");
+    await box.fill(name); await page.waitForTimeout(800);
+    await box.press("ArrowDown"); await box.press("Enter"); await page.waitForTimeout(1500);
+    await panel.getByRole("button", { name: /^\+ Compare$/ }).first().click(); await page.waitForTimeout(400);
+  };
+  await pick("Ponsonby West");
+  await pick("Takapuna Central");
+  await page.getByRole("tab", { name: /^Compare \(2\)$/ }).click();
+  for (let i = 0; i < 40; i++) { if ((await panel.locator("[data-testid=card-compare-schools]").count()) > 0) break; await page.waitForTimeout(500); }
+  await page.waitForTimeout(1000);
+  if (width === 390) { await page.getByRole("slider").first().focus(); await page.keyboard.press("End"); await page.waitForTimeout(600); }
+
+  const cards = await panel.locator("[data-testid^=card-compare-]").evaluateAll((els) => els.map((e) => e.getAttribute("data-testid").replace("card-compare-", "")));
+  if (cards.join() !== "housing,commute,people,hazards,planning,schools") fail(`[${width} ${theme}] compare card order ${cards.join(",")}`);
+  const srTables = await panel.locator("[data-testid^=card-compare-] [data-testid=sr-table]").count();
+  if (srTables < 6) fail(`[${width} ${theme}] compare sr-tables ${srTables}`);
+  const rows = await panel.locator("[data-testid^=cmp-]").evaluateAll((els) => els.map((e) => ({ id: e.getAttribute("data-testid"), imgs: e.querySelectorAll("[role=img]").length, labelled: [...e.querySelectorAll("[role=img]")].every((i) => (i.getAttribute("aria-label") || "").length > 4) })));
+  if (rows.length < 20) fail(`[${width} ${theme}] too few compare rows: ${rows.length}`);
+  for (const r of rows) { if (r.imgs !== 1) fail(`[${width} ${theme}] ${r.id} has ${r.imgs} primitives (want exactly one)`); if (!r.labelled) fail(`[${width} ${theme}] ${r.id} unlabelled primitive`); }
+  // Every dot strip lists each suburb's value with its letter; no "best" on unjudged rows.
+  const unjudgedBest = await panel.locator("[data-testid^=cmp-]").evaluateAll((els) => els.filter((e) => /unjudged/.test(e.textContent || "") && /\bbest\b/.test(e.textContent || "")).length);
+  if (unjudgedBest) fail(`[${width} ${theme}] a "best" chip appeared on an unjudged row`);
+  if ((await panel.getByRole("button", { name: /Remove .* from comparison/ }).count()) !== 2) fail(`[${width} ${theme}] remove controls`);
+  // "Only differences" hides rows and says how many.
+  const before = rows.length;
+  await panel.getByText("Only differences").click(); await page.waitForTimeout(500);
+  const after = await panel.locator("[data-testid^=cmp-]").count();
+  const txt = await panel.innerText();
+  if (!(after < before)) fail(`[${width} ${theme}] Only differences did not hide rows (${before} → ${after})`);
+  if (!/\d+ similar rows? hidden/.test(txt)) fail(`[${width} ${theme}] hidden-count sentence missing`);
+  await panel.getByText("Only differences").click(); await page.waitForTimeout(300);
+  // Heatmap: judged metrics only.
+  const hm = panel.locator("[data-testid=compare-heatmap-card]");
+  if (!(await hm.count())) fail(`[${width} ${theme}] percentile overview missing`);
+  await hm.locator("summary").click(); await page.waitForTimeout(300);
+  const hmRows = await hm.locator("tbody th").allInnerTexts();
+  if (hmRows.some((t) => /flood|inundation|overland|liquefaction|deprivation|consent|zoning|heritage/i.test(t))) fail(`[${width} ${theme}] heatmap ranks an information-only metric: ${hmRows.join(" | ")}`);
+  if (!hmRows.length) fail(`[${width} ${theme}] heatmap has no rows`);
+  if (!/Hazard rows: Area-level model — not a property assessment/.test(txt)) fail(`[${width} ${theme}] hazard caveat missing on compare`);
+  if (width === 390) {
+    const wide = await panel.evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+    if (wide) fail(`[390 ${theme}] compare scrolls horizontally`);
+    const small = await panel.evaluate((el) => [...el.querySelectorAll("*")].filter((n) => [...n.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim()) && parseFloat(getComputedStyle(n).fontSize) < 12 && !n.closest("svg")).length);
+    if (small > 0) fail(`[390 ${theme}] ${small} text nodes under 12px in compare`);
+  }
+  await page.screenshot({ path: `shots/compare-${width}-${theme}.png` });
+  console.log(`[${width} ${theme}] compare: 6 cards · ${rows.length} rows, one labelled strip each · only-differences ${before} → ${after} · heatmap ${hmRows.length} judged rows ✓`);
+  await ctx.close();
+}
+console.log("\nPASS — compare on the kit");
 
 await b.close();

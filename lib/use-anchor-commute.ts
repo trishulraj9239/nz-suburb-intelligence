@@ -73,3 +73,35 @@ export function useAnchorCommutes(sa2: string, anchors: Anchor[]): Map<string, C
  *  place would burn up to 7 calls each time a profile is opened, so only the
  *  first few go automatically and the rest are opt-in per suburb. */
 export const AUTO_ROUTED_ANCHORS = 3;
+
+/**
+ * TRI-149 — the same, for several suburbs at once (Compare): one hook however
+ * many suburbs × places are on screen. Keys are `${sa2}|${anchorId}`.
+ */
+export function useAnchorCommutesMulti(sa2s: string[], anchors: Anchor[]): Map<string, CommuteResult> {
+  const ids = `${sa2s.join(",")}#${anchors.map((a) => a.id).join(",")}`;
+  const [state, setState] = useState<{ key: string; results: Map<string, CommuteResult> }>({ key: "", results: new Map() });
+
+  useEffect(() => {
+    let stale = false;
+    for (const sa2 of sa2s) {
+      for (const a of anchors) {
+        route(sa2, a).then((r) => {
+          if (stale) return;
+          setState((prev) => {
+            const results = new Map(prev.key === ids ? prev.results : []);
+            results.set(`${sa2}|${a.id}`, r);
+            return { key: ids, results };
+          });
+        });
+      }
+    }
+    return () => {
+      stale = true;
+    };
+    // `sa2s` and `anchors` are fully described by `ids` for this effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ids]);
+
+  return state.key === ids ? state.results : new Map();
+}

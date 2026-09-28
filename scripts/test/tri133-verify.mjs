@@ -23,7 +23,7 @@ async function checkFrame(name) {
   console.log(`${name} headers:`, heads.join(" | "));
   const text = (await panel.innerText()).replace(/\s+/g, " ");
   if (!/This property/i.test(text)) fail(`${name}: 'This property' title missing`);
-  if (/\b(score|\/10|verdict|good buy|recommend)/i.test(text)) fail(`${name}: verdict language crept into the panel: ${text.slice(0, 200)}`);
+  if (/\b(score|\/10|good buy|recommend)/i.test(text) || /(?<!not a )\bverdict/i.test(text)) fail(`${name}: verdict language crept into the panel: ${text.slice(0, 200)}`);
   if (/\$\s?\d/.test(text)) fail(`${name}: a dollar figure crept into the panel`);
   const caveats = (text.match(/area-level model/gi) ?? []).length;
   if (caveats < 2) fail(`${name}: hazard caveat should appear at the top and the foot of the models group (found ${caveats})`);
