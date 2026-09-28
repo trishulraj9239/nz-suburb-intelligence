@@ -449,3 +449,17 @@ inside, so colour is never the only cue.
 
 Automated: `npm run test:design` (dev server on :3000) and `npm run test:phone`.
 
+## Rating-unit hazard test (TRI-156) — manual checks
+
+Search **42 Ponsonby Rd** and read "Area-level models at this point".
+
+| Look at | Expect |
+|---|---|
+| each council-layer row | the point pill as before, then a second line "rating unit: touches the rating unit / clear of the rating unit" (class layers show their class; the slow landslide layer says "rating unit not tested") |
+| under the caveat | the sentence beginning "Rating-unit test: whether the council layer touches any part of the LINZ rating unit…" |
+| the chips | "address point" on the council chip and a second "LINZ rating unit ∩ council layers · rating unit" chip |
+| an address on a road or reserve (no rating unit) | "No LINZ rating unit contains this point, so the layers were tested at the address point only." |
+| the network tab | ONE extra request per pin (`geometry=unit`), no 429 |
+
+Automated: `node scripts/test/tri156-verify.mjs`.
+

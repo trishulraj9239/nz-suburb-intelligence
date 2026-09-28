@@ -23,6 +23,7 @@ node scripts/test/tri128-verify.mjs     # Unitary Plan overlays at the pin: ten 
 node scripts/test/tri129-verify.mjs     # extended hazards at the pin: flood prone depth, landslide susceptibility wording, ASCIE lines, tsunami zone, HAIL gap + map links
 node scripts/test/tri130-verify.mjs     # this block (SA1) beside this suburb: Census 2023 + NZDep2023, suppression as 'not published', no verdicts
 node scripts/test/tri131-verify.mjs     # nearby from the pin: nearest park, RTN stop, schools by level — straight-line, 'not necessarily zoned', derived
+node scripts/test/tri156-verify.mjs     # rating-unit hazard test: a second pill per layer row (touches / clear of the rating unit), its note + chip, one extra call, no 429
 node scripts/test/tri142-verify.mjs     # rate-limit buckets: two pins within 10 s, no "not checked" rows, zero 429s on the free point routes
 node scripts/test/tri141-verify.mjs     # shortlist UI: several pins on the map, address-headed compare columns, same-area note, per-address facts side by side
 node scripts/test/mobile-shell-verify.mjs  # TRI-145 A: phone shell at 390×844 in light + dark — one-row header, You menu, slider sheet, tablist, Layers dock, combobox, 12px floor

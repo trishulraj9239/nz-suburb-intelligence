@@ -122,6 +122,11 @@ Note `.env.local` is gitignored — never commit secrets.
   (icon + the council's own status word); every chip names its tested geometry ("address point",
   "rating unit", "SA1 block"); links on `text-accent`; the area-level caveat still tops and foots
   the models group. Testids unchanged (tri122–133/141 are the contract).
+- **Rating-unit test (TRI-156):** `/api/point-hazards?geometry=unit` tests the whole LINZ rating unit
+  (`unitPolygon()` in `lib/property-facts.ts`, ArcGIS polygon query by POST) against the same layers;
+  statuses `touches` / `clear-unit` / `unit-untested` (words in `lib/property/copy.ts`), one extra call per
+  pin on the point bucket. The row keeps its point pill and adds a "rating unit:" line; the note says a hazard
+  clipping the back fence reads the same as one under the roof. NL rows stay point-only.
 
 ## Answer surfaces on the grammar + phone harness (TRI-151)
 - `answer-thread.tsx` stays the ONE body (M16): citation chips are ≥ 24 px and still the only amber

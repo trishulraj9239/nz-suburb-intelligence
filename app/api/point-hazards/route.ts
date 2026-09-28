@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { pointHazards, type PointHazardMode } from "@/lib/point-hazards";
+import { pointHazards, type PointHazardGeometry, type PointHazardMode } from "@/lib/point-hazards";
 import { allowRequest, clientIp, RATE_LIMIT_MESSAGE } from "@/lib/commute/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -32,5 +32,7 @@ export async function GET(req: NextRequest) {
   // ?mode=slow answers the ~20 s shallow-landslide layer; default: all.
   const m = req.nextUrl.searchParams.get("mode");
   const mode: PointHazardMode = m === "fast" || m === "slow" ? m : "all";
-  return Response.json(await pointHazards(lng, lat, mode));
+  // TRI-156 — ?geometry=unit tests the whole LINZ rating unit at the point instead of the point.
+  const geometry: PointHazardGeometry = req.nextUrl.searchParams.get("geometry") === "unit" ? "unit" : "point";
+  return Response.json(await pointHazards(lng, lat, mode, geometry));
 }

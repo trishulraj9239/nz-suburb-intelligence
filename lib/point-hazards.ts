@@ -25,6 +25,7 @@
  */
 
 import { HAZARD_CAVEAT } from "@/lib/hazard";
+import { unitPolygon, type Rings } from "@/lib/property-facts";
 
 const BASE = "https://services1.arcgis.com/n4yPwebTjJCmXB6W/arcgis/rest/services";
 
@@ -45,7 +46,8 @@ export interface PointHazardLayer {
   edited: string | null;
   /** What was checked, in words the UI and the answer layer can both use. */
   check: string;
-  /** inside | outside | within | clear | <class> | not assessed | unavailable */
+  /** inside | outside | within | clear | <class> | not assessed | unavailable;
+   *  with a rating-unit geometry: touches | clear-unit | <class> | not assessed | unit-untested | unavailable */
   status: string;
   inside: boolean | null;
   /** The record's own detail on a hit — depth, model, class wording. */
@@ -189,18 +191,25 @@ async function editedOn(service: string): Promise<string | null> {
   return date;
 }
 
-async function queryLayer(l: (typeof LAYERS)[number], lng: number, lat: number): Promise<PointHazardLayer> {
-  const geometry = encodeURIComponent(JSON.stringify({ x: lng, y: lat, spatialReference: { wkid: 4326 } }));
+async function queryLayer(l: (typeof LAYERS)[number], lng: number, lat: number, rings?: Rings): Promise<PointHazardLayer> {
+  // TRI-156 — with rings, the test is "does the layer intersect any part of
+  // the rating unit" (a polygon query, sent by POST because a section can
+  // run to dozens of vertices); without, the address point as before.
+  const geometry = rings ? JSON.stringify({ rings, spatialReference: { wkid: 4326 } }) : JSON.stringify({ x: lng, y: lat, spatialReference: { wkid: 4326 } });
+  const geometryType = rings ? "esriGeometryPolygon" : "esriGeometryPoint";
   const distance = l.distanceM ? `&distance=${l.distanceM}&units=esriSRUnit_Meter` : "";
   const fields = [...(l.classField ? [l.classField] : []), ...(l.outFields ?? [])];
   const out = fields.length ? `&outFields=${fields.join(",")}&returnGeometry=false&resultRecordCount=1` : "&returnCountOnly=true";
-  const url = `${BASE}/${l.service}/FeatureServer/0/query?geometry=${geometry}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects${distance}${out}&f=json`;
+  const params = `geometry=${encodeURIComponent(geometry)}&geometryType=${geometryType}&inSR=4326&spatialRel=esriSpatialRelIntersects${distance}${out}&f=json`;
+  const url = rings ? `${BASE}/${l.service}/FeatureServer/0/query` : `${BASE}/${l.service}/FeatureServer/0/query?${params}`;
   const editedP = editedOn(l.service);
   const base = { key: l.key, label: l.label, nlLabel: l.nlLabel, vintage: l.vintage, check: l.check };
   // One retry: the heavy council layers answer in ~1 s most of the time and
   // occasionally stall; a second attempt beats reporting "unavailable".
   const attempt = async () => {
-    const r = await fetch(url, { signal: AbortSignal.timeout(l.timeoutMs ?? 8000) });
+    const r = rings
+      ? await fetch(url, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: params, signal: AbortSignal.timeout(l.timeoutMs ?? 8000) })
+      : await fetch(url, { signal: AbortSignal.timeout(l.timeoutMs ?? 8000) });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const j = (await r.json()) as { count?: number; features?: { attributes: Attrs }[]; error?: unknown };
     if (j.error) throw new Error("service error");
@@ -214,7 +223,8 @@ async function queryLayer(l: (typeof LAYERS)[number], lng: number, lat: number):
     const attrs = j.features?.[0]?.attributes;
     if (l.classField) {
       const cls = attrs?.[l.classField];
-      const none = l.noneStatus ?? "not assessed";
+      // A class layer that answers nothing for the unit: "outside" is a point word — the unit is clear of it.
+      const none = rings && l.noneStatus === "outside" ? "clear-unit" : (l.noneStatus ?? "not assessed");
       return {
         ...base,
         vintage,
@@ -229,7 +239,7 @@ async function queryLayer(l: (typeof LAYERS)[number], lng: number, lat: number):
       ...base,
       vintage,
       edited,
-      status: l.distanceM ? (hit ? "within" : "clear") : hit ? "inside" : "outside",
+      status: rings ? (hit ? "touches" : "clear-unit") : l.distanceM ? (hit ? "within" : "clear") : hit ? "inside" : "outside",
       inside: hit,
       detail: hit && attrs && l.describe ? l.describe(attrs) : null,
     };
@@ -246,29 +256,36 @@ async function queryLayer(l: (typeof LAYERS)[number], lng: number, lat: number):
  * cached per layer, so the phases never repeat a council query.
  */
 export type PointHazardMode = "all" | "fast" | "slow";
+/** TRI-156 — what the layers are tested against: the address point, or the whole LINZ rating unit. */
+export type PointHazardGeometry = "point" | "unit";
 
 export async function pointHazards(
   lng: number,
   lat: number,
   mode: PointHazardMode = "all",
-): Promise<{ layers: PointHazardLayer[]; caveat: string; source: string; retrieved_at: string }> {
+  geometry: PointHazardGeometry = "point",
+): Promise<{ layers: PointHazardLayer[]; caveat: string; source: string; retrieved_at: string; geometry: "address point" | "rating unit"; unit_found: boolean | null }> {
   const coord = `${lng.toFixed(4)},${lat.toFixed(4)}`;
+  const rings = geometry === "unit" ? await unitPolygon(lng, lat) : undefined;
+  if (geometry === "unit" && !rings) {
+    return { layers: [], caveat: HAZARD_CAVEAT, source: POINT_HAZARD_SOURCE, retrieved_at: new Date().toISOString(), geometry: "rating unit", unit_found: false };
+  }
   const layers = await Promise.all(
     LAYERS.map(async (l) => {
       if (mode === "fast" && l.slow) {
-        return { key: l.key, label: l.label, nlLabel: l.nlLabel, vintage: l.vintage, check: l.check, edited: null, status: "pending", inside: null, detail: null } as PointHazardLayer;
+        return { key: l.key, label: l.label, nlLabel: l.nlLabel, vintage: l.vintage, check: l.check, edited: null, status: rings ? "unit-untested" : "pending", inside: null, detail: null } as PointHazardLayer;
       }
       if (mode === "slow" && !l.slow) return null;
-      const ck = `${coord}|${l.key}`;
+      const ck = `${coord}|${geometry}|${l.key}`;
       const hit = cache.get(ck);
       if (hit && Date.now() - hit.at < TTL_MS && hit.layers[0].status !== "unavailable") return hit.layers[0];
-      const r = await queryLayer(l, lng, lat);
+      const r = await queryLayer(l, lng, lat, rings ?? undefined);
       if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value as string);
       cache.set(ck, { at: Date.now(), layers: [r] });
       return r;
     }),
   );
-  return { layers: layers.filter((l): l is PointHazardLayer => l !== null), caveat: HAZARD_CAVEAT, source: POINT_HAZARD_SOURCE, retrieved_at: new Date().toISOString() };
+  return { layers: layers.filter((l): l is PointHazardLayer => l !== null), caveat: HAZARD_CAVEAT, source: POINT_HAZARD_SOURCE, retrieved_at: new Date().toISOString(), geometry: rings ? "rating unit" : "address point", unit_found: rings ? true : null };
 }
 
 /** Plain-words status for a layer row, shared by the UI and the NL rows. */
@@ -288,6 +305,12 @@ export function describePointHazard(l: PointHazardLayer): string {
       return "not in the assessed area";
     case "pending":
       return "still being checked (slow council layer)";
+    case "touches":
+      return "touches the rating unit";
+    case "clear-unit":
+      return "clear of the rating unit";
+    case "unit-untested":
+      return "rating unit not tested (slow council layer)";
     default:
       return l.status;
   }
