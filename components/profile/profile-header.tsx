@@ -5,6 +5,7 @@ import { COMPARE_LIMIT, useWorkspace } from "@/lib/workspace";
 import { personaConfig } from "@/lib/persona";
 import { ConfidenceChip } from "@/components/source-chip";
 import { BudgetChip } from "@/components/budget-chip";
+import { ShortlistStar } from "@/components/shortlist-star";
 
 /**
  * TRI-148 — suburb name, the Compare toggle, SA2 · area, the CBD distance
@@ -20,6 +21,8 @@ export function ProfileHeader({ profile, persona, rent }: { profile: SuburbProfi
     <div>
       <div className="flex items-start justify-between gap-2">
         <h2 className="font-display text-h2 font-semibold leading-tight text-ink">{suburb.name}</h2>
+        <span className="flex shrink-0 items-center gap-2">
+        <ShortlistStar sa2={sa2} name={suburb.name} />
         <button
           type="button"
           onClick={() => toggleCompare(sa2)}
@@ -30,6 +33,7 @@ export function ProfileHeader({ profile, persona, rent }: { profile: SuburbProfi
         >
           {inCompare ? "✓ Comparing" : "+ Compare"}
         </button>
+        </span>
       </div>
       <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
         <span className="font-mono text-label text-ink/45">
