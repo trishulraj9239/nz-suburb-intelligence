@@ -8,6 +8,8 @@ export interface DockLegend {
   label: string;
   min: string;
   max: string;
+  /** TRI-100 — the four interior quintile boundaries. */
+  breaks?: string[];
   source: string;
 }
 export interface DockHazardLayer {
@@ -106,7 +108,14 @@ export function MapOverlayDock({
         <span>{legend.min}</span>
         <span>{legend.max}</span>
       </div>
-      <p className="mt-0.5 text-micro text-ink/50">quintiles · darker = higher · unshaded = no data</p>
+      {legend.breaks && legend.breaks.length === 4 && (
+        <p className="mt-0.5 font-mono text-micro text-ink/60" data-testid="legend-breaks" title="Quintile boundaries — each shade step covers a fifth of the suburbs">
+          {legend.breaks.join(" · ")}
+        </p>
+      )}
+      <p className="mt-0.5 flex items-center gap-1 text-micro text-ink/50">
+        quintiles · darker = higher · <span className="nzsi-hatch inline-block h-2.5 w-3.5 rounded-[2px] border border-hairline" aria-hidden /> no data
+      </p>
       <p className="mt-0.5 font-mono text-micro text-ink/50">{legend.source}</p>
     </div>
   );

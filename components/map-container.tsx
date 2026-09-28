@@ -6,7 +6,7 @@ import type {
   Map as MapLibreMap,
   Popup as MapLibrePopup,
   StyleSpecification,
-  ExpressionSpecification,
+  ExpressionSpecification, FilterSpecification,
   GeoJSONSource,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -16,11 +16,13 @@ import { personaConfig } from "@/lib/persona";
 import {
   fetchMetricDefs,
   fetchMetricShade,
+  formatValue,
   type MetricDef,
   type ShadeRow,
 } from "@/lib/suburb-data";
 import { createClient } from "@/lib/supabase/client";
 import { confidenceLabel, shortSource } from "./provenance";
+import { motionMs } from "@/lib/motion";
 import { MapOverlayDock } from "./map-overlay-dock";
 import { TOKENS } from "@/lib/tokens";
 
@@ -113,7 +115,7 @@ function fitPadding(map: MapLibreMap) {
 
 function fitCoverage(map: MapLibreMap, animate: boolean) {
   loadCoverageBounds().then((b) => {
-    if (b) map.fitBounds(b, { padding: fitPadding(map), duration: animate ? 700 : 0 });
+    if (b) map.fitBounds(b, { padding: fitPadding(map), duration: animate ? motionMs(700) : 0 });
   });
 }
 
@@ -493,6 +495,7 @@ function applyShadePaint(map: MapLibreMap, shade: ShadeState | null) {
   if (!shade) {
     map.setPaintProperty("sa2-fill", "fill-color", token("--harbour", TOKENS.color.light.harbour));
     map.setPaintProperty("sa2-fill", "fill-opacity", 0.04);
+    if (map.getLayer("sa2-nodata")) applyNoDataHatch(map, null);
     return;
   }
   const [r, g, b] = harbourRgb();
@@ -503,9 +506,67 @@ function applyShadePaint(map: MapLibreMap, shade: ShadeState | null) {
   };
   const expr: unknown[] = ["match", ["get", "SA22023_V1_00"]];
   for (const [sa2, v] of shade.values) expr.push(sa2, colorFor(v.value));
-  expr.push("rgba(0,0,0,0)"); // no data → unshaded
+  expr.push("rgba(0,0,0,0)"); // no data → unshaded (hatched by the layer below)
   map.setPaintProperty("sa2-fill", "fill-color", expr as ExpressionSpecification);
   map.setPaintProperty("sa2-fill", "fill-opacity", 1);
+  applyNoDataHatch(map, [...shade.values.keys()]);
+}
+
+/**
+ * TRI-100 — suburbs with no value for the shaded metric are hatched, not
+ * merely unshaded: "unshaded = no data" in a legend is easy to misread as the
+ * lowest class. A tiny generated diagonal-line pattern on a layer of its own,
+ * filtered to the suburbs absent from the value map; hidden when shading is off.
+ */
+function hatchImage(): ImageData | null {
+  if (typeof document === "undefined") return null;
+  const size = 8;
+  const c = document.createElement("canvas");
+  c.width = size;
+  c.height = size;
+  const ctx = c.getContext("2d");
+  if (!ctx) return null;
+  ctx.clearRect(0, 0, size, size);
+  ctx.strokeStyle = "rgba(19,33,46,0.55)";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(-1, size + 1);
+  ctx.lineTo(size + 1, -1);
+  ctx.moveTo(-1, 1);
+  ctx.lineTo(1, -1);
+  ctx.moveTo(size - 1, size + 1);
+  ctx.lineTo(size + 1, size - 1);
+  ctx.stroke();
+  return ctx.getImageData(0, 0, size, size);
+}
+
+function applyNoDataHatch(map: MapLibreMap, codesWithData: string[] | null) {
+  const base = map.getLayer("sa2-fill") as { source?: string; sourceLayer?: string } | undefined;
+  if (!base?.source) return;
+  if (!map.getLayer("sa2-nodata")) {
+    if (!map.hasImage("nzsi-hatch")) {
+      const img = hatchImage();
+      if (!img) return;
+      map.addImage("nzsi-hatch", img);
+    }
+    map.addLayer(
+      {
+        id: "sa2-nodata",
+        type: "fill",
+        source: base.source,
+        ...(base.sourceLayer ? { "source-layer": base.sourceLayer } : {}),
+        paint: { "fill-pattern": "nzsi-hatch", "fill-opacity": 0.5 },
+        layout: { visibility: "none" },
+      },
+      map.getLayer("sa2-line") ? "sa2-line" : undefined,
+    );
+  }
+  if (!codesWithData) {
+    map.setLayoutProperty("sa2-nodata", "visibility", "none");
+    return;
+  }
+  map.setFilter("sa2-nodata", ["!", ["in", ["get", "SA22023_V1_00"], ["literal", codesWithData]]] as unknown as FilterSpecification);
+  map.setLayoutProperty("sa2-nodata", "visibility", "visible");
 }
 
 export function MapContainer() {
@@ -576,6 +637,8 @@ export function MapContainer() {
     label: string;
     min: string;
     max: string;
+    /** TRI-100 — the four interior quintile boundaries, formatted like the values. */
+    breaks: string[];
     source: string;
   } | null>(null);
 
@@ -720,7 +783,7 @@ export function MapContainer() {
       if (flownPinRef.current === newest.label) return;
       flownPinRef.current = newest.label;
       skipFlyRef.current = true;
-      m.flyTo({ center: [newest.lng, newest.lat], zoom: Math.max(m.getZoom(), 14.5), duration: 900 });
+      m.flyTo({ center: [newest.lng, newest.lat], zoom: Math.max(m.getZoom(), 14.5), duration: motionMs(900) });
     };
     // isStyleLoaded() is false transiently while the map is mid-update (a
     // fly-to or a filter change); "load" has already fired by then and would
@@ -816,7 +879,7 @@ export function MapContainer() {
           mapRef.current.fitBounds(b, {
             padding: fitPadding(mapRef.current),
             maxZoom: 12.5,
-            duration: 900,
+            duration: motionMs(900),
           });
       });
     } else if (selected && !skipFlyRef.current) {
@@ -827,7 +890,7 @@ export function MapContainer() {
           mapRef.current.fitBounds(boundsOf(f), {
             padding: fitPadding(mapRef.current),
             maxZoom: 13.5,
-            duration: 900,
+            duration: motionMs(900),
           });
       });
     } else if (selected) {
@@ -879,8 +942,9 @@ export function MapContainer() {
         .join(" · ");
       setLegend({
         label: def.label,
-        min: sorted[0].toLocaleString(),
-        max: sorted[sorted.length - 1].toLocaleString(),
+        min: formatValue(def, sorted[0]),
+        max: formatValue(def, sorted[sorted.length - 1]),
+        breaks: shade.breaks.slice(1, 5).map((b) => formatValue(def, b)),
         source: sourceLabel,
       });
       if (mapRef.current) applyShadePaint(mapRef.current, shade);
