@@ -15,6 +15,8 @@ and citation contract the app uses in production.
 The `provider` field on `POST /api/ask` selects the backend per request, so the
 harness A/Bs both models against an unchanged server — no restart between runs.
 
+The suite is 66 questions; q65/q66 (TRI-98) cover the investor persona and its yield trap.
+
 ## How it scores each answer
 
 Deterministic (in `run.mjs`):

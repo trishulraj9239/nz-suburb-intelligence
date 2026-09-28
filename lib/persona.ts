@@ -127,6 +127,34 @@ export const PERSONAS: Record<string, PersonaConfig> = {
     promptDescriptor:
       "The user is a prospective buyer: prioritise zoning and intensification capacity, consenting activity (prefer the per-1,000-dwellings rate when comparing suburbs), and hazard exposure alongside housing stock; current rent levels matter less.",
   },
+  // TRI-98 — third persona, config only (the M12 guarantee: no consumer changes).
+  // Rent levels + trend are the yield PROXIES — the app holds no sale prices, so
+  // it can never state a yield or a return; the descriptor says so.
+  investor: {
+    key: "investor",
+    label: "Investing",
+    sectionOrder: ["housing", "planning", "commute", "people", "deprivation", "hazard"],
+    defaultMapMetric: "rent_median_weekly",
+    kpiTiles: [
+      "rent_median_weekly",
+      "rent_trend_12m_pct",
+      "consents_per_1000_dwellings",
+      "intensification_capacity_indicator",
+      "population_growth_2y_pct",
+    ],
+    metricWeights: {
+      rent_median_weekly: 1.5,
+      rent_trend_12m_pct: 1.5,
+      rent_upper_quartile_weekly: 1.25,
+      consents_per_1000_dwellings: 1.5,
+      intensification_capacity_indicator: 1.5,
+      zoning_share: 1.25,
+      population_growth_2y_pct: 1.25,
+      commute_cbd_drive_min: 1.25,
+    },
+    promptDescriptor:
+      "The user is a property investor: prioritise rent levels and the 12-month rent trend (the only yield proxies in the data), consenting activity and intensification capacity (supply signals), population growth and commute access; owner-occupier comfort metrics matter less. The data holds NO sale prices or valuations — never state, estimate or imply a yield, return or capital-growth figure; say plainly that the app has no prices.",
+  },
 };
 
 export function personaConfig(key: string | null | undefined): PersonaConfig {
