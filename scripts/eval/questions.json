@@ -1,506 +1,560 @@
 [
-  {
-    "id": "q1-lookup",
-    "question": "What is the median weekly rent in Ponsonby West?",
-    "intent": "lookup",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Ponsonby West"
-      ],
-      "minSources": 1
-    }
-  },
-  {
-    "id": "q2-rank",
-    "question": "Which five Auckland suburbs have the lowest median weekly rent?",
-    "intent": "rank",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1
-    }
-  },
-  {
-    "id": "q3-compare",
-    "question": "Compare Ponsonby West and Takapuna Central on rent and population.",
-    "intent": "compare",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Ponsonby West",
-        "Takapuna Central"
-      ],
-      "minSources": 1
-    }
-  },
-  {
-    "id": "q4-similar-named",
-    "question": "Find Auckland suburbs similar to Ponsonby West.",
-    "intent": "similar",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1
-    }
-  },
-  {
-    "id": "q5-similar-vibe",
-    "question": "Which Auckland suburbs feel like a quiet, higher-income area near the water?",
-    "intent": "similar",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1
-    }
-  },
-  {
-    "id": "q6-unsupported",
-    "question": "What is the violent crime rate in Ponsonby?",
-    "intent": "unsupported",
-    "expect": {
-      "unsupported": true,
-      "minSources": 0
-    }
-  },
-  {
-    "id": "q7-commute-anchor",
-    "question": "How long does it take to drive from Devonport to the Auckland CBD?",
-    "intent": "lookup",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Devonport"
-      ],
-      "minSources": 1
-    }
-  },
-  {
-    "id": "q8-commute-live",
-    "question": "How long is the drive from Grey Lynn to 4 Osterley Way, Manukau?",
-    "intent": "commute",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1
-    }
-  },
-  {
-    "id": "q9-commute-mixed",
-    "question": "Which suburbs under $650 weekly rent are within 30 minutes drive of Penrose?",
-    "intent": "rank",
-    "expect": {
-      "unsupported": false,
-      "minSources": 2
-    }
-  },
-  {
-    "id": "q10-transit-trap",
-    "question": "How long is the train commute from Henderson to Britomart?",
-    "intent": "unsupported",
-    "expect": {
-      "unsupported": true,
-      "minSources": 0
-    }
-  },
-  {
-    "id": "q11-persona-renter",
-    "question": "I'm looking for a suburb — what matters most and where should I look?",
-    "intent": "rank",
-    "persona": "renter",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1
-    }
-  },
-  {
-    "id": "q12-persona-buyer",
-    "question": "I'm looking for a suburb — what matters most and where should I look?",
-    "intent": "rank",
-    "persona": "buyer",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1
-    }
-  },
-  {
-    "id": "q13-rent-live",
-    "question": "What's rent doing in Avondale lately?",
-    "intent": "lookup",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Avondale"
-      ],
-      "minSources": 1,
-      "sourceIncludes": "Tenancy bond"
-    }
-  },
-  {
-    "id": "q14-dwelling-trap",
-    "question": "What is the median rent for a two-bedroom apartment in Takapuna?",
-    "intent": "lookup",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Takapuna"
-      ],
-      "minSources": 1
-    }
-  },
-  {
-    "id": "q15-hazard-lookup",
-    "question": "How much of Takapuna Central is in the flood plain?",
-    "intent": "lookup",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Takapuna Central"
-      ],
-      "minSources": 1,
-      "sourceIncludes": "Flood"
-    }
-  },
-  {
-    "id": "q16-safety-trap",
-    "question": "Is Parakai a safe suburb to live in?",
-    "intent": "lookup",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Parakai"
-      ],
-      "minSources": 1
-    }
-  },
-  {
-    "id": "q17-score-trap",
-    "question": "Give Henderson a flood risk score out of 10.",
-    "intent": "unsupported",
-    "expect": {
-      "unsupported": true,
-      "minSources": 0
-    }
-  },
-  {
-    "id": "q18-consents-lookup",
-    "question": "Is much being built in Milldale?",
-    "intent": "lookup",
-    "persona": "buyer",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Milldale"
-      ],
-      "minSources": 1,
-      "sourceIncludes": "Building consents"
-    }
-  },
-  {
-    "id": "q19-consents-rank",
-    "question": "Which Auckland suburbs have the highest rate of new home building?",
-    "intent": "rank",
-    "persona": "buyer",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1,
-      "sourceIncludes": "Building consents"
-    }
-  },
-  {
-    "id": "q20-buyer-compare",
-    "question": "I'm buying — compare Milford and Takapuna Central on zoning capacity and flood exposure.",
-    "intent": "compare",
-    "persona": "buyer",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Milford",
-        "Takapuna Central"
-      ],
-      "minSources": 2
-    }
-  },
-  {
-    "id": "q21-completions-trap",
-    "question": "How many new houses were actually built in Albany last year?",
-    "intent": "lookup",
-    "persona": "buyer",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Albany"
-      ],
-      "minSources": 1,
-      "sourceIncludes": "Building consents"
-    }
-  },
-  {
-    "id": "q22-buyer-open",
-    "question": "Which suburbs look promising for long-term growth?",
-    "intent": "rank",
-    "persona": "buyer",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1
-    }
-  },
-  {
-    "id": "q23-rent-similar",
-    "question": "What are the rents in suburbs similar to Takapuna?",
-    "intent": "similar",
-    "persona": "renter",
-    "expect": {
-      "unsupported": false,
-      "minSources": 2,
-      "sourceIncludes": "Tenancy bond"
-    }
-  },
-  {
-    "id": "q24-commute-anchor-unset",
-    "question": "How long is the drive from Manurewa East to daycare?",
-    "intent": "unsupported",
-    "expect": {
-      "unsupported": true,
-      "minSources": 0
-    }
-  },
-  {
-    "id": "q25-pt-trap",
-    "question": "Which suburbs have the best public transport into the city?",
-    "intent": "unsupported",
-    "expect": {
-      "unsupported": true,
-      "minSources": 0
-    }
-  },
-  {
-    "id": "q26-consents-rate",
-    "question": "How much is being built in Milldale?",
-    "intent": "lookup",
-    "persona": "buyer",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Milldale"
-      ],
-      "minSources": 1,
-      "sourceIncludes": "Building consents"
-    }
-  },
-  {
-    "id": "q27-sale-price-trap",
-    "question": "What did houses sell for in Grey Lynn West?",
-    "intent": "unsupported",
-    "expect": {
-      "unsupported": true,
-      "minSources": 0
-    }
-  },
-  {
-    "id": "q28-rank-near",
-    "question": "Cheapest rent near Takapuna?",
-    "intent": "rank",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1
-    }
-  },
-  {
-    "id": "q29-deprivation-change",
-    "question": "How has the deprivation decile in Ponsonby West changed between NZDep2018 and NZDep2023?",
-    "intent": "lookup",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Ponsonby West"
-      ],
-      "minSources": 1,
-      "sourceIncludes": "NZDep"
-    }
-  },
-  {
-    "id": "q30-rank-deprivation-2023",
-    "question": "Which five Auckland suburbs have the lowest NZDep2023 deprivation decile?",
-    "intent": "rank",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1,
-      "sourceIncludes": "NZDep2023"
-    }
-  },
-  {
-    "id": "q31-damp-lookup",
-    "question": "What share of homes in Manurewa East are damp?",
-    "intent": "lookup",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Manurewa East"
-      ],
-      "minSources": 1,
-      "sourceIncludes": "Census 2023 dwellings"
-    }
-  },
-  {
-    "id": "q32-rank-mould",
-    "question": "Which five Auckland suburbs have the lowest share of mouldy homes?",
-    "intent": "rank",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1,
-      "sourceIncludes": "Census 2023 dwellings"
-    }
-  },
-  {
-    "id": "q33-compare-bedrooms",
-    "question": "Compare Ponsonby West and Takapuna Central on average bedrooms and dwellings per km².",
-    "intent": "compare",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Ponsonby West",
-        "Takapuna Central"
-      ],
-      "minSources": 2,
-      "sourceIncludes": "Census 2023 dwellings"
-    }
-  },
-  {
-    "id": "q34-linz-suburb-lookup",
-    "question": "What is the median weekly rent in Grey Lynn?",
-    "intent": "lookup",
-    "expect": {
-      "unsupported": false,
-      "minSources": 2
-    }
-  },
-  {
-    "id": "q35-linz-suburb-compare",
-    "question": "Compare Westmere and Kingsland on population and median household income.",
-    "intent": "compare",
-    "expect": {
-      "unsupported": false,
-      "minSources": 2
-    }
-  },
-  {
-    "id": "q36-linz-alias",
-    "question": "What is the deprivation decile in Arch Hill?",
-    "intent": "lookup",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1,
-      "sourceIncludes": "NZDep"
-    }
-  },
-  {
-    "id": "q37-erp-growth-rank",
-    "question": "Which five Auckland suburbs grew fastest in population between 2023 and 2025?",
-    "intent": "rank",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1,
-      "sourceIncludes": "Estimated resident population"
-    }
-  },
-  {
-    "id": "q38-erp-lookup",
-    "question": "What is the estimated population of Ponsonby West in 2025?",
-    "intent": "lookup",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Ponsonby West"
-      ],
-      "minSources": 1,
-      "sourceIncludes": "Estimated resident population"
-    }
-  },
-  {
-    "id": "q39-built-form-rank",
-    "question": "Which five Auckland suburbs have the largest median property size?",
-    "intent": "rank",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1,
-      "sourceIncludes": "Property Boundaries"
-    }
-  },
-  {
-    "id": "q40-built-form-compare",
-    "question": "Compare Ponsonby West and Takapuna Central on building footprint coverage and buildings per hectare.",
-    "intent": "compare",
-    "expect": {
-      "unsupported": false,
-      "suburbs": [
-        "Ponsonby West",
-        "Takapuna Central"
-      ],
-      "minSources": 2,
-      "sourceIncludes": "Building Outlines"
-    }
-  },
-  {
-    "id": "q41-address-flood",
-    "question": "Is 42 Ponsonby Road in a flood plain?",
-    "intent": "lookup",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1,
-      "sourceIncludes": "Auckland Council"
-    }
-  },
-  {
-    "id": "q42-address-commute",
-    "question": "How long is the drive from 42 Ponsonby Road to Auckland Airport?",
-    "intent": "commute",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1,
-      "sourceIncludes": "openrouteservice"
-    }
-  },
-  {
-    "id": "q43-address-unresolvable",
-    "question": "Is 999999 Nowhere Street in a flood plain?",
-    "intent": "lookup",
-    "expect": {
-      "unsupported": false,
-      "minSources": 0
-    }
-  },
-  {
-    "id": "q44-compare-two-addresses",
-    "question": "Compare 42 Ponsonby Road and 22 Cardiff Road Pakuranga on median rent and population.",
-    "intent": "compare",
-    "expect": {
-      "unsupported": false,
-      "minSources": 2
-    }
-  },
-  {
-    "id": "q45-compare-same-area-addresses",
-    "question": "Compare 1/22 Cardiff Road Pakuranga and 3/22 Cardiff Road Pakuranga on population.",
-    "intent": "compare",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1
-    }
-  },
-  {
-    "id": "q46-address-title",
-    "question": "What type of title does 42 Ponsonby Road have, and how big is the section?",
-    "intent": "lookup",
-    "expect": {
-      "unsupported": false,
-      "minSources": 1,
-      "sourceIncludes": "LINZ"
-    }
-  },
-  {
-    "id": "q47-address-value-trap",
-    "question": "What is 42 Ponsonby Road worth?",
-    "intent": "unsupported",
-    "expect": {
-      "unsupported": true,
-      "minSources": 0
-    }
+ {
+  "id": "q1-lookup",
+  "question": "What is the median weekly rent in Ponsonby West?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Ponsonby West"
+   ],
+   "minSources": 1
   }
+ },
+ {
+  "id": "q2-rank",
+  "question": "Which five Auckland suburbs have the lowest median weekly rent?",
+  "intent": "rank",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1
+  }
+ },
+ {
+  "id": "q3-compare",
+  "question": "Compare Ponsonby West and Takapuna Central on rent and population.",
+  "intent": "compare",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Ponsonby West",
+    "Takapuna Central"
+   ],
+   "minSources": 1
+  }
+ },
+ {
+  "id": "q4-similar-named",
+  "question": "Find Auckland suburbs similar to Ponsonby West.",
+  "intent": "similar",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1
+  }
+ },
+ {
+  "id": "q5-similar-vibe",
+  "question": "Which Auckland suburbs feel like a quiet, higher-income area near the water?",
+  "intent": "similar",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1
+  }
+ },
+ {
+  "id": "q6-unsupported",
+  "question": "What is the violent crime rate in Ponsonby?",
+  "intent": "unsupported",
+  "expect": {
+   "unsupported": true,
+   "minSources": 0
+  }
+ },
+ {
+  "id": "q7-commute-anchor",
+  "question": "How long does it take to drive from Devonport to the Auckland CBD?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Devonport"
+   ],
+   "minSources": 1
+  }
+ },
+ {
+  "id": "q8-commute-live",
+  "question": "How long is the drive from Grey Lynn to 4 Osterley Way, Manukau?",
+  "intent": "commute",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1
+  }
+ },
+ {
+  "id": "q9-commute-mixed",
+  "question": "Which suburbs under $650 weekly rent are within 30 minutes drive of Penrose?",
+  "intent": "rank",
+  "expect": {
+   "unsupported": false,
+   "minSources": 2
+  }
+ },
+ {
+  "id": "q10-transit-trap",
+  "question": "How long is the train commute from Henderson to Britomart?",
+  "intent": "unsupported",
+  "expect": {
+   "unsupported": true,
+   "minSources": 0
+  }
+ },
+ {
+  "id": "q11-persona-renter",
+  "question": "I'm looking for a suburb — what matters most and where should I look?",
+  "intent": "rank",
+  "persona": "renter",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1
+  }
+ },
+ {
+  "id": "q12-persona-buyer",
+  "question": "I'm looking for a suburb — what matters most and where should I look?",
+  "intent": "rank",
+  "persona": "buyer",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1
+  }
+ },
+ {
+  "id": "q13-rent-live",
+  "question": "What's rent doing in Avondale lately?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Avondale"
+   ],
+   "minSources": 1,
+   "sourceIncludes": "Tenancy bond"
+  }
+ },
+ {
+  "id": "q14-dwelling-trap",
+  "question": "What is the median rent for a two-bedroom apartment in Takapuna?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Takapuna"
+   ],
+   "minSources": 1
+  }
+ },
+ {
+  "id": "q15-hazard-lookup",
+  "question": "How much of Takapuna Central is in the flood plain?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Takapuna Central"
+   ],
+   "minSources": 1,
+   "sourceIncludes": "Flood"
+  }
+ },
+ {
+  "id": "q16-safety-trap",
+  "question": "Is Parakai a safe suburb to live in?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Parakai"
+   ],
+   "minSources": 1
+  }
+ },
+ {
+  "id": "q17-score-trap",
+  "question": "Give Henderson a flood risk score out of 10.",
+  "intent": "unsupported",
+  "expect": {
+   "unsupported": true,
+   "minSources": 0
+  }
+ },
+ {
+  "id": "q18-consents-lookup",
+  "question": "Is much being built in Milldale?",
+  "intent": "lookup",
+  "persona": "buyer",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Milldale"
+   ],
+   "minSources": 1,
+   "sourceIncludes": "Building consents"
+  }
+ },
+ {
+  "id": "q19-consents-rank",
+  "question": "Which Auckland suburbs have the highest rate of new home building?",
+  "intent": "rank",
+  "persona": "buyer",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "Building consents"
+  }
+ },
+ {
+  "id": "q20-buyer-compare",
+  "question": "I'm buying — compare Milford and Takapuna Central on zoning capacity and flood exposure.",
+  "intent": "compare",
+  "persona": "buyer",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Milford",
+    "Takapuna Central"
+   ],
+   "minSources": 2
+  }
+ },
+ {
+  "id": "q21-completions-trap",
+  "question": "How many new houses were actually built in Albany last year?",
+  "intent": "lookup",
+  "persona": "buyer",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Albany"
+   ],
+   "minSources": 1,
+   "sourceIncludes": "Building consents"
+  }
+ },
+ {
+  "id": "q22-buyer-open",
+  "question": "Which suburbs look promising for long-term growth?",
+  "intent": "rank",
+  "persona": "buyer",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1
+  }
+ },
+ {
+  "id": "q23-rent-similar",
+  "question": "What are the rents in suburbs similar to Takapuna?",
+  "intent": "similar",
+  "persona": "renter",
+  "expect": {
+   "unsupported": false,
+   "minSources": 2,
+   "sourceIncludes": "Tenancy bond"
+  }
+ },
+ {
+  "id": "q24-commute-anchor-unset",
+  "question": "How long is the drive from Manurewa East to daycare?",
+  "intent": "unsupported",
+  "expect": {
+   "unsupported": true,
+   "minSources": 0
+  }
+ },
+ {
+  "id": "q25-pt-trap",
+  "question": "Which suburbs have the best public transport into the city?",
+  "intent": "unsupported",
+  "expect": {
+   "unsupported": true,
+   "minSources": 0
+  }
+ },
+ {
+  "id": "q26-consents-rate",
+  "question": "How much is being built in Milldale?",
+  "intent": "lookup",
+  "persona": "buyer",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Milldale"
+   ],
+   "minSources": 1,
+   "sourceIncludes": "Building consents"
+  }
+ },
+ {
+  "id": "q27-sale-price-trap",
+  "question": "What did houses sell for in Grey Lynn West?",
+  "intent": "unsupported",
+  "expect": {
+   "unsupported": true,
+   "minSources": 0
+  }
+ },
+ {
+  "id": "q28-rank-near",
+  "question": "Cheapest rent near Takapuna?",
+  "intent": "rank",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1
+  }
+ },
+ {
+  "id": "q29-deprivation-change",
+  "question": "How has the deprivation decile in Ponsonby West changed between NZDep2018 and NZDep2023?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Ponsonby West"
+   ],
+   "minSources": 1,
+   "sourceIncludes": "NZDep"
+  }
+ },
+ {
+  "id": "q30-rank-deprivation-2023",
+  "question": "Which five Auckland suburbs have the lowest NZDep2023 deprivation decile?",
+  "intent": "rank",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "NZDep2023"
+  }
+ },
+ {
+  "id": "q31-damp-lookup",
+  "question": "What share of homes in Manurewa East are damp?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Manurewa East"
+   ],
+   "minSources": 1,
+   "sourceIncludes": "Census 2023 dwellings"
+  }
+ },
+ {
+  "id": "q32-rank-mould",
+  "question": "Which five Auckland suburbs have the lowest share of mouldy homes?",
+  "intent": "rank",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "Census 2023 dwellings"
+  }
+ },
+ {
+  "id": "q33-compare-bedrooms",
+  "question": "Compare Ponsonby West and Takapuna Central on average bedrooms and dwellings per km².",
+  "intent": "compare",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Ponsonby West",
+    "Takapuna Central"
+   ],
+   "minSources": 2,
+   "sourceIncludes": "Census 2023 dwellings"
+  }
+ },
+ {
+  "id": "q34-linz-suburb-lookup",
+  "question": "What is the median weekly rent in Grey Lynn?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 2
+  }
+ },
+ {
+  "id": "q35-linz-suburb-compare",
+  "question": "Compare Westmere and Kingsland on population and median household income.",
+  "intent": "compare",
+  "expect": {
+   "unsupported": false,
+   "minSources": 2
+  }
+ },
+ {
+  "id": "q36-linz-alias",
+  "question": "What is the deprivation decile in Arch Hill?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "NZDep"
+  }
+ },
+ {
+  "id": "q37-erp-growth-rank",
+  "question": "Which five Auckland suburbs grew fastest in population between 2023 and 2025?",
+  "intent": "rank",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "Estimated resident population"
+  }
+ },
+ {
+  "id": "q38-erp-lookup",
+  "question": "What is the estimated population of Ponsonby West in 2025?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Ponsonby West"
+   ],
+   "minSources": 1,
+   "sourceIncludes": "Estimated resident population"
+  }
+ },
+ {
+  "id": "q39-built-form-rank",
+  "question": "Which five Auckland suburbs have the largest median property size?",
+  "intent": "rank",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "Property Boundaries"
+  }
+ },
+ {
+  "id": "q40-built-form-compare",
+  "question": "Compare Ponsonby West and Takapuna Central on building footprint coverage and buildings per hectare.",
+  "intent": "compare",
+  "expect": {
+   "unsupported": false,
+   "suburbs": [
+    "Ponsonby West",
+    "Takapuna Central"
+   ],
+   "minSources": 2,
+   "sourceIncludes": "Building Outlines"
+  }
+ },
+ {
+  "id": "q41-address-flood",
+  "question": "Is 42 Ponsonby Road in a flood plain?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "Auckland Council"
+  }
+ },
+ {
+  "id": "q42-address-commute",
+  "question": "How long is the drive from 42 Ponsonby Road to Auckland Airport?",
+  "intent": "commute",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "openrouteservice"
+  }
+ },
+ {
+  "id": "q43-address-unresolvable",
+  "question": "Is 999999 Nowhere Street in a flood plain?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 0
+  }
+ },
+ {
+  "id": "q44-compare-two-addresses",
+  "question": "Compare 42 Ponsonby Road and 22 Cardiff Road Pakuranga on median rent and population.",
+  "intent": "compare",
+  "expect": {
+   "unsupported": false,
+   "minSources": 2
+  }
+ },
+ {
+  "id": "q45-compare-same-area-addresses",
+  "question": "Compare 1/22 Cardiff Road Pakuranga and 3/22 Cardiff Road Pakuranga on population.",
+  "intent": "compare",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1
+  }
+ },
+ {
+  "id": "q46-address-title",
+  "question": "What type of title does 42 Ponsonby Road have, and how big is the section?",
+  "intent": "lookup",
+  "expect": {
+   "unsupported": false,
+   "minSources": 1,
+   "sourceIncludes": "LINZ"
+  }
+ },
+ {
+  "id": "q47-address-value-trap",
+  "question": "What is 42 Ponsonby Road worth?",
+  "intent": "unsupported",
+  "expect": {
+   "unsupported": true,
+   "minSources": 0
+  }
+ },
+ {
+  "id": "q48-address-cv-linkout",
+  "question": "What is the capital value of 42 Ponsonby Road?",
+  "intent": "unsupported",
+  "expect": {
+   "unsupported": true,
+   "minSources": 0
+  }
+ },
+ {
+  "id": "q49-address-claims-linkout",
+  "question": "Have there been any EQC insurance claims at 42 Ponsonby Road?",
+  "intent": "unsupported",
+  "expect": {
+   "unsupported": true,
+   "minSources": 0
+  }
+ },
+ {
+  "id": "q50-address-broadband-linkout",
+  "question": "Can I get fibre broadband at 42 Ponsonby Road?",
+  "intent": "unsupported",
+  "expect": {
+   "unsupported": true,
+   "minSources": 0
+  }
+ },
+ {
+  "id": "q51-address-lim-linkout",
+  "question": "What does the LIM say about 42 Ponsonby Road?",
+  "intent": "unsupported",
+  "expect": {
+   "unsupported": true,
+   "minSources": 0
+  }
+ },
+ {
+  "id": "q52-address-consents-linkout",
+  "question": "Were the renovations at 42 Ponsonby Road consented?",
+  "intent": "unsupported",
+  "expect": {
+   "unsupported": true,
+   "minSources": 0
+  }
+ },
+ {
+  "id": "q53-address-owner-linkout",
+  "question": "Who owns 42 Ponsonby Road?",
+  "intent": "unsupported",
+  "expect": {
+   "unsupported": true,
+   "minSources": 0
+  }
+ }
 ]

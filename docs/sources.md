@@ -285,6 +285,30 @@ cadence, attribution strings, and gotchas. Stats NZ ADE has its own deep-dive:
   records / area-level models, never a valuation or inspection — the copy
   says so on every surface.
 
+## Deliberately not ingested (address level) — TRI-132
+
+Facts buyers ask for that exist behind a search box but are **not openly
+licensed** (or are restricted by law). The app links out with a one-line
+reason (`lib/link-outs.ts`, rendered as "Also check — not held by this app")
+and `/api/ask` answers questions about them deterministically with the
+source, never a guess. Nothing below is fetched, cached or proxied. Re-audit
+before changing any of these; if a source opens up, it becomes an ingest
+ticket, not a fetch from the panel.
+
+| Fact | Where it is | Why not ingested (verified 2026-09-27) |
+|---|---|---|
+| Capital value, land value, rates | Auckland Council rates & valuation search | Council has not opted into LINZ's open District Valuation Roll (table 114085 covers other TAs only). The council ArcGIS service `AGOL_RateAccountInfo1_gdb` is queryable but its companion item's licence reads "Do not supply: Valuations staff use only". Reachable ≠ licensed. |
+| Sales history, price estimates | homes.co.nz / OneRoof / TradeMe | No open source; listing-site estimates are proprietary models. Suburb-level prices are TRI-38. |
+| Natural hazard insurance claims | Natural Hazards Portal map | Settled EQCover claims since 1997 by address, UI-only under the portal's Terms of Use; no open data or API. |
+| Fibre / broadband availability | broadbandmap.nz | Data and API by arrangement, not open. |
+| LIM report | Auckland Council order-a-LIM page | Authoritative per-property record for hazards, consents, HAIL; not open data. |
+| Per-property building consents | Auckland Council property file (paid) | Stats NZ consents are SA2-level (TRI-73); per-address history is in the paid file. |
+| Owners, memorials, full title | LINZ search & order a land record | Owner names are restricted by law; memorials are on the ordered title (feasibility spike TRI-134). |
+
+Address prefill: every target tested 2026-09-28; none accepts the address in
+its URL, so the panel offers a copy-address button rather than a deep link
+that silently drops the address.
+
 ## Existing sources (for completeness)
 
 | Source | Used for | Licence |

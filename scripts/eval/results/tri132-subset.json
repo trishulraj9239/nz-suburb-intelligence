@@ -1,0 +1,452 @@
+{
+  "base": "http://localhost:3000",
+  "judge_model": "claude-opus-4-8",
+  "providers": {
+    "anthropic": {
+      "label": "Claude Sonnet 4.6",
+      "inPerM": 3,
+      "outPerM": 15
+    },
+    "groq": {
+      "label": "Qwen 3.6 27B (Groq)",
+      "inPerM": 0.2,
+      "outPerM": 0.2
+    }
+  },
+  "questions": [
+    {
+      "id": "q47-address-value-trap",
+      "intent": "unsupported",
+      "question": "What is 42 Ponsonby Road worth?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 3244,
+          "tokens_est": 90,
+          "cost_est_usd": 0.001254,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 4,
+            "cited": 3,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 4,
+            "note": "Correctly declines to estimate a specific property value, explains why, and points to appropriate resources, though it references suburb-level rent without a citation marker."
+          },
+          "answer": "I don't hold sales history and price estimates for 42 Ponsonby Road, and I won't guess. No open source publishes sales; the estimates on listing sites are proprietary models. The only price signal here is suburb-level rent from MBIE bond data. It is searchable at homes.co.nz, OneRoof or TradeMe Property: https://homes.co.nz/",
+          "sources": []
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 300,
+          "tokens_est": 8,
+          "cost_est_usd": 0.0000016000000000000001,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "Empty answer provides no response at all, failing to decline or help."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q48-address-cv-linkout",
+      "intent": "unsupported",
+      "question": "What is the capital value of 42 Ponsonby Road?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 3112,
+          "tokens_est": 135,
+          "cost_est_usd": 0.001896,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "Correctly declines with no invented figures, explains why the data isn't available, and points to the official source."
+          },
+          "answer": "I don't hold capital value, land value and rates for 42 Ponsonby Road, and I won't guess. Auckland Council publishes rating valuations per property on its own site only; it has not opted into LINZ's open valuation roll, and the council's valuation service is marked not for supply — so nothing here is ingested, cached or proxied. It is searchable at Auckland Council rates & valuation search: https://www.aucklandcouncil.govt.nz/en/property-rates-valuations/find-property-rates-valuation.html",
+          "sources": []
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 209,
+          "tokens_est": 12,
+          "cost_est_usd": 0.0000024000000000000003,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "Empty answer provides no response at all, failing to decline or address the question."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q49-address-claims-linkout",
+      "intent": "unsupported",
+      "question": "Have there been any EQC insurance claims at 42 Ponsonby Road?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 3262,
+          "tokens_est": 102,
+          "cost_est_usd": 0.001338,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "Correctly declines with no invented figures and helpfully points to the official portal."
+          },
+          "answer": "I don't hold natural hazard insurance claims at this address for 42 Ponsonby Road, and I won't guess. Settled EQCover claims since 1997 are searchable per address in the portal's own interface, under its Terms of Use; there is no open dataset or API. It is searchable at Natural Hazards Portal map: https://www.naturalhazardsportal.govt.nz/map/",
+          "sources": []
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 323,
+          "tokens_est": 16,
+          "cost_est_usd": 0.0000032000000000000003,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "Empty answer provides no response at all."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q50-address-broadband-linkout",
+      "intent": "unsupported",
+      "question": "Can I get fibre broadband at 42 Ponsonby Road?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 3561,
+          "tokens_est": 75,
+          "cost_est_usd": 0.000996,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correctly declines with no invented figures and points to the appropriate authoritative source."
+          },
+          "answer": "I don't hold fibre and broadband availability for 42 Ponsonby Road, and I won't guess. The National Broadband Map's data and API are available by arrangement, not under an open licence. It is searchable at National Broadband Map: https://broadbandmap.nz/",
+          "sources": []
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 239,
+          "tokens_est": 12,
+          "cost_est_usd": 0.0000024000000000000003,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "Empty answer provides no response at all, failing to decline or help."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q51-address-lim-linkout",
+      "intent": "unsupported",
+      "question": "What does the LIM say about 42 Ponsonby Road?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 3042,
+          "tokens_est": 101,
+          "cost_est_usd": 0.001371,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correctly declines a per-property LIM request, explains what a LIM is, and points to the official ordering channel without inventing figures."
+          },
+          "answer": "I don't hold lim report for 42 Ponsonby Road, and I won't guess. A LIM is the authoritative property record for hazards, consents and contaminated-land (HAIL) status; those per-property records are not open data. It is searchable at Auckland Council — order a LIM: https://www.aucklandcouncil.govt.nz/en/buying-property/order-property-report/order-lim.html",
+          "sources": []
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 202,
+          "tokens_est": 12,
+          "cost_est_usd": 0.0000024000000000000003,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "Empty response provides no information or decline and fails every rubric dimension."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q52-address-consents-linkout",
+      "intent": "unsupported",
+      "question": "Were the renovations at 42 Ponsonby Road consented?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 3158,
+          "tokens_est": 115,
+          "cost_est_usd": 0.001569,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 5,
+            "overall": 5,
+            "note": "Correctly declines the per-property question, explains consents are area-level only, and points to the property file."
+          },
+          "answer": "I don't hold building consents and the property file for 42 Ponsonby Road, and I won't guess. Per-property consent history sits in the council's paid property file; the Stats NZ consents this app holds are area-level counts, never per address. It is searchable at Auckland Council — order a property file: https://www.aucklandcouncil.govt.nz/en/buying-property/order-property-report/order-property-file.html",
+          "sources": []
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 231,
+          "tokens_est": 13,
+          "cost_est_usd": 0.0000026,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "Empty answer provides no response at all, failing to decline or help."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    },
+    {
+      "id": "q53-address-owner-linkout",
+      "intent": "unsupported",
+      "question": "Who owns 42 Ponsonby Road?",
+      "judge_error": null,
+      "results": {
+        "anthropic": {
+          "plan_valid": true,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 3183,
+          "tokens_est": 112,
+          "cost_est_usd": 0.001596,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "claude-sonnet-4-6",
+          "quality": {
+            "grounded": 5,
+            "cited": 5,
+            "hedged": 5,
+            "concise": 4,
+            "overall": 5,
+            "note": "Correctly declines to provide restricted owner information, explains why, and points to LINZ as the proper source."
+          },
+          "answer": "I don't hold full title, memorials and owners for 42 Ponsonby Road, and I won't guess. Owner names are restricted by law and are never requested by this app; easements, covenants and caveats are on the ordered title, which a lawyer or the LINZ site provides for a fee. It is searchable at LINZ — search and order a land record: https://www.linz.govt.nz/products-services/land-records/search-and-order-digital-land-record",
+          "sources": []
+        },
+        "groq": {
+          "plan_valid": false,
+          "citations_ok": true,
+          "refusal_ok": true,
+          "enough_sources": true,
+          "source_match": true,
+          "latency_ms": 212,
+          "tokens_est": 7,
+          "cost_est_usd": 0.0000014000000000000001,
+          "n_sources": 0,
+          "n_citations": 0,
+          "values_checked": 0,
+          "values_grounded": true,
+          "value_mismatches": [],
+          "values_unbound": 0,
+          "model": "Qwen 3.6 27B (Groq)",
+          "quality": {
+            "grounded": 1,
+            "cited": 1,
+            "hedged": 1,
+            "concise": 1,
+            "overall": 1,
+            "note": "Empty answer provides no response at all, failing to even decline politely."
+          },
+          "answer": "",
+          "sources": []
+        }
+      }
+    }
+  ]
+}

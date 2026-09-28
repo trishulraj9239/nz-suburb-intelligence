@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Provenance } from "@/components/provenance";
 import { HAZARD_CAVEAT } from "@/lib/hazard";
+import { LINK_OUTS } from "@/lib/link-outs";
 import { useAnchors } from "@/lib/preferences";
 import type { AddressPin } from "@/lib/workspace";
 
@@ -134,6 +135,28 @@ function DriveFromPin({ pin, label, lng, lat }: { pin: AddressPin; label: string
   );
 }
 
+function CopyAddress({ label }: { label: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      data-testid="copy-address"
+      className="rounded border border-hairline px-1.5 py-0.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/70 hover:bg-canvas"
+      onClick={() => {
+        navigator.clipboard?.writeText(label).then(
+          () => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+          },
+          () => setCopied(false),
+        );
+      }}
+    >
+      {copied ? "copied" : "copy address"}
+    </button>
+  );
+}
+
 export function AddressFacts({ pin }: { pin: AddressPin }) {
   const anchors = useAnchors();
   const [hz, setHz] = useState<{ key: string; r: PointHazardResponse | null | "error" }>({ key: "", r: null });
@@ -141,7 +164,6 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
 
   useEffect(() => {
     let stale = false;
-    setHz({ key, r: null });
     fetch(`/api/point-hazards?lng=${pin.lng}&lat=${pin.lat}`)
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
       .then((r: PointHazardResponse) => {
@@ -161,7 +183,6 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
   const [pf, setPf] = useState<{ key: string; r: PropertyFactsResponse | null | "error" }>({ key: "", r: null });
   useEffect(() => {
     let stale = false;
-    setPf({ key, r: null });
     fetch(`/api/property-facts?lng=${pin.lng}&lat=${pin.lat}`)
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
       .then((r: PropertyFactsResponse) => {
@@ -281,6 +302,36 @@ export function AddressFacts({ pin }: { pin: AddressPin }) {
           <DriveFromPin key={a.id} pin={pin} label={a.label.toLowerCase()} lng={a.lng} lat={a.lat} />
         ))}
       </div>
+
+      {/* TRI-132 — what the app deliberately does not hold, and where it is.
+          None of these targets accepts an address in the URL (tested
+          2026-09-28), so the block offers a copy button instead of a fake deep
+          link. Nothing here is fetched, cached or proxied. */}
+      <h4 className="mt-3 flex items-baseline justify-between gap-2 text-[11px] font-medium uppercase tracking-wider text-ink/45">
+        <span>
+          Also check
+          <span className="ml-1.5 font-mono text-[10px] font-normal normal-case tracking-normal text-ink/40">not held by this app</span>
+        </span>
+        <CopyAddress label={pin.label} />
+      </h4>
+      <ul className="divide-y divide-hairline/60" data-testid="link-outs">
+        {LINK_OUTS.map((l) => (
+          <li key={l.key} className="py-1.5" data-testid="link-out">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-sm text-ink/80">{l.what}</span>
+              <a
+                href={l.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 font-mono text-[11px] text-accent underline-offset-2 hover:underline"
+              >
+                {l.where} ↗
+              </a>
+            </div>
+            <p className="mt-0.5 text-[10px] leading-snug text-ink/50">{l.reason}</p>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

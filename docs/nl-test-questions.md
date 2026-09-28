@@ -155,3 +155,24 @@ is not public data.
 | LINZ down | "LINZ could not be reached — the title was not checked", never "no title" |
 
 Automated: `node scripts/test/tri126-verify.mjs` (dev server on :3000).
+
+## Address link-outs (TRI-132) — manual checks
+
+The "At this address" block ends with **Also check — not held by this app**:
+seven facts buyers ask for that exist behind a search box but are not openly
+licensed (or are restricted by law). Each row says what it is, where it is
+published, and one line on why it is not in the app. No target accepts an
+address in its URL, so a copy-address button stands in for a deep link.
+Nothing in this block is fetched, cached or proxied.
+
+| Ask | Expect |
+|---|---|
+| `What is the capital value of 42 Ponsonby Road?` | deterministic: "I don't hold capital value, land value and rates for 42 Ponsonby Road, and I won't guess. Auckland Council publishes rating valuations per property on its own site only …" with the council URL; no figure, no rows |
+| `Have there been any EQC insurance claims at 42 Ponsonby Road?` | link-out to the Natural Hazards Portal map, with the Terms-of-Use reason |
+| `Can I get fibre broadband at 42 Ponsonby Road?` | link-out to the National Broadband Map |
+| `What does the LIM say about 42 Ponsonby Road?` | link-out to the council LIM order page; "authoritative property record … not open data" |
+| `Were the renovations at 42 Ponsonby Road consented?` | link-out to the council property file; area-level consents are not offered as a substitute |
+| `Who owns 42 Ponsonby Road?` | link-out to the LINZ order page; "owner names are restricted by law and are never requested" |
+| `How many building consents were issued in Ponsonby last year?` | still answered from the SA2 consents rows — the link-out only takes over when a street address is named or the planner already declined |
+
+Automated: `node scripts/test/tri132-verify.mjs` (dev server on :3000).
