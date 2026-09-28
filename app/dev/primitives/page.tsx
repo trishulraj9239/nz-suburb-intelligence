@@ -9,6 +9,7 @@ import { Gallery } from "./gallery";
 export const dynamic = "force-static";
 
 export default function PrimitivesPage() {
-  if (process.env.NODE_ENV === "production") notFound();
+  // Dev only — or a preview that opted into the test hooks (TRI-143); never plain production.
+  if (process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_NZSI_TEST_HOOKS !== "1") notFound();
   return <Gallery />;
 }

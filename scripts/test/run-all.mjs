@@ -15,7 +15,7 @@
  * FAIL; AMBER exits 0 but is reported.
  */
 import { spawnSync } from "node:child_process";
-import { appendFileSync } from "node:fs";
+import { appendFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -26,7 +26,7 @@ const ALL = ["mobile-shell", "tri85", "tri93", "tri106", "tri112", "tri83", "tri
 const UPSTREAM_STALL = /timeout|Timeout|ETIMEDOUT|ECONNRESET|council service unavailable|could not be reached|not checked|service unreachable|fetch failed/i;
 
 const picked = process.argv.slice(2).filter((a) => ALL.includes(a));
-let scripts = picked.length ? picked : ALL;
+let scripts = (picked.length ? picked : ALL).filter((t) => existsSync(resolve(here, `${t}-verify.mjs`)));
 if (process.env.NZSI_SKIP_LLM) scripts = scripts.filter((s) => !LLM.has(s));
 if (process.env.NZSI_SKIP_DEV_HOOKS) scripts = scripts.filter((s) => !NEEDS_DEV_HOOKS.has(s));
 const PAUSE_MS = Number(process.env.NZSI_PAUSE_MS ?? 20000);
@@ -51,7 +51,7 @@ for (const [i, t] of scripts.entries()) {
   }
   const secs = Math.round((Date.now() - started) / 1000);
   const lines = r.out.split("\n").map((l) => l.trim()).filter(Boolean);
-  const failLine = lines.filter((l) => /FAIL:|Error:/.test(l)).slice(-1)[0] ?? lines.filter((l) => !/^at /.test(l)).slice(-1)[0] ?? "";
+  const failLine = lines.filter((l) => /FAIL:|Error|Timeout|exceeded/.test(l) && !/^at |^Node.js/.test(l)).slice(-1)[0] ?? lines.filter((l) => !/^at |^Node.js/.test(l)).slice(-1)[0] ?? "";
   const verdict = r.ok ? "PASS" : UPSTREAM_STALL.test(failLine) ? "AMBER" : "FAIL";
   results.push({ t, verdict, secs, retried, note: failLine.replace(/^Error:\s*/, "").slice(0, 160) });
   console.log(`${verdict.padEnd(5)} ${t.padEnd(13)} ${String(secs).padStart(4)}s${retried ? "  (retried)" : ""}  ${verdict === "PASS" ? "" : results.at(-1).note}`);

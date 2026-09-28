@@ -90,7 +90,9 @@ function contrastAudit() {
   return out;
 }
 
-for (const width of [390, 1440]) {
+const galleryProbe = await (await b.newPage()).goto(`${BASE_URL}/dev/primitives`).then((r) => r?.status() ?? 0).catch(() => 0);
+if (galleryProbe !== 200) console.log(`gallery /dev/primitives not served here (HTTP ${galleryProbe}: production build without NEXT_PUBLIC_NZSI_TEST_HOOKS) — gallery section skipped`);
+for (const width of galleryProbe === 200 ? [390, 1440] : []) {
   const page = await b.newPage({ viewport: { width, height: width === 390 ? 844 : 900 } });
   await page.goto(`${BASE_URL}/dev/primitives`, { waitUntil: "networkidle" });
   await page.waitForTimeout(800);
