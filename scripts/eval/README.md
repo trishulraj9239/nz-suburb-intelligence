@@ -8,9 +8,10 @@ and citation contract the app uses in production.
 ## What it compares
 
 - **Claude** — `claude-sonnet-4-6` (the app's default `reasoning` backend).
-- **Open-weight** — `qwen/qwen3.6-27b` on Groq's free tier, wired as the `groq`
+- **Open-weight** — `qwen/qwen3.8-27b` on Groq's free tier, wired as the `groq`
   provider in `lib/llm/`. (The ticket named Llama, but Groq deprecated the Llama
-  chat models in 2026-06; Qwen is the current open-weight comparison point.)
+  chat models in 2026-06; Qwen is the current open-weight comparison point.
+  Groq withdrew qwen3.6-27b in 2026-09 — TRI-139 moved to its successor.)
 
 The `provider` field on `POST /api/ask` selects the backend per request, so the
 harness A/Bs both models against an unchanged server — no restart between runs.

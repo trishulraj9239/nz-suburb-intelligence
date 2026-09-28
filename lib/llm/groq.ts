@@ -15,6 +15,10 @@ import {
  *
  * Model note: the ticket named Llama, but Groq deprecated the Llama chat models
  * (2026-06-17). We run Qwen — genuinely open-weight — as the comparison point.
+ * TRI-139 (2026-09-28): Groq withdrew qwen/qwen3.6-27b (404 model_not_found);
+ * its successor qwen/qwen3.8-27b is the served Qwen chat model. A withdrawn
+ * model now surfaces as a clear "Groq model not found" error instead of a
+ * silent plan failure — see post().
  * Qwen doesn't support Groq's *strict* JSON-schema mode (only the gpt-oss models
  * do), so complete() uses json_object mode and injects the schema into the
  * prompt; the caller's JSON.parse guard then decides validity — which is exactly
@@ -25,8 +29,8 @@ import {
 const BASE = "https://api.groq.com/openai/v1";
 
 const MODELS: Record<ChatRole, string> = {
-  reasoning: "qwen/qwen3.6-27b",
-  classification: "qwen/qwen3.6-27b",
+  reasoning: "qwen/qwen3.8-27b",
+  classification: "qwen/qwen3.8-27b",
 };
 
 function apiKey(): string {
@@ -89,6 +93,11 @@ async function post(body: Record<string, unknown>, attempt = 0): Promise<Respons
   }
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
+    // TRI-139 — a withdrawn model must read as a provider problem, not a bad plan:
+    // the eval scores a silent 404 as plan_valid=false, which misattributes it.
+    if (res.status === 404 && /model_not_found/.test(detail)) {
+      throw new Error(`Groq model not found: ${String(body.model)} — Groq has withdrawn it; pick a served model in MODELS (lib/llm/groq.ts) and re-run the eval (see TRI-139)`);
+    }
     throw new Error(`Groq HTTP ${res.status}: ${detail.slice(0, 300)}`);
   }
   return res;
