@@ -3,7 +3,8 @@
  *  3:1 marks / 4.5:1 text in both themes, nothing under 12 px.
  *  TRI-148 — then the Profile on the kit (six persona-ordered cards).
  *  TRI-149 — then Compare on shared-axis dot strips.
- *  TRI-150 — then the "This property" panel on the grammar. */
+ *  TRI-150 — then the "This property" panel on the grammar.
+ *  TRI-151 — then the answer surfaces (strip / sheet tab / results). */
 import { chromium } from "playwright-core";
 const fail = (m) => { throw new Error("FAIL: " + m); };
 const b = await chromium.launch({ channel: process.env.PW_CHANNEL || "msedge", headless: true });
@@ -318,5 +319,62 @@ for (const [width, theme] of [[1440, "light"], [390, "dark"]]) {
   if (width === 1440) await new Promise((r) => setTimeout(r, 20000));
 }
 console.log("\nPASS — property panel on the grammar");
+
+
+// ---------------------------------------------------------------------------
+// TRI-151 — the answer surfaces on the grammar: citation chips ≥ 24 px (still
+// amber), the Sources footer as SourceChips, result pills ≥ 40 px on phones,
+// the ranked table carrying its testid on the type scale; nothing under 12 px.
+// One /api/ask per frame (desktop strip, phone sheet).
+// ---------------------------------------------------------------------------
+for (const [width, theme] of [[1440, "light"], [390, "dark"]]) {
+  const ctx = await b.newContext({ viewport: { width, height: width === 390 ? 844 : 900 } });
+  await ctx.addInitScript((t) => localStorage.setItem("theme", t), theme);
+  const page = await ctx.newPage();
+  await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
+  await page.waitForTimeout(1500);
+  const box = page.getByLabel("Ask about Auckland suburbs");
+  await box.fill("Which suburbs have the lowest median weekly rent?");
+  await box.press("Enter");
+  const surface = width >= 1024 ? page.locator('section[aria-label="Answer"]') : page.locator("aside").last();
+  await surface.waitFor({ state: "visible", timeout: 20000 });
+  // A rank question auto-selects the Results tab on phones (TRI-104); the answer body lives on the Answer tab.
+  // The auto-tab fires when the ranked rows land, so wait for the Results tab to exist, THEN pick Answer.
+  if (width < 1024) { await page.getByRole("tab", { name: /^Results/ }).waitFor({ state: "visible", timeout: 90000 }); const tab = page.getByRole("tab", { name: "Answer", exact: true }); await tab.click(); await page.waitForTimeout(500); }
+  // Sources arrive before the text streams, so wait for BOTH the footer and the end of the stream
+  // (the pulsing cursor is only rendered while status === "streaming").
+  let text = "";
+  for (let i = 0; i < 120; i++) { text = await surface.innerText(); if (/Sources:/.test(text) && (await surface.locator(".animate-pulse").count()) === 0) break; await page.waitForTimeout(1000); }
+  if (!/Sources:/.test(text) || (await surface.locator(".animate-pulse").count()) > 0) fail(`[${width} ${theme}] answer never finished`);
+  if (width === 390) { await page.getByRole("slider").first().focus(); await page.keyboard.press("End"); await page.waitForTimeout(600); }
+
+  const chips = await surface.locator("[data-testid=citation-chip]").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height));
+  if (!chips.length) fail(`[${width} ${theme}] no citation chips`);
+  if (chips.some((h) => h < 24)) fail(`[${width} ${theme}] a citation chip is under 24px (${Math.min(...chips).toFixed(1)})`);
+  const amber = await surface.locator("[data-testid=citation-chip]").first().evaluate((e) => getComputedStyle(e).borderColor);
+  if (!amber || /rgba?\(0, 0, 0/.test(amber)) fail(`[${width} ${theme}] citation chip lost its border`);
+  const srcChips = await surface.locator("[data-testid=answer-sources] [title^='Confidence:']").count();
+  if (srcChips < 1) fail(`[${width} ${theme}] Sources footer has no quality marks`);
+  const pills = await surface.locator("[data-testid=result-pill]").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height));
+  if (pills.length < 2) fail(`[${width} ${theme}] expected ranked result pills`);
+  const floor = width === 390 ? 40 : 32;
+  if (pills.some((h) => h < floor - 0.5)) fail(`[${width} ${theme}] a result pill is under ${floor}px (${Math.min(...pills).toFixed(1)})`);
+  // The ranked table lives on the Results tab (phone sheet) / Results tab in the panel (desktop).
+  await page.getByRole("tab", { name: /^Results/ }).click();
+  await page.waitForTimeout(800);
+  const table = page.locator("[data-testid=results-table]");
+  if (!(await table.count())) fail(`[${width} ${theme}] results table missing its testid`);
+  const rowH = await table.locator("tbody tr").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height));
+  if (width === 390 && rowH.some((h) => h < 40)) fail(`[390 ${theme}] a results row is under 40px (${Math.min(...rowH).toFixed(1)})`);
+  const upper = await table.locator("th").evaluateAll((els) => els.filter((e) => getComputedStyle(e).textTransform === "uppercase").length);
+  if (upper) fail(`[${width} ${theme}] results headers still uppercase`);
+  const root = width >= 1024 ? page.locator("body") : page.locator("aside").last();
+  const small = await root.evaluate((el) => [...el.querySelectorAll("*")].filter((n) => [...n.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim()) && parseFloat(getComputedStyle(n).fontSize) < 12 && !n.closest("svg") && !n.closest("nextjs-portal")).length);
+  if (small > 0) fail(`[${width} ${theme}] ${small} text nodes under 12px on the answer surfaces`);
+  await page.screenshot({ path: `shots/answer-${width}-${theme}.png` });
+  console.log(`[${width} ${theme}] answer: ${chips.length} citation chips ≥ 24px · ${srcChips} source chips · ${pills.length} pills ≥ ${floor}px · results table ${rowH.length} rows ✓`);
+  await ctx.close();
+}
+console.log("\nPASS — answer surfaces on the grammar");
 
 await b.close();

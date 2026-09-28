@@ -420,3 +420,32 @@ Search an address (e.g. **42 Ponsonby Rd**) and read the panel above the banner.
 
 Automated: tri122 / 123 / 126–133 / 141 unchanged, plus the property section of `tri-design-verify.mjs`.
 
+## Design system — how to read the new surfaces (TRI-145, phases B–F)
+
+**The regional axis.** Every scalar row draws the same axis: a faint line from the lowest to the
+highest Auckland suburb (fenced at Tukey limits so one outlier cannot squash it), a grey band for the
+interquartile range (p25–p75), a tick at the Auckland median, and this suburb's marker. A marker
+inside the band is "typical"; one past either end of the band is in the top or bottom quarter. The
+percentile sentence beside the value says the same thing in words.
+
+**The status vocabulary.** Every figure carries one of: `exact` (the source's own value), `est.`
+(estimated or mapped across boundaries — drawn as an outlined / tinted marker), `approx` (affected
+by suppression, rounding or inheritance — outlined), `computed` (worked out here, e.g. a distance —
+dashed), `not published` (the source suppressed it — a full-length hatched track and the reason in
+words, never an empty gap) and `not available` (a service could not be reached — hatched). Hover
+any mark for the sentence; the legend under Compare spells them out.
+
+**Colour is never a verdict.** Teal marks metrics the registry judges (a direction exists); ink marks
+information-only metrics (deprivation, hazards, consents, composition). Hazards sit on a grey ramp.
+Amber appears only on citation chips. Compare's suburbs are orange / sky-blue / green with a letter
+inside, so colour is never the only cue.
+
+| Try | Expect |
+|---|---|
+| open **Waiheke East** (an island) and read Getting around | the walk / cycle dots to the CBD are absent and the row says "cycle/walk > 90 min" or "not walkable" — a far trip is stated, never pinned to the end of the axis |
+| open a rural SA2 with few bonds (e.g. **Kaukapakapa**) | the rent row is a hatched track with "fewer than 5 bonds in the quarter" |
+| hover an outlined marker | the tooltip reads "Confidence: Estimated — derived or mapped across boundaries" |
+| ask "Which suburbs have the lowest median weekly rent?" on a phone | amber citation chips ≥ 24 px tall, result pills 40 px tall, the Results tab's table with 40 px rows |
+
+Automated: `npm run test:design` (dev server on :3000) and `npm run test:phone`.
+

@@ -7,7 +7,8 @@ import {
   type AnswerSource,
   type AnswerTurn,
 } from "@/lib/workspace";
-import { ConfidenceChip, shortSource } from "./provenance";
+import { SourceChip } from "./source-chip";
+import { statusFromConfidence } from "@/lib/viz/status";
 import { QuestionChips } from "./question-chips";
 
 /**
@@ -26,7 +27,8 @@ function CitationChip({ s, onSelect }: { s: AnswerSource; onSelect: () => void }
       type="button"
       onClick={onSelect}
       title={`${s.suburb} — ${s.label}: ${s.value}${s.unit ? ` ${s.unit}` : ""} · ${s.source} · ${s.as_of.slice(0, 4)}${s.confidence !== "high" ? ` · confidence ${s.confidence}` : ""}`}
-      className="mx-0.5 inline-flex translate-y-[-1px] items-center rounded border border-amber/50 bg-amber/15 px-1 font-mono text-micro leading-4 text-ink transition-colors hover:bg-amber/30"
+      data-testid="citation-chip"
+      className="mx-0.5 inline-flex min-h-6 translate-y-[-1px] items-center rounded-chip border border-amber/50 bg-amber/15 px-1.5 font-mono text-micro leading-4 text-ink transition-colors hover:bg-amber/30"
     >
       {s.source.replace(/NZDep(\d{4}) Deprivation Index/, "NZDep$1")} ·{" "}
       {s.as_of.slice(0, 4)}
@@ -41,7 +43,7 @@ function CitedText({ text, sources, onSelect }: {
 }) {
   const parts = text.split(/\{\{c(\d+)\}\}/g);
   return (
-    <p className="text-sm leading-relaxed text-ink/90">
+    <p className="text-body leading-relaxed text-ink/90">
       {parts.map((part, i) => {
         if (i % 2 === 0) return <Fragment key={i}>{part}</Fragment>;
         const src = sources.find((s) => s.n === Number(part));
@@ -93,19 +95,20 @@ function ResultPills({ turn }: { turn: AnswerTurn }) {
         return (
           <span
             key={p.sa2}
-            className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-canvas py-0.5 pl-1 pr-1"
+            data-testid="result-pill"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-chip border border-hairline bg-canvas py-0.5 pl-1.5 pr-1 lg:min-h-8"
           >
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-harbour/15 font-mono text-micro text-ink/70">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-harbour/15 font-mono text-micro text-ink/75">
               {i + 1}
             </span>
             <button
               type="button"
               onClick={() => select(p.sa2)}
-              className="text-xs font-medium text-ink hover:text-harbour"
+              className="min-h-8 text-label font-medium text-ink hover:text-harbour"
             >
               {p.suburb}
             </button>
-            <span className="font-mono text-label text-ink/60">{fmt(p.value, p.unit)}</span>
+            <span className="font-mono text-label text-ink/65">{fmt(p.value, p.unit)}</span>
             <button
               type="button"
               disabled={full}
@@ -113,7 +116,7 @@ function ResultPills({ turn }: { turn: AnswerTurn }) {
               title={
                 full ? `Comparison is full (max ${COMPARE_LIMIT})` : undefined
               }
-              className={`rounded-full px-2 py-0.5 text-label font-medium transition-colors ${
+              className={`min-h-8 rounded-chip px-2.5 text-label font-medium transition-colors ${
                 pinned
                   ? "bg-harbour text-white"
                   : full
@@ -145,13 +148,11 @@ function ConstraintChips({ turn }: { turn: AnswerTurn }) {
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <span className="font-display text-micro font-semibold uppercase tracking-wider text-ink/45">
-        Filters
-      </span>
+      <span className="text-label font-medium text-ink/55">Filters</span>
       {turn.constraints.map((c) => (
         <span
           key={c.key}
-          className="inline-flex items-center gap-1 rounded-full border border-hairline bg-canvas py-0.5 pl-2.5 pr-1 text-label text-ink/80"
+          className="inline-flex min-h-8 items-center gap-1 rounded-chip border border-hairline bg-canvas pl-2.5 pr-1 text-label text-ink/80"
         >
           {c.label}
           <button
@@ -159,7 +160,7 @@ function ConstraintChips({ turn }: { turn: AnswerTurn }) {
             onClick={() => ask(turn.question, [...turn.relax, c.key])}
             aria-label={`Remove filter: ${c.label}, and ask again`}
             title="Remove this filter and ask again"
-            className="rounded-full px-1 text-ink/40 transition-colors hover:bg-harbour/10 hover:text-ink"
+            className="flex h-7 w-7 items-center justify-center rounded-chip text-ink/50 transition-colors hover:bg-harbour/10 hover:text-ink"
           >
             ✕
           </button>
@@ -208,16 +209,16 @@ function HowMatched({ turn }: { turn: AnswerTurn }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="inline-flex items-center gap-1 text-ink/45 transition-colors hover:text-ink"
+        className="inline-flex min-h-8 items-center gap-1 text-ink/55 transition-colors hover:text-ink"
       >
         <span className={`transition-transform ${open ? "rotate-90" : ""}`}>›</span>
         How this was matched
       </button>
       {open && (
-        <dl className="mt-1.5 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-lg border border-hairline bg-canvas p-2">
+        <dl className="mt-1.5 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-card border border-hairline bg-canvas p-2">
           {lines.map(([k, v]) => (
             <Fragment key={k}>
-              <dt className="font-mono text-micro uppercase tracking-wider text-ink/45">{k}</dt>
+              <dt className="font-mono text-micro text-ink/55">{k}</dt>
               <dd className="text-ink/75">{v}</dd>
             </Fragment>
           ))}
@@ -259,7 +260,7 @@ export function AnswerThread({ maxHeight }: { maxHeight?: string }) {
       style={maxHeight ? { maxHeight } : undefined}
       className="flex min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain"
     >
-      {!current && <p className="text-sm text-ink/50">Thinking…</p>}
+      {!current && <p className="text-body text-ink/55">Thinking…</p>}
       {current && (
         <>
           <CitedText
@@ -271,7 +272,7 @@ export function AnswerThread({ maxHeight }: { maxHeight?: string }) {
             <span className="ml-1 inline-block h-3 w-1.5 animate-pulse bg-harbour/60" />
           )}
           {current.status === "error" && (
-            <p className="text-xs text-ink/60">
+            <p className="text-label text-ink/65">
               Something went wrong{current.error ? ` — ${current.error}` : ""}. Try again.
             </p>
           )}
@@ -282,7 +283,7 @@ export function AnswerThread({ maxHeight }: { maxHeight?: string }) {
           <QuestionChips variant="follow-up" />
 
           {current.sources.length > 0 && (
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-hairline pt-2 font-mono text-micro text-ink/45">
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-hairline pt-2 font-mono text-micro text-ink/55" data-testid="answer-sources">
               <span>Sources:</span>
               {[
                 ...new Map(
@@ -292,13 +293,7 @@ export function AnswerThread({ maxHeight }: { maxHeight?: string }) {
                   ]),
                 ).values(),
               ].map((s) => (
-                <span
-                  key={`${s.source}|${s.as_of}|${s.confidence}`}
-                  className="inline-flex items-center gap-1"
-                >
-                  {shortSource(s.source)} {s.as_of.slice(0, 4)}
-                  <ConfidenceChip confidence={s.confidence} />
-                </span>
+                <SourceChip key={`${s.source}|${s.as_of}|${s.confidence}`} source={s.source} asOf={s.as_of} quality={statusFromConfidence(s.confidence)} />
               ))}
             </p>
           )}

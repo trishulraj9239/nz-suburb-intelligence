@@ -2,7 +2,8 @@
 
 import { useWorkspace, type AnswerTurn } from "@/lib/workspace";
 import { BudgetChip } from "./budget-chip";
-import { ConfidenceChip, shortSource } from "./provenance";
+import { SourceChip } from "./source-chip";
+import { statusFromConfidence } from "@/lib/viz/status";
 
 /**
  * TRI-104 — the persistent home for a rank answer, beyond the answer strip's
@@ -61,7 +62,7 @@ export function ResultsPanel() {
 
   if (!rows.length) {
     return (
-      <p className="text-sm text-ink/60">
+      <p className="text-body text-ink/65">
         Ask a ranking question — “lowest median rent”, “most new dwellings consented” — and the
         full ordered list appears here.
       </p>
@@ -73,26 +74,26 @@ export function ResultsPanel() {
 
   return (
     <div className="flex flex-col gap-2" onMouseLeave={() => setHovered(null)}>
-      <p className="text-xs text-ink/60">
+      <p className="text-label text-ink/65">
         {rows.length} covered {rows.length === 1 ? "area" : "areas"}, ranked by{" "}
         <span className="font-medium text-ink/80">{head.label}</span>. Hover a row to highlight it
         on the map; click to open it.
       </p>
 
-      <div className="overflow-x-auto rounded-lg border border-hairline">
-        <table className="w-full border-collapse text-sm">
+      <div className="overflow-x-auto rounded-card border border-hairline">
+        <table className="w-full border-collapse text-body" data-testid="results-table">
           <thead>
             <tr className="border-b border-hairline bg-canvas text-left">
-              <th scope="col" className="px-2 py-1.5 font-mono text-micro uppercase tracking-wider text-ink/45">
+              <th scope="col" className="px-2 py-2 text-label font-medium text-ink/55">
                 #
               </th>
-              <th scope="col" className="px-2 py-1.5 font-mono text-micro uppercase tracking-wider text-ink/45">
+              <th scope="col" className="px-2 py-2 text-label font-medium text-ink/55">
                 Suburb
               </th>
-              <th scope="col" className="px-2 py-1.5 text-right font-mono text-micro uppercase tracking-wider text-ink/45">
+              <th scope="col" className="px-2 py-2 text-right text-label font-medium text-ink/55">
                 {head.label}
               </th>
-              {isRent && <th scope="col" className="px-2 py-1.5" />}
+              {isRent && <th scope="col" className="px-2 py-2" />}
             </tr>
           </thead>
           <tbody>
@@ -105,13 +106,13 @@ export function ResultsPanel() {
                   compare.includes(r.sa2) ? "bg-harbour/6" : ""
                 }`}
               >
-                <td className="px-2 py-1.5 font-mono text-label text-ink/45">{i + 1}</td>
-                <td className="px-2 py-1.5 font-medium text-ink">{r.suburb}</td>
-                <td className="px-2 py-1.5 text-right font-mono text-ink">
+                <td className="px-2 py-2.5 font-mono text-label text-ink/50">{i + 1}</td>
+                <td className="px-2 py-2.5 font-medium text-ink">{r.suburb}</td>
+                <td className="px-2 py-2.5 text-right font-mono text-ink">
                   {formatValue(r.value, r.unit)}
                 </td>
                 {isRent && (
-                  <td className="px-2 py-1.5 text-right">
+                  <td className="px-2 py-2.5 text-right">
                     <BudgetChip rent={r.value} />
                   </td>
                 )}
@@ -121,10 +122,9 @@ export function ResultsPanel() {
         </table>
       </div>
 
-      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-micro text-ink/45">
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-micro text-ink/55">
         <span>Source:</span>
-        {shortSource(head.source)} {head.as_of.slice(0, 4)}
-        <ConfidenceChip confidence={head.confidence} />
+        <SourceChip source={head.source} asOf={head.as_of} quality={statusFromConfidence(head.confidence)} />
       </p>
     </div>
   );

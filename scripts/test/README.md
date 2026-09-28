@@ -25,11 +25,17 @@ node scripts/test/tri130-verify.mjs     # this block (SA1) beside this suburb: C
 node scripts/test/tri131-verify.mjs     # nearby from the pin: nearest park, RTN stop, schools by level — straight-line, 'not necessarily zoned', derived
 node scripts/test/tri141-verify.mjs     # shortlist UI: several pins on the map, address-headed compare columns, same-area note, per-address facts side by side
 node scripts/test/mobile-shell-verify.mjs  # TRI-145 A: phone shell at 390×844 in light + dark — one-row header, You menu, slider sheet, tablist, Layers dock, combobox, 12px floor
+node scripts/test/tri-design-verify.mjs    # TRI-147..151: primitives gallery, Profile, Compare, property panel, answer surfaces — 390 + 1440, light + dark (`npm run test:design`)
+node scripts/test/run-phone.mjs            # TRI-151: replays tri122/123/126–132/141 at 390×844 via NZSI_VIEWPORT, paced 20 s apart (`npm run test:phone`)
 npm run test:unit                        # node --test: tokens.css in sync with lib/tokens.ts, no sub-12px sizes, no hex outside the token files
 ```
 
 Screenshots are written to `shots/`, which is git-ignored — the assertions are
 the point; the images are for eyeballing.
+
+The address-epic scripts read their viewport from `_viewport.mjs`: set
+`NZSI_VIEWPORT=390x844` to replay any of them at phone width (that is all
+`run-phone.mjs` does, in sequence).
 
 `tri83-verify` asserts the milestone's hard rule: crossing the `lg`
 (superseding the original TRI-82 script, whose pre-strip DOM no longer exists)
