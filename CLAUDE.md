@@ -131,3 +131,11 @@ Note `.env.local` is gitignored — never commit secrets.
 - Phone regression: `scripts/test/_viewport.mjs` reads `NZSI_VIEWPORT=390x844`; `npm run test:phone`
   (`run-phone.mjs`) replays tri122/123/126–132/141 at phone width, 20 s apart. `npm run test:design`
   runs the whole design verify (gallery → profile → compare → property → answer).
+
+## Saved-suburbs shortlist (TRI-99)
+- `lib/shortlist.ts` — `nzsi:shortlist` in localStorage, the preferences-store pattern (useSyncExternalStore,
+  empty server snapshot, custom event + `storage`), capped at 12, names cached with codes. Local-only, no
+  account; never in the URL, never on `/api/ask`.
+- `ShortlistStar` on the profile header (`aria-pressed`, name in the label); `ShortlistStrip` in the panel's
+  empty state and the You menu — chips open a suburb, ✕ drops it, "Compare these" → `setCompareSet`
+  (first `COMPARE_LIMIT`). Renders nothing when empty. Verify: `tri99-verify.mjs`.

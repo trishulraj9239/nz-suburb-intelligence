@@ -9,6 +9,7 @@ import { ComparePanel } from "./compare-panel";
 import { AnswerThread } from "./answer-thread";
 import { ResultsPanel, rankedRows } from "./results-panel";
 import { QuestionChips } from "./question-chips";
+import { ShortlistStrip } from "./shortlist-strip";
 import { BottomSheet, type Snap } from "./sheet";
 import { SegmentedTabs, TabPanel } from "./tabs";
 
@@ -142,6 +143,9 @@ export function ContextPanel() {
         <div className="flex flex-col gap-3">
           <p className="text-body text-ink/65">Tap a suburb on the map or search above to open its profile.</p>
           <div className="rounded-card border border-hairline bg-canvas p-4">
+            <div className="mb-4 empty:hidden">
+              <ShortlistStrip />
+            </div>
             <p className="text-micro font-semibold uppercase tracking-wider text-ink/55">Try one</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {EXAMPLES.map((e) => (

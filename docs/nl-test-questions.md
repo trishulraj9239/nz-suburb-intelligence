@@ -449,3 +449,16 @@ inside, so colour is never the only cue.
 
 Automated: `npm run test:design` (dev server on :3000) and `npm run test:phone`.
 
+## Saved-suburbs shortlist (TRI-99) — manual checks
+
+| Do | Expect |
+|---|---|
+| open a suburb, tap the star beside its name | the star fills; the label reads "Remove … from your shortlist" |
+| star a second suburb, press Home | a "Saved 2 · on this device" strip above "Try one" with both chips |
+| tap **Compare these** | Compare (2) opens with both |
+| reload the tab | the strip is still there; the star is filled on a saved suburb |
+| look at the URL, and at the Share link | the shortlist is never in it |
+| on a phone, open **You** | the same strip sits above Sign in |
+
+Automated: `node scripts/test/tri99-verify.mjs`.
+
