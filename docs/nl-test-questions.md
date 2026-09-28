@@ -449,3 +449,14 @@ inside, so colour is never the only cue.
 
 Automated: `npm run test:design` (dev server on :3000) and `npm run test:phone`.
 
+## Investor persona (TRI-98) — manual checks
+
+| Do | Expect |
+|---|---|
+| top bar (or You on phones) | three choices: Renting · Buying · Investing |
+| pick **Investing**, open a suburb | cards in the order Housing · Planning · Getting around · People · Hazard screen · Schools; KPI cards: median rent, rent change (12 months), consenting rate, intensification capacity, population change; header pill "investor view"; map shaded by median rent |
+| ask "I'm buying a rental property — which suburbs should I look at?" | a ranked answer that says what Investing mode weighted (rent, rent trend, consents, intensification) |
+| ask "What rental yield would I get in Ponsonby West?" | an honest refusal: the app holds rents but no sale prices, so no yield — never a made-up percentage |
+
+Automated: eval questions `q65-persona-investor` and `q66-investor-yield-trap`.
+
