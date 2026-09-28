@@ -380,6 +380,14 @@ Address prefill: every target tested 2026-09-28; none accepts the address in
 its URL, so the panel offers a copy-address button rather than a deep link
 that silently drops the address.
 
+### Spike decisions (2026-09-28)
+
+| Spike | Decision | Detail |
+|---|---|---|
+| TRI-135 recorded crime (policedata.nz, CC BY 4.0, Tableau only) | **Excluded** (recommended; awaiting sign-off) | Monthly meshblock counts are noise, most offences in homes are excluded from the place-based series, and a count beside an address reads as a safety verdict the data cannot support. Link-out line to be added; "is X safe?" keeps answering hazard layers only. See `docs/spikes/tri-135-crime.md`. |
+| TRI-134 title memorials (LINZ Landonline tables 52006 / 52012 / 52009, CC BY 4.0) | **Live per-title lookup, no ingest** (build ticket recommended; awaiting sign-off) | Memorial → instrument → transaction type joins answer in ~0.14 s per title; counts by class only, no text, mortgages classified and dropped. See `docs/spikes/tri-134-memorials.md`. |
+| TRI-101 school enrolment zones (MOE zip, CC BY 3.0 NZ, MapInfo TAB, 1,325 polygons, 14 July 2026) | **Ingest the MOE zip only** via `gdal-async` (awaiting sign-off on the 3.0 licence, the native dependency and the 50 m boundary rule) | Results are indicative; near-boundary points say so; written-description-only schemes say there is no map. Eagle's fresher mirror is not open and is not used. See `docs/spikes/tri-101-school-zones.md`. |
+
 ## Existing sources (for completeness)
 
 | Source | Used for | Licence |

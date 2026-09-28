@@ -59,10 +59,9 @@ export function SuburbSearch() {
   // Debounced geocode for address-shaped queries.
   useEffect(() => {
     const query = q.trim();
-    if (query.length < 3 || !looksLikeAddress(query)) {
-      setGeo({ q: "", res: null, loading: false });
-      return;
-    }
+    // No reset needed: rendering keys on geo.q matching the current query, so
+    // an older result is inert (and setState in an effect trips the lint rule).
+    if (query.length < 3 || !looksLikeAddress(query)) return;
     const controller = new AbortController();
     const t = setTimeout(async () => {
       setGeo({ q: query, res: null, loading: true });
