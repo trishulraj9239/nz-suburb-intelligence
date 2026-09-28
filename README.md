@@ -57,7 +57,7 @@ be added without code changes.
 - **Supabase** (Postgres + PostGIS) via `@supabase/ssr` — separate browser + server clients
 - **MapLibre GL** — SA2 choropleth, LINZ topolite vector basemap
 - **`@anthropic-ai/sdk`** — text-to-query, cited streaming answers, RAG over suburb embeddings
-- **Tailwind v4**, CSS-first design tokens (see `app/globals.css`) · **next-themes** (`[data-theme]`, defaults to light)
+- **Tailwind v4**, CSS-first design tokens (`lib/tokens.ts` → `app/tokens.css`) · **next-themes** (`[data-theme]`, follows the OS) · dependency-free SVG chart primitives in `components/viz/` (gallery at `/dev/primitives` in dev) drive the Profile's six section cards
 - Fonts via `next/font`: Space Grotesk (display), IBM Plex Sans (body), IBM Plex Mono (figures)
 
 > **Note:** this Next.js is newer than most training data — verify APIs against the

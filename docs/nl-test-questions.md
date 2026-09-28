@@ -346,3 +346,45 @@ padding, and the theme follows the phone's setting until you toggle it.
 | switch the phone to dark mode | the app follows; the toggle in You still overrides |
 
 Automated: `node scripts/test/mobile-shell-verify.mjs` (dev server on :3000) and `npm run test:unit`.
+
+## Primitives gallery (TRI-147, design phase B) — manual checks
+
+Nothing in the product changes in this phase; the kit lives at
+`http://localhost:3000/dev/primitives` (dev only — 404 in production) and
+shows every primitive × every status, light beside dark.
+
+| Look at | Expect |
+|---|---|
+| Bullet bar rows | the grey band is the Auckland interquartile range, the tick the median, the teal bar the suburb; est./approx are hollow, computed dashed |
+| any "suppressed" / "unavailable" row | a full-length hatched track with the reason in words — never a short or empty bar |
+| Slope chart | dots joined by straight segments with the census years beneath; no curve |
+| Stacked 100 % | the thin bar under it is Auckland in the same category order and colours |
+| Layer bullets | "N of M layers above the Auckland median" badge; grey ramp only, no red |
+| Dot plot | drive ● cycle ■ walk ▲ on one 0–120 min axis; beyond 90 min the row says "cycle/walk > 90 min" or "not walkable" instead of pinning a dot |
+| Dot strip | lettered dots (T / M / C); the estimated one is tinted, "best" has a thin outer ring |
+| Chips | source · vintage · [geometry] · quality; only the quality word is coloured; hover shows "Confidence: …" |
+| the Housing card at the bottom | a headline sentence, one hoisted chip, rows that line up on one axis; on a phone the chart drops under the label/value line |
+
+Automated: `node scripts/test/tri-design-verify.mjs` (dev server on :3000) — 390 and 1440,
+both themes, screenshots in `shots/primitives-*.png`.
+
+## Profile on the kit (TRI-148, design phase C) — manual checks
+
+Open a suburb (e.g. **Ponsonby West**) and read the Profile tab top to bottom.
+
+| Look at | Expect |
+|---|---|
+| header | name, "+ Compare", SA2 · km², a "renter view" / "buyer view" pill (and the budget chip when a budget is set), CBD distance with a *computed* mark |
+| KPI cards | the persona's five figures, each with a bullet on the Auckland axis and "Auckland median X" beneath |
+| card order | Renting: Housing · Getting around · People · Hazard screen · Planning · Schools; Buying: Housing · Planning · Hazard screen · People · Getting around · Schools |
+| Housing | headline "Rent Nth percentile of Auckland"; the bond median row with the sparkline and a year-back delta; ONE "Rent quartiles" range row on the same axis; census rent indented; tenure / dwelling types / bedrooms as stacked bars with the thin Auckland bar beneath |
+| a suppressed row (try a rural SA2) | a full-length hatched track and the reason in words, never an empty gap |
+| Hazard screen | "N of M layers above the Auckland median" as one line; every layer says "Auckland median X"; the verbatim caveat; grey bullets only; liquefaction classes as one single-hue bar |
+| Getting around | drive ● cycle ■ walk ▲ on one 0–120 min axis for the CBD and the Airport; your saved places as rows tagged "your place"; with none saved, a hatched row and **Add a place** that opens Places |
+| People | population and age as census slope charts; ethnicity as separate bars with an Auckland tick; NZDep as a ten-cell strip labelled "least deprived … most deprived" with "2018 4 → 2023 5" in words |
+| Schools | a table from 1024 px, a list on phones; straight-line rows carry a hatched "straight line" tag |
+| phone (390 px) | label and value on one line, the chart beneath, chips right-aligned; nothing under 12 px; no sideways scroll |
+
+Automated: the profile section of `node scripts/test/tri-design-verify.mjs` (both widths, both themes,
+buyer re-order) plus tri106 / tri112 / tri122–133 / tri141.
+

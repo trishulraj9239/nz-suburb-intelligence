@@ -33,7 +33,9 @@ export function renderTokensCss(t = TOKENS) {
     return out;
   };
 
-  push(":root {");
+  // `[data-theme="light"]` too, so a light block can sit inside a dark page
+  // (the /dev/primitives gallery renders both themes side by side).
+  push(':root, [data-theme="light"] {');
   for (const l of colourVars("light")) push(l);
   for (const [k, v] of Object.entries(t.cat)) push(`  --cat-${k}: ${v};`);
   for (const [k, v] of Object.entries(t.layer)) push(`  --layer-${k.replace(/_/g, "-")}: ${v};`);

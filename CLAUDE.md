@@ -65,3 +65,34 @@ Note `.env.local` is gitignored — never commit secrets.
 - Shell primitives: `components/popover.tsx`, `tabs.tsx` (`role=tab`), `sheet.tsx`
   (phone bottom sheet, `role=slider` handle), `you-menu.tsx` (phone fold), `map-overlay-dock.tsx`.
   Touch targets ≥ 40 px; `:focus-visible` ring; `motion-reduce` on transitions.
+
+## Visual grammar primitives (TRI-147)
+- One primitive per metric class in `components/viz/`: `BulletBar` (value vs region), `RangeBar`
+  (LQ/median/UQ), `Sparkline`, `SlopeChart` (censuses, straight segments), `Stacked100`,
+  `MultiBars` (multi-response), `DecileStrip`, `LayerBullets` (hazard count on the `hz` ramp),
+  `DotPlot` (travel modes), `DotStrip` (compare a/b/c), `Heatmap`; `EmptyTrack` is the shared
+  hatched empty state. Row/card shells: `components/metric-row.tsx`, `section-card.tsx`; provenance:
+  `components/source-chip.tsx` (`SourceChip` with `geometry`, `QualityMark`, `StatusPill`;
+  `provenance.tsx` re-exports it).
+- Every primitive takes `status` (`lib/viz/status.ts`: exact · est. · approx · computed · suppressed ·
+  unavailable) and gets `role="img"` + an aria-label from `lib/viz/aria.ts` that names the status.
+  Suppressed/unavailable draw a full-length hatched track with the reason — never a zero-length bar.
+  est./approx markers are OUTLINED (dots: tinted), computed is dashed; colour never carries quality.
+- The regional axis is the interquartile band p25–p75 with min/max whiskers fenced at Tukey limits
+  and a median tick (`lib/viz/scale.ts`); `judged` picks harbour vs ink for the marker, never good/bad.
+- Gallery at `/dev/primitives` (404 in production); `node scripts/test/tri-design-verify.mjs`
+  asserts labels, hatch, outlines, 4.5:1 text / 3:1 marks in both themes, and the 12 px floor.
+
+## Profile on the kit (TRI-148)
+- `components/profile-panel.tsx` is composition only: AddressFacts → banner → `ProfileHeader` →
+  `KpiCards` → six `SectionCard`s in persona order → `SchoolsCard`. `lib/sections.ts` maps registry
+  dimensions onto cards (People absorbs Deprivation; unclaimed dimensions render as a `GenericCard`,
+  never hidden) and lists `EXPECTED_ROWS` that draw a hatched track when the source suppressed them.
+- `components/profile/rows.tsx`: `ScalarRow` (bullet on the regional axis + trend + percentile note +
+  chip), `Trend` (Sparkline past the history gate, SlopeChart for census vintages, words for NZDep),
+  `BreakdownBlock` (Stacked100 with the Auckland reference from `fetchRegionalBreakdown()`, MultiBars
+  for ethnicity). Chips hoist to the card header when every row shares a source (`hoistChip`).
+- Getting around = one DotPlot (CBD / Airport / saved places via `lib/use-anchor-commute.ts`, one hook
+  for the list); no places → hatched row + "Add a place" (dispatches `nzsi:open-places`).
+- Hazards keep the countable badge sentence, per-row "Auckland median X", the verbatim caveat, and the
+  neutral ramp. Verify: the profile section of `tri-design-verify.mjs` + tri106/112/122–133/141.
