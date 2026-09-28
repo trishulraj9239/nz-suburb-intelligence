@@ -9,6 +9,7 @@
     "lint": "eslint",
     "tokens": "node scripts/tokens/emit-css.mjs",
     "test:unit": "node --test scripts/test/*.test.mjs",
+    "test:links": "node scripts/test/link-rot.mjs",
     "test:design": "node scripts/test/tri-design-verify.mjs",
     "test:phone": "node scripts/test/run-phone.mjs",
     "eval": "node scripts/eval/run.mjs"

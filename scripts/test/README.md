@@ -27,6 +27,7 @@ node scripts/test/tri141-verify.mjs     # shortlist UI: several pins on the map,
 node scripts/test/mobile-shell-verify.mjs  # TRI-145 A: phone shell at 390×844 in light + dark — one-row header, You menu, slider sheet, tablist, Layers dock, combobox, 12px floor
 node scripts/test/tri-design-verify.mjs    # TRI-147..151: primitives gallery, Profile, Compare, property panel, answer surfaces — 390 + 1440, light + dark (`npm run test:design`)
 node scripts/test/run-phone.mjs            # TRI-151: replays tri122/123/126–132/141 at 390×844 via NZSI_VIEWPORT, paced 20 s apart (`npm run test:phone`)
+npm run test:links                       # TRI-144: every outbound link (link-outs, Flood Viewer, GeoMaps, AUP, LINZ basemaps) answers on its own host — also monthly in CI (.github/workflows/link-rot.yml)
 npm run test:unit                        # node --test: tokens.css in sync with lib/tokens.ts, no sub-12px sizes, no hex outside the token files
 ```
 
