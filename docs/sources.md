@@ -397,3 +397,16 @@ that silently drops the address.
 | MOE Schools Directory | schools | CC BY 4.0 |
 | LINZ Basemaps | map tiles | CC BY 4.0 (key rotates ~90 days) |
 | OpenStreetMap | ORS road graph | ODbL 1.0 |
+
+## Link-rot check (TRI-144)
+
+Every outbound page the app sends people to — the seven "Not held by this app"
+link-outs in `lib/link-outs.ts`, the council Flood Viewer / GeoMaps / Unitary
+Plan links in `lib/property/copy.ts` and `lib/point-overlays.ts`, and the LINZ
+basemaps host — is checked by `npm run test:links` (`scripts/test/link-rot.mjs`,
+reads the URLs from the source files) and monthly by
+`.github/workflows/link-rot.yml`, which opens or updates the GitHub issue
+"Link rot: outbound links need updating" with a table of final URLs. A link
+fails on 4xx/5xx or when it redirects to a different host. When one moves, the
+fix is the one-line constant plus the matching row in this file.
+

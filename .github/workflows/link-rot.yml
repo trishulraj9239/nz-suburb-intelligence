@@ -1,0 +1,48 @@
+name: Link-rot check
+
+# TRI-144 — monthly (and on demand): every outbound page the app sends people
+# to still answers on its own host. On failure, opens or updates the issue
+# "Link rot: outbound links need updating" with the summary table.
+
+on:
+  schedule:
+    - cron: "17 3 1 * *" # 03:17 UTC on the 1st — NZ mid-afternoon
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check every outbound link
+        id: check
+        run: node scripts/test/link-rot.mjs
+        continue-on-error: true
+      - name: Open or update the issue on failure
+        if: steps.check.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync(process.env.GITHUB_STEP_SUMMARY, 'utf8') +
+              `\n\nRun: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n` +
+              `Fix = the one-line URL constant in the file named in the table, plus the matching docs/sources.md row (TRI-144).`;
+            const title = 'Link rot: outbound links need updating';
+            const { data: open } = await github.rest.issues.listForRepo({ ...context.repo, state: 'open', labels: 'link-rot' });
+            const existing = open.find((i) => i.title === title);
+            if (existing) {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: existing.number, body });
+            } else {
+              await github.rest.issues.create({ ...context.repo, title, body, labels: ['link-rot'] });
+            }
+      - name: Fail the run if links broke
+        if: steps.check.outcome == 'failure'
+        run: exit 1
